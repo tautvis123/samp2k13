@@ -1,0 +1,61 @@
+SS-RP ToDo
+
++ = hinzufügen
+- = enfernen
+~ = verändern
+
+
+---------------------------------
+
+Komplexe Systeme
++	Handy/SMS System (911)
++ 	Vehikel System(Engine, KMH, Tank, etc.) http://forum.sa-mp.com/showthread.php?t=222233 http://forum.sa-mp.com/showthread.php?t=228620 http://forum.sa-mp.com/showthread.php?t=87631&highlight=speedo http://forum.sa-mp.com/showthread.php?t=136277
++ 	Hausystem http://forum.sa-mp.com/showthread.php?t=182435
++ 	Banksystem
++ 	Fraktionskasse
++ 	Anti Cheat
++ 	Automatische Fahrschule
+
+
+Fraktionen
+~ Spawns nach LS verschieben
+
+Polizei:
++ /tazer (Wenn Wanted > 2)
++ /medic (Arzt direkt rufen)
++ Dialog Scheine entziehen (Nearby)
++ /ticket (Wenn Wanted = 0)
++ /duty
++ Personalausweis + Lizenzen
+
+Arzt:
++ /heal (Wenn beide im Krankenwagen)
+
+ADAC:
+
+Taxifahrer:
+
+Fahrlehrer:
+Dialog Scheine geben
+
+
+Bugfixes
+~ 	Bei /warn (3/3) keinen Kick, sondern einen Timebann erstellen; fixen (Errorcode tritt auf)
+~ 	MOTD \r\n fixen
+~	Pickups fixen
+
+
+Other
+~ 	In der DB die Variable Registered für Firstspawn setzen, da ingame Reg. deaktiviert
++ 	Homepage verknüpfungen, Controlpanel etc.
++	Blitzer
++	BSN DriveIn
+~	Kein SendClientMessage bei Führerschein
+~ 	"/set" ins Scoreboard integrieren (<- Kackarbeit)
++ 	Uhr
++	/showme
+
+~ Fraktionskasse: In Dialog packen, Leader (= Rang 5) sollen abheben und einzahlen können)
+
+
+Lets get this party started again !! ( 7.3.13 )
