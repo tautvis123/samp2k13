@@ -1,0 +1,19 @@
+AddPlayerClass(0,1930.3215,-1776.1310,13.5469,93.5084,0,0,0,0,0,0); // Alhambra Petrol Station
+AddPlayerClass(0,997.5215,-921.0881,42.1797,280.6280,0,0,0,0,0,0); // Burger Shot North Petrol Station
+AddPlayerClass(0,-79.5565,-1169.7639,2.1629,256.7678,0,0,0,0,0,0); // RS Haul Petrol Station
+AddPlayerClass(0,660.7679,-573.5139,16.3359,274.2632,0,0,0,0,0,0); // Dillimore Petrol Station
+AddPlayerClass(0,1382.7303,464.6540,20.2040,336.7287,0,0,0,0,0,0); // Montgomery Petrol Station
+AddPlayerClass(0,-2232.0854,-2557.9436,31.9219,245.5380,0,0,0,0,0,0); // Angel Pine Petrol Station
+AddPlayerClass(0,-1623.9540,-2693.8535,48.7427,326.6227,0,0,0,0,0,0); // Whetstone Petrol Station
+AddPlayerClass(0,-2032.1000,161.4818,29.0461,90.8854,0,0,0,0,0,0); // Doherty Petrol Station
+AddPlayerClass(0,-1675.8939,431.8836,7.1797,234.8885,0,0,0,0,0,0); // Easter Basin Petrol Station
+AddPlayerClass(0,-2418.7725,970.0265,45.2969,88.2473,0,0,0,0,0,0); // Juniper Hill Petrol Station
+AddPlayerClass(0,-1465.5171,1872.7550,32.6328,5.5469,0,0,0,0,0,0); // Tierra Robada Petrol Station
+AddPlayerClass(0,-1266.0439,2715.7612,50.2663,40.0072,0,0,0,0,0,0); // El Quebrados Petrol Station
+AddPlayerClass(0,637.8962,1684.6371,6.9922,222.1583,0,0,0,0,0,0); // Bone Country Petrol Station
+AddPlayerClass(0,60.6089,1225.8971,18.8654,92.1539,0,0,0,0,0,0); // Fort Carson Petrol Station
+AddPlayerClass(0,2117.4829,898.0604,11.1797,185.0312,0,0,0,0,0,0); // Come a lot Petrol Station
+AddPlayerClass(0,2637.2520,1128.6094,11.1797,2.4151,0,0,0,0,0,0); // xxx Petrol Station
+AddPlayerClass(0,1600.0146,2220.7227,11.0625,40.5747,0,0,0,0,0,0); // Redsands West Petrol Station
+AddPlayerClass(0,2189.4131,2469.6494,11.2422,92.8579,0,0,0,0,0,0); // Emerald Petrol Station
+AddPlayerClass(0,2150.9675,2735.3318,11.1763,195.4011,0,0,0,0,0,0); // Spinybed Petrol Station
