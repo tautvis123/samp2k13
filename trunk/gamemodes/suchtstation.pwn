@@ -9,24 +9,12 @@
 
 #define SERVER_VERSION          "0.1a"
 
-/*
+
 #define MYSQL_HOST              "db4free.net"
-#define MYSQL_USER              "hearteyy2"
-#define MYSQL_DB                "ssrp2"                 //<--- LANGSAM
+#define MYSQL_USER              "samp2k13"
+#define MYSQL_DB                "samp2013"
 #define MYSQL_PASS              "db123456"
-*/
 
-#define MYSQL_HOST              "localhost"
-#define MYSQL_USER              "root"
-#define MYSQL_DB                "sampss"
-#define MYSQL_PASS              "test123"
-
-/*
-#define MYSQL_HOST   			"SQL09.FREEMYSQL.NET"
-#define MYSQL_USER   			"hearteyy"
-#define MYSQL_DB   				"sampss"                //<--- Beim joinen vom Player werden für den MySQL Server zu viele Daten abgefragt
-#define MYSQL_PASS   			"samp123"
-*/
 
 #define mysql_fetch_row(%1)     mysql_fetch_row_format(%1,"|")
 
