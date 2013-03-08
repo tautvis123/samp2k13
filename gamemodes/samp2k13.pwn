@@ -66,7 +66,7 @@ forward ChangeWeather();
 forward NearByMessage(playerid, color, string[]);
 forward SendAdminMessage(color, string[], requireduty);
 forward ResetUnusedDBVehicles();
-forward AntiCheat(playerid);
+forward AntiCheat();
 
 enum PlayerData
 {
@@ -142,7 +142,6 @@ public OnGameModeInit()
     }
     mysql_free_result();
 
-    AllowAdminTeleport(1);
     DisableInteriorEnterExits();
     EnableStuntBonusForAll(0);
     LimitGlobalChatRadius(20.0);
@@ -1738,48 +1737,37 @@ public ResetUnusedDBVehicles()
 	return true;
 }
 
-public AntiCheat(playerid)
+public AntiCheat()
 {
     new string[128];
-	if(GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_USEJETPACK) {
-        if(pStats[playerid][pAdminLevel] > 0) {
-            foreach(Player, i) {
-                if(pStats[i][pAdminLevel] == 0) {
-                    format(string, sizeof(string), "** Warnung: %s [ID: %d] könnte ein Jetpack benutzen.", GetName(playerid), playerid, playerid);
-                    SendAdminMessage(COLOR_RED, string, 0);
-                }
-            }
-        }
-    }
-    else if(GetPlayerCash(playerid) < GetPlayerMoney(playerid)) {
-        foreach(Player, i) {
-            if(pStats[playerid][pAdminLevel] > 1) {
-                format(string, sizeof(string), "** Warnung: %s [ID: %d] könnte einen Geldcheat benutzen. (Geld 'erschaffen': %d)", GetName(playerid), playerid, GetPlayerMoney(playerid));
+    
+    foreach(Player, i) {
+		if(GetPlayerSpecialAction(i) == SPECIAL_ACTION_USEJETPACK) {
+			format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte ein Jetpack benutzen.", GetName(i), i);
+	        SendAdminMessage(COLOR_RED, string, 0);
+
+			format(string, sizeof(string), "[Jetpack-Warnung]: %s", GetName(i));
+		    Log2File("anti-cheat", string);
+		}
+	    else if(GetPlayerCash(i) < GetPlayerMoney(i)) {
+                format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte einen Geldcheat benutzen. (Geld 'erschaffen': $%d)", GetName(i), i, GetPlayerMoney(i));
                 SendAdminMessage(COLOR_RED, string, 0);
 
-                new const old_money = GetPlayerCash(playerid);
-                ResetPlayerCash(playerid), GivePlayerCash(playerid, old_money);
-			}
-			else {
-			    format(string, sizeof(string), "** AUTO-BAN: %s has been banned from this server. Reason: Money Hacking", GetName(playerid));
-			    SendClientMessageToAll(COLOR_RED, string);
+				format(string, sizeof(string), "[Geld-Warnung]: %s, 'erschaffenes' Geld: $%d", GetName(i), GetPlayerMoney(i));
+			    Log2File("anti-cheat", string);
 
-			    new const old_money = GetPlayerCash(playerid);
-			    ResetPlayerCash(playerid), GivePlayerCash(playerid, old_money);
-
-			    BanEx(playerid, "Money Hacking");
-			    Kick(playerid);
-		    }
+                new const old_money = GetPlayerCash(i);
+                ResetPlayerCash(i), GivePlayerCash(i, old_money);
 		}
+	    /*else if(pStats[playerid][pAdminLevel] < 1) {
+	        if(GetPlayerPing(i) > MAX_PING) {
+	            format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Maximaler Ping überschritten. (%d, Maximum: %d)", GetName(playerid), playerid, GetPlayerPing(playerid), MAX_PING);
+	            SendClientMessageToAll(COLOR_RED, string);
+	            Kick(playerid);
+	        }
+	    }*/
 	}
-    else if(pStats[playerid][pAdminLevel] < 1) {
-        if(GetPlayerPing(playerid) > MAX_PING) {
-            format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Maximaler Ping überschritten. (%d, Maximum: %d)", GetName(playerid), playerid, GetPlayerPing(playerid), MAX_PING);
-            SendClientMessageToAll(COLOR_RED, string);
-            Kick(playerid);
-        }
-    }
-    //SendClientMessageToAll(COLOR_RED, "AntiCheat tick.");
+	//print("Anti Cheat tick.");
 	return true;
 }
 
