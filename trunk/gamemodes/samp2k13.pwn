@@ -2,9 +2,9 @@
 
 #include <a_samp>
 #include <a_mysql>
-#include <zcmd>
 #include <sscanf2>
-#include <streamer>
+#include <YSI\y_commands>
+#include <YSI\y_master>
 #include <foreach>
 #include <md5>
 
@@ -366,9 +366,10 @@ public OnPlayerText(playerid, text[])
 // admin commands ascending
 // adminlevel 1
 
-command(ahelp, playerid, params[])
+YCMD:ahelp(playerid, params[], help)
 {
 #pragma unused params
+    Command_AddAltNamed("ahelp", "ah");
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
 
     //if(pStats[playerid][pAdminLevel] >= 1)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 1: /adminduty /kick /ban /warn /mute");
@@ -380,17 +381,10 @@ command(ahelp, playerid, params[])
 }
 
 
-command(ah, playerid, params[])
+YCMD:adminduty(playerid, params[], help)
 {
 #pragma unused params
-    return cmd_adminduty(playerid, params);
-}
-
-
-command(adminduty, playerid, params[])
-{
-#pragma unused params
-
+    Command_AddAltNamed("adminduty", "aduty");
     new string[128];
 
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -413,227 +407,7 @@ command(adminduty, playerid, params[])
     return true;
 }
 
-
-command(aduty, playerid, params[])
-{
-#pragma unused params
-    return cmd_adminduty(playerid, params);
-}
-
-
-/*
-command(kick, playerid, params[])
-{
-    new string[128], reason[105], giveplayerid;
-    if(pStats[playerid][pAdminLevel] < 1) 										return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-    if(sscanf(params, "uS(No Reason Given)[128]", giveplayerid, reason)) 					return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /kick [SpielerID] [Grund]");
-    if(pStats[playerid][pAdminLevel] < pStats[giveplayerid][pAdminLevel])					return SendClientMessage(playerid, COLOR_RED, "** Du kannst keinen Administrator mit einem höheren AdminLevel kicken.");
-    if(GetPVarInt(giveplayerid, "Authentication") != 1)									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
-
-    format(string, sizeof(string), "** Du wurdest von Administrator %s gekickt. Grund: %s", GetName(playerid), reason);
-    SendClientMessage(giveplayerid, COLOR_RED, string);
-
-	format(string, sizeof(string), "** Administrator %s hat %s gekickt. Grund: %s", GetName(playerid), GetName(giveplayerid), reason);
-	SendClientMessageToAll(COLOR_PURPLE, string);
-	Log2File("admin", string);
-
-	Kick(giveplayerid);
-	return true;
-}
-
-command(ban, playerid, params[])
-{
-	new string[128], reason[105], giveplayerid;
-	if(pStats[playerid][pAdminLevel] < 1)										return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-	if(sscanf(params, "us[128]", giveplayerid, reason))									return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /ban [SpielerID] [Grund]");
-	if(pStats[playerid][pAdminLevel] < pStats[giveplayerid][pAdminLevel])					return SendClientMessage(playerid, COLOR_RED, "** Du kannst keinen Administrator mit einem höheren AdminLevel bannen.");
-	if(GetPVarInt(giveplayerid, "Authentication") != 1)									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
-
-	format(string, sizeof(string), "** Du wurdest von Administrator %s gebannt. Grund: %s", GetName(playerid), reason);
-	SendClientMessage(giveplayerid, COLOR_RED, string);
-
-	format(string, sizeof(string), "** Administrator %s hat %s gebannt. Grund: %s", GetName(playerid), GetName(giveplayerid), reason);
-	SendClientMessageToAll(COLOR_PURPLE, string);
-    Log2File("admin", string);
-	BanEx(giveplayerid, reason);
-	Kick(giveplayerid);
-	return true;
-}
-
-command(warn, playerid, params[])
-{
-	new string[128], reason[128], giveplayerid;
-	if(pStats[playerid][pAdminLevel] < 1) 										return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-	if(sscanf(params, "us[128]", giveplayerid, reason)) 									return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /warn [SpielerID] [Grund]");
-	if(GetPVarInt(giveplayerid, "Authentication") != 1) 									return SendClientMessage(playerid, COLOR_RED,  ERRORMESSAGE_USER_ID_NOTONLINE);
-
-	pStats[giveplayerid][pWarns] ++;
-		if(pStats[giveplayerid][pWarns] == -1) {
-		format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt. Grund: %s", GetName(playerid), GetName(giveplayerid), giveplayerid, reason);
-		SendClientMessageToAll(COLOR_PURPLE, string);
-		SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 1/3 gestiegen.");
-
-		format(query, sizeof(query), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", reason, GetName(giveplayerid));
-		mysql_query(query);
-		pStats[playerid][pWarns] ++;
-	}
-	else if(pStats[giveplayerid][pWarns] == 1) {
-		format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt. Grund: %s [2/3]", GetName(playerid), GetName(giveplayerid), giveplayerid, reason);
-		SendClientMessageToAll(COLOR_PURPLE, string);
-		SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 2/3 gestiegen.");
-
-		format(query, sizeof(query), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", reason, GetName(playerid));
-		mysql_query(query);
-	}
-	else if(pStats[playerid][pWarns] == 2) {
-		format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt. Grund: %s [3/3]", GetName(playerid), GetName(giveplayerid), giveplayerid, reason);
-		SendClientMessageToAll(COLOR_PURPLE, string);
-		format(string, sizeof(string), "** %s [ID: %d] wurde aufgrund von zuvielen Verwarnungen vom Server gebannt.", GetName(giveplayerid), giveplayerid);
-		SendClientMessageToAll(COLOR_PURPLE, string);
-
-		format(query, sizeof(query), "UPDATE `accounts` SET `warning3` = '%s' WHERE `username` = '%s'", reason, GetName(playerid));
-		mysql_query(query);
-
-		Kick(giveplayerid);
-	}
-	else SendClientMessage(playerid, COLOR_RED, "* SERVER: Bei dieser Interaktion ist ein Fehler aufgetreten. (Errorcode: #001)");
-	SavePlayerAccount(playerid);
-    Log2File("admin", string);
-	return true;
-}
-
-command(mute, playerid, params[])
-{
-    new string[128], giveplayerid;
-    if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-    if(sscanf(params, "u", giveplayerid))               return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /mute [SpielerID]");
-    if(GetPVarInt(giveplayerid, "Authentication") != 1)     return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
-
-    if(GetPVarInt(giveplayerid, "PlayerMuted") == 0) {
-        SetPVarInt(giveplayerid, "PlayerMuted", 1);
-
-        format(string, sizeof(string), "** Administrator %s hat dich stumm gestellt.", GetName(playerid));
-        SendClientMessage(giveplayerid, COLOR_PURPLE, string);
-
-        format(string, sizeof(string), "** Du hast %s stumm gestellt.", GetName(giveplayerid));
-        SendClientMessage(playerid, COLOR_PURPLE, string);
-
-        format(string, sizeof(string), "** Administrator %s hat %s stumm gestellt.", GetName(playerid), GetName(giveplayerid));
-    }
-    else {
-        SetPVarInt(playerid, "PlayerMuted", 0);
-
-        format(string, sizeof(string), "** Administrator %s hat dich entstummt (lol, pls changeme).", GetName(playerid));
-        SendClientMessage(giveplayerid, COLOR_PURPLE, string);
-
-        format(string, sizeof(string), "** Du hast %s entstummt.", GetName(giveplayerid));
-        SendClientMessage(playerid, COLOR_PURPLE, string);
-
-        format(string, sizeof(string), "** Administrator %s hat %s entstummt.", GetName(playerid), GetName(giveplayerid));
-    }
-    Log2File("admin", string);
-    return true;
-}
-
-
-// adminlevel 2
-
-command(goto, playerid, params[])
-{
-    new giveplayerid;
-    if(pStats[playerid][pAdminLevel] < 2) 										return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-    if(isnull(params)) 															return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung:/goto [Ort]"),
-                       SendClientMessage(playerid, COLOR_WHITE, "* Parameter: ls, sf, lv");
-    if(GetPVarInt(playerid, "AdminDuty") == 0) 									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_NOTONDUTY);
-    if(GetPVarInt(giveplayerid, "Authentication") != 1)									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
-
-	if(IsPlayerInAnyVehicle(playerid)) {
-		GetPlayerPos(giveplayerid, X, Y, Z);
-		vehicle = GetPlayerVehicleID(playerid);
-		SetVehiclePos(vehicle, X+2, Y, Z);
-		PutPlayerInVehicle(playerid, vehicle, 0);
-	}
-	else {
-		GetPlayerPos(giveplayerid, X, Y, Z);
-		SetPlayerPos(playerid, X+4, Y, Z);
-	}
-	format(string, sizeof(string), "** Du hast dich zu %s teleportiert.", GetName(giveplayerid));
-	SendClientMessage(playerid, COLOR_PURPLE, string);
-
-	format(string, sizeof(string), "** Administrator %s hat sich zu %s teleportiert.", GetName(playerid), GetName(giveplayerid));
-    Log2File("admin", string);
-	return true;
-}
-
-command(gethere, playerid, params[])
-{
-	new string[128], giveplayerid, vehicle;
-	new Float:X, Float:Y, Float:Z;
-	if(pStats[playerid][pAdminLevel] < 2) 										return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-	if(GetPVarInt(playerid, "AdminDuty") == 0) 									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_NOTONDUTY);
-	if(GetPVarInt(giveplayerid, "Authentication") != 1)									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
-	if(sscanf(params, "u", giveplayerid)) 												return SendClientMessage(playerid, COLOR_GREY, "* Verwendung:/gethere [SpielerID]"),
-																				               SendClientMessage(playerid, COLOR_WHITE, "Function: Will teleport the specified player to your position.");
-																				               
-	if(IsPlayerInAnyVehicle(giveplayerid)) {
-		GetPlayerPos(playerid, X, Y, Z);
-		vehicle = GetPlayerVehicleID(giveplayerid);
-		SetVehiclePos(vehicle, X+2, Y, Z);
-		PutPlayerInVehicle(giveplayerid, vehicle, 0);
-	}
-	else {
-		GetPlayerPos(playerid, X, Y, Z);
-		SetPlayerPos(giveplayerid, X+2, Y, Z);
-	}
-	format(string, sizeof(string), "** Du wurdest zu Administrator %s teleportiert.", GetName(playerid));
-	SendClientMessage(giveplayerid, COLOR_PURPLE, string);
-
-	format(string, sizeof(string), "** Du hast %s zu dir teleportiert.", GetName(giveplayerid));
-	SendClientMessage(playerid, COLOR_PURPLE, string);
-
-	format(string, sizeof(string), "** Administrator %s hat %s zu sich teleportiert.", GetName(playerid), GetName(giveplayerid));
-    Log2File("admin", string);
-	return true;
-}
-
-command(freeze, playerid, params[])
-{
-	new string[128], giveplayerid;
-	if(pStats[playerid][pAdminLevel] < 2) 										return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-	if(sscanf(params, "u", giveplayerid))													return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /freeze [SpielerID]");
-	if(GetPVarInt(giveplayerid, "Authentication") != 1)									return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
-
-	if(GetPVarInt(giveplayerid, "PlayerFrozen") == 0) {
-		TogglePlayerControllable(giveplayerid, false);
-		SetPVarInt(giveplayerid, "PlayerFrozen", 1);
-
-		format(string, sizeof(string), "** Administrator %s hat dich eingefroren.", GetName(playerid));
-		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
-
-		format(string, sizeof(string), "** Du hast %s eingefroren", GetName(giveplayerid));
-		SendClientMessage(playerid, COLOR_PURPLE, string);
-
-		format(string, sizeof(string), "** Administrator %s hat %s eingefroren.", GetName(playerid), GetName(giveplayerid));
-	}
-	else {
-		TogglePlayerControllable(giveplayerid, true);
-		SetPVarInt(giveplayerid, "PlayerFrozen", 0);
-
-		format(string, sizeof(string), "** Administrator %s hat dich aufgetaut.", GetName(playerid));
-		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
-
-		format(string, sizeof(string), "** Du hast %s aufgetaut", GetName(giveplayerid));
-		SendClientMessage(playerid, COLOR_PURPLE, string);
-
-		format(string, sizeof(string), "** Administrator %s hat %s aufgetaut.", GetName(playerid), GetName(giveplayerid));
-	}
-    Log2File("admin", string);
-	return true;
-}
-
-*/
-
-command(spawnveh, playerid, params[])
+YCMD:spawnveh(playerid, params[], help)
 {
     new val, color1, color2, string[128];
     new Float:X, Float:Y, Float:Z, Float:A;
@@ -659,7 +433,7 @@ command(spawnveh, playerid, params[])
 }
 
 
-command(respawncar, playerid, params[])
+YCMD:respawncar(playerid, params[], help)
 {
 #pragma unused params
 
@@ -670,7 +444,7 @@ command(respawncar, playerid, params[])
 }
 
 
-command(respawnaveh, playerid, params[])
+YCMD:respawnaveh(playerid, params[], help)
 {
 #pragma unused params
 
@@ -687,14 +461,14 @@ command(respawnaveh, playerid, params[])
 	return true;
 }
 
-command(test, playerid, params[])
+YCMD:test(playerid, params[], help)
 {
 #pragma unused params
 	ResetUnusedDBVehicles();
 }
 
 
-command(repairveh, playerid, params[])
+YCMD:repairveh(playerid, params[], help)
 {
     new string[128], giveplayerid;
     if(pStats[playerid][pAdminLevel] < 2)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -718,7 +492,7 @@ command(repairveh, playerid, params[])
 }
 
 
-/*command(saveveh, playerid, params[])
+/*YCMD:saveveh(playerid, params[], help)
 {
     new Color1, Color2, Float:PositionX, Float:PositionY, Float:PositionZ, Float:AngleZ;
     new vehicleid = GetPlayerVehicleID(playerid);
@@ -736,7 +510,7 @@ command(repairveh, playerid, params[])
 	return true;
 }
 
-command(deleteveh, playerid, params[])
+YCMD:deleteveh(playerid, params[], help)
 {
 #pragma unused params
 
@@ -755,7 +529,7 @@ command(deleteveh, playerid, params[])
 
 // adminlevel 3
 
-command(makeadmin, playerid, params[])
+YCMD:makeadmin(playerid, params[], help)
 {
     new giveplayerid, level, string[128];
     if(!IsPlayerAdmin(playerid)/* && pStats[playerid][pAdminLevel] < 3*/)       return false;
@@ -777,7 +551,7 @@ command(makeadmin, playerid, params[])
 }
 
 
-command(motd, playerid, params[])
+YCMD:motd(playerid, params[], help)
 {
     new string[128];
     if(pStats[playerid][pAdminLevel] < 3)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -794,7 +568,7 @@ command(motd, playerid, params[])
 }
 
 
-command(say, playerid, params[])
+YCMD:say(playerid, params[], help)
 {
     new string[128];
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -809,7 +583,7 @@ command(say, playerid, params[])
 }
 
 
-command(set, playerid, params[])
+YCMD:set(playerid, params[], help)
 {
     new string[128], Usage[16], giveplayerid, val;
 
@@ -950,7 +724,7 @@ command(set, playerid, params[])
     return true;
 }
 
-/*command(giveweapon, playerid, params[])       <-- in /set integrieren
+/*YCMD:giveweapon(playerid, params[], help)       <-- in /set integrieren
 {
     new string[128], id, weapon, ammo;
 
@@ -969,8 +743,9 @@ format(string, sizeof(string), "** Administrator %s hat %s die Waffe mit der ID 
 return true;
 }*/
 
-command(announce, playerid, params[])
+YCMD:announce(playerid, params[], help)
 {
+    Command_AddAltNamed("announce", "ann");
     new string[128];
 
     if(pStats[playerid][pAdminLevel] < 3)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -985,11 +760,9 @@ command(announce, playerid, params[])
 }
 
 
-command(ann, playerid, params[]) return cmd_announce(playerid, params);
-
 // player
 
-command(help, playerid, params[])
+YCMD:help(playerid, params[], help)
 {
 #pragma unused params
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
@@ -1014,7 +787,7 @@ command(help, playerid, params[])
 }
 
 
-command(saveacc, playerid, params[])              // debug cmd
+YCMD:saveacc(playerid, params[], help)              // debug cmd
 {
 #pragma unused params
     SavePlayerAccount(playerid);
@@ -1022,7 +795,7 @@ command(saveacc, playerid, params[])              // debug cmd
 }
 
 
-command(admins, playerid, params[])
+YCMD:admins(playerid, params[], help)
 {
 #pragma unused params
 
@@ -1057,7 +830,7 @@ command(admins, playerid, params[])
 }
 
 
-command(afk, playerid, params[])
+YCMD:afk(playerid, params[], help)
 {
 #pragma unused params
 
@@ -1077,7 +850,7 @@ command(afk, playerid, params[])
 }
 
 
-command(s, playerid, params[])
+YCMD:s(playerid, params[], help)
 {
     new string[128];
 
@@ -1093,7 +866,7 @@ command(s, playerid, params[])
 }
 
 
-command(b, playerid, params[])
+YCMD:b(playerid, params[], help)
 {
     new string[128];
 
@@ -1109,7 +882,7 @@ command(b, playerid, params[])
 }
 
 
-command(me, playerid, params[])
+YCMD:me(playerid, params[], help)
 {
     new string[128];
 
@@ -1125,8 +898,9 @@ command(me, playerid, params[])
 }
 
 
-command(ooc, playerid, params[])
+YCMD:ooc(playerid, params[], help)
 {
+    Command_AddAltNamed("ooc", "o");
     new string[128];
 
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
@@ -1141,14 +915,7 @@ command(ooc, playerid, params[])
 }
 
 
-command(o, playerid, params[])
-{
-#pragma unused params
-    return cmd_ooc(playerid, params);
-}
-
-
-command(givecash, playerid, params[])
+YCMD:givecash(playerid, params[], help)
 {
     new string[128], giveplayerid, amount, Float:PosX, Float:PosY, Float:PosZ;
 
@@ -1183,7 +950,7 @@ command(givecash, playerid, params[])
 
 // faction
 
-command(getfunds, playerid, params[])
+YCMD:getfunds(playerid, params[], help)
 {
 	if(pStats[playerid][pFactionRank] != 5) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_FACTIONRANK_TOOLOW);
 
