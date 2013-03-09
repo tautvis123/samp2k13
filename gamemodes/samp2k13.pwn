@@ -3,9 +3,12 @@
 #include <a_samp>
 #include <a_mysql>
 #include <zcmd>
+#include <sscanf2>
 #include <streamer>
 #include <foreach>
 #include <md5>
+
+
 
 #define SERVER_VERSION          ".1r1"
 
@@ -121,8 +124,6 @@ new CurrentSpawnedVehicle[MAX_PLAYERS];
 new pickupHospitalLow, pickupHospitalUp, pickupParlamentOut, pickupParlamentIn;
 new pickupStoreOut, pickupStoreIn;
 
-native sscanf(const data[], const format[], {Float,_} :...);
-native unformat(const data[], const format[], {Float,_} :...) = sscanf;
 
 main() {}
 
@@ -176,6 +177,8 @@ public OnGameModeInit()
 	Create3DTextLabel("Parlament", COLOR_WHITE, 1310.0339, -1367.0052, 353.0, -1, 0);
 	Create3DTextLabel("Store", COLOR_WHITE, 1471.2391, -1177.9728, 23.9215, 221.0, -1, 0);
 	
+ 	AddPlayerClass(0, 1958.33, 1343.12, 15.36, 269.15, 0, 0, 0, 0, 0, 0); // ( http://forum.sa-mp.com/showthread.php?t=269488 )
+ 	
     return true;
 }
 
@@ -203,7 +206,7 @@ public OnPlayerConnect(playerid)
     SendClientMessageToAll(COLOR_OOC, string);
 
     ResetPlayerVariables(playerid);
-    format(query, sizeof(query), "SELECT * FROM `Accounts` WHERE `username` = '%s'", GetEscName(playerid)); mysql_query(query); mysql_store_result();
+    format(query, sizeof(query), "SELECT * FROM `accounts` WHERE `username` = '%s'", GetEscName(playerid)); mysql_query(query); mysql_store_result();
     for(new i = 0; i < 10; i++) SendClientMessage(playerid, COLOR_GREY, " ");
 
     if(mysql_num_rows() > 0) {
@@ -273,8 +276,8 @@ public OnPlayerSpawn(playerid)
 		SetPlayerFacingAngle(playerid, 359.0151);
 		
 		
-	//	AddPlayerClass(0,-2665.5969,-2.1069,6.1328,93.2043,0,0,0,0,0,0); // Bank1
-	//	AddPlayerClass(0,-2666.0901,-9.2802,6.1328,90.6976,0,0,0,0,0,0); // Bank2
+		//AddPlayerClass(0,-2665.5969,-2.1069,6.1328,93.2043,0,0,0,0,0,0); // Bank1
+		//AddPlayerClass(0,-2666.0901,-9.2802,6.1328,90.6976,0,0,0,0,0,0); // Bank2
 		return true;
     }
     
@@ -470,7 +473,7 @@ command(warn, playerid, params[])
 		SendClientMessageToAll(COLOR_PURPLE, string);
 		SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 1/3 gestiegen.");
 
-		format(query, sizeof(query), "UPDATE `Accounts` SET `warning1` = '%s' WHERE `username` = '%s'", reason, GetName(giveplayerid));
+		format(query, sizeof(query), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", reason, GetName(giveplayerid));
 		mysql_query(query);
 		pStats[playerid][pWarns] ++;
 	}
@@ -479,7 +482,7 @@ command(warn, playerid, params[])
 		SendClientMessageToAll(COLOR_PURPLE, string);
 		SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 2/3 gestiegen.");
 
-		format(query, sizeof(query), "UPDATE `Accounts` SET `warning2` = '%s' WHERE `username` = '%s'", reason, GetName(playerid));
+		format(query, sizeof(query), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", reason, GetName(playerid));
 		mysql_query(query);
 	}
 	else if(pStats[playerid][pWarns] == 2) {
@@ -488,7 +491,7 @@ command(warn, playerid, params[])
 		format(string, sizeof(string), "** %s [ID: %d] wurde aufgrund von zuvielen Verwarnungen vom Server gebannt.", GetName(giveplayerid), giveplayerid);
 		SendClientMessageToAll(COLOR_PURPLE, string);
 
-		format(query, sizeof(query), "UPDATE `Accounts` SET `warning3` = '%s' WHERE `username` = '%s'", reason, GetName(playerid));
+		format(query, sizeof(query), "UPDATE `accounts` SET `warning3` = '%s' WHERE `username` = '%s'", reason, GetName(playerid));
 		mysql_query(query);
 
 		Kick(giveplayerid);
@@ -728,7 +731,7 @@ command(repairveh, playerid, params[])
     GetVehicleZAngle(vehicleid, AngleZ);
 	GetVehicleColor(vehicleid, Color1, Color2);
 
-	format(query, sizeof(query), "INSERT INTO `Vehicles` (model, position_X, position_Y, position_Z, angle, color1, color2) VALUES(%d, %f, %f, %f, %f, %d, %d)", ModelID, PositionX, PositionY, PositionZ, AngleZ, Color1, Color2);
+	format(query, sizeof(query), "INSERT INTO `vehicles` (model, position_X, position_Y, position_Z, angle, color1, color2) VALUES(%d, %f, %f, %f, %f, %d, %d)", ModelID, PositionX, PositionY, PositionZ, AngleZ, Color1, Color2);
 	mysql_query(query);
 	return true;
 }
@@ -796,6 +799,7 @@ command(say, playerid, params[])
     new string[128];
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /say [Nachricht]"),
+
     format(string, sizeof(string), "** Admin: %s", params);
     SendClientMessageToAll(COLOR_PURPLE, string);
 
@@ -1422,7 +1426,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!response) Kick(playerid);
             else if(strlen(inputtext) < 4 || strlen(inputtext) > 30) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein Passwort ein.", "Login", " ");
 
-            mysql_GetString("password", "Accounts", "username", GetName(playerid), pStats[playerid][pPassword]);
+            mysql_GetString("password", "accounts", "username", GetName(playerid), pStats[playerid][pPassword]);
             if(strcmp(MD5_Hash(inputtext), pStats[playerid][pPassword], true) == 0) {
                 if(strlen(motd) != 0) {
                     new string[1024];
@@ -1438,7 +1442,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		/*case 1: { // registration
 		    if(!response) Kick(playerid);
 		    else if(strlen(inputtext) < 4 || strlen(inputtext) > 30) ShowPlayerDialog(playerid, PLAYER_DIALOG_REGISTER, DIALOG_STYLE_INPUT, "Registration", "Bitte tippe dein gewünschtes Passwort ein.\n[4-30 Zeichen]", "Registration", "Abbrechen");
-		    format(query, sizeof(query), "INSERT INTO `Accounts` (username, password) VALUES('%s', '%s')", GetEscName(playerid), inputtext); mysql_query(query); // evtl. noch andere Werte wie IP usw. setzen
+		    format(query, sizeof(query), "INSERT INTO `accounts` (username, password) VALUES('%s', '%s')", GetEscName(playerid), inputtext); mysql_query(query); // evtl. noch andere Werte wie IP usw. setzen
 		    SetPVarInt(playerid, "JustRegistered", 1);
 		    SpawnPlayer(playerid);
 		}*/
@@ -1688,21 +1692,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if(pStats[giveplayerid][pWarns] == -1) {
                 SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 1/3 gestiegen.");
-                format(query, sizeof(query), "UPDATE `Accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
+                format(query, sizeof(query), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
                 mysql_query(query);
                 pStats[playerid][pWarns] ++;
             }
 
             else if(pStats[giveplayerid][pWarns] == 1) {
                 SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 2/3 gestiegen.");
-                format(query, sizeof(query), "UPDATE `Accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, GetName(playerid));
+                format(query, sizeof(query), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, GetName(playerid));
                 mysql_query(query);
             }
 
             else if(pStats[playerid][pWarns] == 2) {
                 format(string, sizeof(string), "** %s [ID: %d] wurde aufgrund von zuvielen Verwarnungen vom Server gebannt.", GetName(giveplayerid), giveplayerid);
                 SendClientMessageToAll(COLOR_PURPLE, string);
-                format(query, sizeof(query), "UPDATE `Accounts` SET `warning3` = '%s' WHERE `username` = '%s'", inputtext, GetName(playerid));
+                format(query, sizeof(query), "UPDATE `accounts` SET `warning3` = '%s' WHERE `username` = '%s'", inputtext, GetName(playerid));
                 mysql_query(query);
                 Kick(giveplayerid);
             }
@@ -1727,9 +1731,9 @@ public ResetUnusedDBVehicles()
 	new playerOnline[MAX_PLAYERS];
 	foreach(Player, i){
 		GetPlayerName(i, playerOnline[i], sizeof(playerOnline));
-		//mysql_GetString("owner", "Vehicles", playerOnline[i], pStats[playerid][pPassword]);
+		//mysql_GetString("owner", "vehicles", playerOnline[i], pStats[playerid][pPassword]);
 
-		format(query, sizeof(query), "SELECT `owner` FROM `Vehicles` WHERE `username` = '%s'", playerOnline[i]);
+		format(query, sizeof(query), "SELECT `owner` FROM `vehicles` WHERE `username` = `%s`", playerOnline[i]);
 		mysql_query(query);
 		mysql_store_result();
 	}
@@ -1893,7 +1897,7 @@ stock Float:mysql_GetFloat(field[], table[], req[], requirement[])
 stock mysql_GetVehicleString(field[], req[], requirement[], var[])
 {
     mysql_real_escape_string(field, field); mysql_real_escape_string(req, req); mysql_real_escape_string(requirement, requirement);
-    format(query, sizeof(query), "SELECT `%s` FROM `Vehicles` WHERE `%s` = '%s'", field, req, requirement); mysql_query(query); mysql_store_result();
+    format(query, sizeof(query), "SELECT `%s` FROM `vehicles` WHERE `%s` = '%s'", field, req, requirement); mysql_query(query); mysql_store_result();
     if(mysql_fetch_row(var) == 1) mysql_free_result();
     return true;
 }
@@ -1901,7 +1905,7 @@ stock mysql_GetVehicleString(field[], req[], requirement[], var[])
 stock mysql_GetVehicleInt(field[], req[], requirement[])
 {
     mysql_real_escape_string(field, field); mysql_real_escape_string(req, req); mysql_real_escape_string(requirement, requirement);
-    format(query, sizeof(query), "SELECT `%s` FROM `Vehicles` WHERE `%s` = '%d'", field, req, requirement); mysql_query(query); mysql_store_result();
+    format(query, sizeof(query), "SELECT `%s` FROM `vehicles` WHERE `%s` = '%d'", field, req, requirement); mysql_query(query); mysql_store_result();
     new var = mysql_fetch_int(); mysql_free_result();
 	//if(var == -1) return false;
     return var;
@@ -1911,7 +1915,7 @@ stock Float:mysql_GetVehicleFloat(field[], req[], requirement)
 {
     new Float:var;
     mysql_real_escape_string(field, field); mysql_real_escape_string(req, req); mysql_real_escape_string(requirement, requirement);
-    format(query, sizeof(query), "SELECT `%s` FROM `Vehicles` WHERE `%s` = '%d'", field, table, req, requirement); mysql_query(query); mysql_store_result();
+    format(query, sizeof(query), "SELECT `%s` FROM `vehicles` WHERE `%s` = '%d'", field, table, req, requirement); mysql_query(query); mysql_store_result();
     if(mysql_fetch_float(var) == 1) {
         mysql_free_result();
         return var;
@@ -1924,38 +1928,38 @@ stock LoadPlayerAccount(playerid)
 {
     if(GetPVarInt(playerid, "Authentication") != 1) return false;
 
-    mysql_GetString("email",        "Accounts", "username", GetName(playerid), pStats[playerid][pEmail]);
-    mysql_GetString("ip_address",   "Accounts", "username", GetName(playerid), pStats[playerid][pIPAddress]);
+    mysql_GetString("email",        "accounts", "username", GetName(playerid), pStats[playerid][pEmail]);
+    mysql_GetString("ip_address",   "accounts", "username", GetName(playerid), pStats[playerid][pIPAddress]);
 
-    pStats[playerid][pAdminLevel]   = mysql_GetInt("admin_level",   "Accounts", "username", GetName(playerid));
-    pStats[playerid][pFaction]      = mysql_GetInt("faction",       "Accounts", "username", GetName(playerid));
-    pStats[playerid][pFactionRank]  = mysql_GetInt("faction_rank",  "Accounts", "username", GetName(playerid));
-    pStats[playerid][pJob]          = mysql_GetInt("job",           "Accounts", "username", GetName(playerid));
-    pStats[playerid][pCash]         = mysql_GetInt("cash",          "Accounts", "username", GetName(playerid));
-    pStats[playerid][pCC]           = mysql_GetInt("cc",            "Accounts", "username", GetName(playerid));
-    pStats[playerid][pLevel]        = mysql_GetInt("level",         "Accounts", "username", GetName(playerid));
-    pStats[playerid][pSkin]         = mysql_GetInt("skin",          "Accounts", "username", GetName(playerid));
+    pStats[playerid][pAdminLevel]   = mysql_GetInt("admin_level",   "accounts", "username", GetName(playerid));
+    pStats[playerid][pFaction]      = mysql_GetInt("faction",       "accounts", "username", GetName(playerid));
+    pStats[playerid][pFactionRank]  = mysql_GetInt("faction_rank",  "accounts", "username", GetName(playerid));
+    pStats[playerid][pJob]          = mysql_GetInt("job",           "accounts", "username", GetName(playerid));
+    pStats[playerid][pCash]         = mysql_GetInt("cash",          "accounts", "username", GetName(playerid));
+    pStats[playerid][pCC]           = mysql_GetInt("cc",            "accounts", "username", GetName(playerid));
+    pStats[playerid][pLevel]        = mysql_GetInt("level",         "accounts", "username", GetName(playerid));
+    pStats[playerid][pSkin]         = mysql_GetInt("skin",          "accounts", "username", GetName(playerid));
 
-    pStats[playerid][pHealth]       = mysql_GetFloat("health",      "Accounts", "username", GetName(playerid));
-    pStats[playerid][pArmor]        = mysql_GetFloat("armor",       "Accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionX]    = mysql_GetFloat("position_X",  "Accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionY]    = mysql_GetFloat("position_Y",  "Accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionZ]    = mysql_GetFloat("position_Z",  "Accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionA]    = mysql_GetFloat("position_A",  "Accounts", "username", GetName(playerid));
+    pStats[playerid][pHealth]       = mysql_GetFloat("health",      "accounts", "username", GetName(playerid));
+    pStats[playerid][pArmor]        = mysql_GetFloat("armor",       "accounts", "username", GetName(playerid));
+    pStats[playerid][pPositionX]    = mysql_GetFloat("position_X",  "accounts", "username", GetName(playerid));
+    pStats[playerid][pPositionY]    = mysql_GetFloat("position_Y",  "accounts", "username", GetName(playerid));
+    pStats[playerid][pPositionZ]    = mysql_GetFloat("position_Z",  "accounts", "username", GetName(playerid));
+    pStats[playerid][pPositionA]    = mysql_GetFloat("position_A",  "accounts", "username", GetName(playerid));
 
-    pStats[playerid][pLogins]       = mysql_GetInt("logins",        "Accounts", "username", GetName(playerid));
-    pStats[playerid][pWarns]        = mysql_GetInt("warns",         "Accounts", "username", GetName(playerid));
+    pStats[playerid][pLogins]       = mysql_GetInt("logins",        "accounts", "username", GetName(playerid));
+    pStats[playerid][pWarns]        = mysql_GetInt("warns",         "accounts", "username", GetName(playerid));
 
-    mysql_GetString("warning1",     "Accounts", "username", GetName(playerid), pStats[playerid][pWarning1]);
-    mysql_GetString("warning2",     "Accounts", "username", GetName(playerid), pStats[playerid][pWarning2]);
-    mysql_GetString("warning3",     "Accounts", "username", GetName(playerid), pStats[playerid][pWarning3]);
+    mysql_GetString("warning1",     "accounts", "username", GetName(playerid), pStats[playerid][pWarning1]);
+    mysql_GetString("warning2",     "accounts", "username", GetName(playerid), pStats[playerid][pWarning2]);
+    mysql_GetString("warning3",     "accounts", "username", GetName(playerid), pStats[playerid][pWarning3]);
 
-    pStats[playerid][pVeh1]         = mysql_GetInt("vehicleID1",    "Accounts", "username", GetName(playerid));
-    pStats[playerid][pVeh2]         = mysql_GetInt("vehicleID2",    "Accounts", "username", GetName(playerid));
-    pStats[playerid][pVeh3]         = mysql_GetInt("vehicleID3",    "Accounts", "username", GetName(playerid));
-    pStats[playerid][pLicenseCar]   = mysql_GetInt("license_car",   "Accounts", "username", GetName(playerid));
-    pStats[playerid][pLicenseBike]  = mysql_GetInt("license_bike",  "Accounts", "username", GetName(playerid));
-    pStats[playerid][pLicenseAir]   = mysql_GetInt("license_air",   "Accounts", "username", GetName(playerid));
+    pStats[playerid][pVeh1]         = mysql_GetInt("vehicleID1",    "accounts", "username", GetName(playerid));
+    pStats[playerid][pVeh2]         = mysql_GetInt("vehicleID2",    "accounts", "username", GetName(playerid));
+    pStats[playerid][pVeh3]         = mysql_GetInt("vehicleID3",    "accounts", "username", GetName(playerid));
+    pStats[playerid][pLicenseCar]   = mysql_GetInt("license_car",   "accounts", "username", GetName(playerid));
+    pStats[playerid][pLicenseBike]  = mysql_GetInt("license_bike",  "accounts", "username", GetName(playerid));
+    pStats[playerid][pLicenseAir]   = mysql_GetInt("license_air",   "accounts", "username", GetName(playerid));
 
     pStats[playerid][pLogins] ++;
 
@@ -2010,15 +2014,15 @@ stock SavePlayerAccount(playerid)
 	);
     mysql_query(query);
     //REST DANN OBEN HINZUFÜGEN FALLS GEBRAUCHT
-/*	format(query, sizeof(query), "UPDATE `Accounts` SET `warning1` 		= '%s' WHERE `username` = '%s'", pStats[playerid][pWarning1],	GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `warning2` 		= '%s' WHERE `username` = '%s'", pStats[playerid][pWarning2],	GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `warning3` 		= '%s' WHERE `username` = '%s'", pStats[playerid][pWarning3],	GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `vehicleID1`	= '%d' WHERE `username` = '%s'", pStats[playerid][pVeh1],      GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `vehicleID2`	= '%d' WHERE `username` = '%s'", pStats[playerid][pVeh2],      GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `vehicleID3`	= '%d' WHERE `username` = '%s'", pStats[playerid][pVeh3],      GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `license_car` 	= '%d' WHERE `username` = '%s'", pStats[playerid][pLicenseCar],  GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `license_bike`	= '%d' WHERE `username` = '%s'", pStats[playerid][pLicenseBike],GetEscName(playerid)); mysql_query(query);
-    format(query, sizeof(query), "UPDATE `Accounts` SET `license_air` 	= '%d' WHERE `username` = '%s'", pStats[playerid][pLicenseAir], GetEscName(playerid)); mysql_query(query);*/
+/*	format(query, sizeof(query), "UPDATE `accounts` SET `warning1` 		= '%s' WHERE `username` = '%s'", pStats[playerid][pWarning1],	GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `warning2` 		= '%s' WHERE `username` = '%s'", pStats[playerid][pWarning2],	GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `warning3` 		= '%s' WHERE `username` = '%s'", pStats[playerid][pWarning3],	GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `vehicleID1`	= '%d' WHERE `username` = '%s'", pStats[playerid][pVeh1],      GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `vehicleID2`	= '%d' WHERE `username` = '%s'", pStats[playerid][pVeh2],      GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `vehicleID3`	= '%d' WHERE `username` = '%s'", pStats[playerid][pVeh3],      GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `license_car` 	= '%d' WHERE `username` = '%s'", pStats[playerid][pLicenseCar],  GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `license_bike`	= '%d' WHERE `username` = '%s'", pStats[playerid][pLicenseBike],GetEscName(playerid)); mysql_query(query);
+    format(query, sizeof(query), "UPDATE `accounts` SET `license_air` 	= '%d' WHERE `username` = '%s'", pStats[playerid][pLicenseAir], GetEscName(playerid)); mysql_query(query);*/
 
     return true;
 }
@@ -2026,7 +2030,7 @@ stock SavePlayerAccount(playerid)
 
 stock LoadVehiclesFromDatabase()
 {
-    mysql_query("SELECT COUNT(*) FROM `Vehicles`"); mysql_store_result();
+    mysql_query("SELECT COUNT(*) FROM `vehicles`"); mysql_store_result();
 	new count = mysql_fetch_int(); mysql_free_result();
 
 
@@ -2046,14 +2050,14 @@ stock LoadVehiclesFromDatabase()
 	new owner[128], model, color1, color2;
 	
 	for(new i = 0; i < count; i++) {
-		format(query, sizeof(query), "SELECT `owner` FROM `Vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 		if(mysql_fetch_row(owner) == 1) mysql_free_result();
-		format(query, sizeof(query), "SELECT `model` FROM `Vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result();  	model = mysql_fetch_int(); mysql_free_result();
-		format(query, sizeof(query), "SELECT `position_X` FROM `Vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(X) == 1) mysql_free_result();
-		format(query, sizeof(query), "SELECT `position_Y` FROM `Vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(Y) == 1) mysql_free_result();
- 		format(query, sizeof(query), "SELECT `position_Z` FROM `Vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(Z) == 1) mysql_free_result();
-		format(query, sizeof(query), "SELECT `position_A` FROM `Vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(A) == 1) mysql_free_result();
-		format(query, sizeof(query), "SELECT `color1` FROM `Vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result();  color1 = mysql_fetch_int(); mysql_free_result();
-		format(query, sizeof(query), "SELECT `color2` FROM `Vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result();  color2 = mysql_fetch_int(); mysql_free_result();
+		format(query, sizeof(query), "SELECT `owner` FROM `vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 		if(mysql_fetch_row(owner) == 1) mysql_free_result();
+		format(query, sizeof(query), "SELECT `model` FROM `vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result();  	model = mysql_fetch_int(); mysql_free_result();
+		format(query, sizeof(query), "SELECT `position_X` FROM `vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(X) == 1) mysql_free_result();
+		format(query, sizeof(query), "SELECT `position_Y` FROM `vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(Y) == 1) mysql_free_result();
+ 		format(query, sizeof(query), "SELECT `position_Z` FROM `vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(Z) == 1) mysql_free_result();
+		format(query, sizeof(query), "SELECT `position_A` FROM `vehicles` WHERE `vehicleID` = '%d'", i); mysql_query(query); mysql_store_result(); 	if(mysql_fetch_float(A) == 1) mysql_free_result();
+		format(query, sizeof(query), "SELECT `color1` FROM `vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result();  color1 = mysql_fetch_int(); mysql_free_result();
+		format(query, sizeof(query), "SELECT `color2` FROM `vehicles` WHERE 	`vehicleID` = '%d'", i); mysql_query(query); mysql_store_result();  color2 = mysql_fetch_int(); mysql_free_result();
 
     	AddStaticVehicle(model, X, Y, Z, A, color1, color2);
 		//Vehicles[vehicleid][pVeh1]  = mysql_GetVehicleFloat("position_X", "vehicleID", i);
@@ -2066,7 +2070,7 @@ stock LoadVehiclesFromDatabase()
     //format(query, sizeof(query), "SELECT `%s` FROM `%s` WHERE `%s` = '%s'", field, table, req, requirement); mysql_query(query); mysql_store_result();
 	/*
     new index;
-    mysql_query("SELECT * FROM `Vehicles`");
+    mysql_query("SELECT * FROM `vehicles`");
     mysql_store_result();
     if(mysql_num_rows() > 0) {
         while(mysql_fetch_row(query)) {
@@ -2102,7 +2106,7 @@ stock LoadVehiclesFromDatabase()
     GetVehicleZAngle(vehicleid, AngleZ);
 	GetVehicleColor(vehicleid, Color1, Color2);
 
-	format(query, sizeof(query), "INSERT INTO `Vehicles` (model, position_X, position_Y, position_Z, angle, color1, color2) VALUES(%d, %f, %f, %f, %f, %d, %d)", ModelID, PositionX, PositionY, PositionZ, AngleZ, Color1, Color2);
+	format(query, sizeof(query), "INSERT INTO `vehicles` (model, position_X, position_Y, position_Z, angle, color1, color2) VALUES(%d, %f, %f, %f, %f, %d, %d)", ModelID, PositionX, PositionY, PositionZ, AngleZ, Color1, Color2);
 	mysql_query(query);
 
 */
@@ -2111,7 +2115,7 @@ stock LoadVehiclesFromDatabase()
 	
 	for(new i = 0; i < MAX_VEHICLES; i++) {
 		Vehicles[
-	    mysql_query("SELECT position_X FROM `Vehicles` WHERE `owner` = "%s", );
+	    mysql_query("SELECT position_X FROM `vehicles` WHERE `owner` = "%s", );
 	}
 
 
@@ -2178,7 +2182,7 @@ stock Log2File(filename[], string[])
 	gettime(hour, minute, second);
 	
     format(str, sizeof(str), "[%d:%d:%d]: %s\r\n", hour, minute, second, string);
-    format(str2, sizeof(str2), "logs/%d-%d-%d-%s.log", year, month, day, filename);
+    format(str2, sizeof(str2), "logs/%d-%d-%d-%s.log", year, day, month, filename);
 
     new File:hFile;
     hFile = fopen(str2, io_append);

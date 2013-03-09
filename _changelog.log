@@ -1,9 +1,12 @@
 [07.03.13] - Start.
 
 [08.03.13] [Harti]
-- Anti-Cheat gefixt und performanter gemacht (Test benötigt)
+~ Anti-Cheat gefixt und performanter gemacht (Test benötigt)
 - AllowAdminTeleport() entfernt (veraltete Funktion)
 
 
 [09.03.13] [Harti]
-- Taxes Variable eingefügt (ausgelesen aus DB)
++ Taxes, faction_funds Variable (ausgelesen aus DB)
+~ clean_db.sql + DB Namen im Script updated
++ AddPlayerClass in OnGameModeInit() um Bugs zu vermeiden
+~ sscanf plugin updated
