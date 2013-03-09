@@ -4,8 +4,8 @@ SS-RP ToDo
 - = enfernen
 ~ = verändern
 
-
 ---------------------------------
+
 
 Komplexe Systeme
 +	Handy/SMS System (911)
@@ -13,8 +13,7 @@ Komplexe Systeme
 + 	Hausystem http://forum.sa-mp.com/showthread.php?t=182435
 + 	Banksystem
 + 	Fraktionskasse
-+ 	Anti Cheat
-+ 	Automatische Fahrschule
+~ 	Anti Cheat
 
 
 Fraktionen
@@ -54,6 +53,8 @@ Other
 ~ 	"/set" ins Scoreboard integrieren (<- Kackarbeit)
 + 	Uhr
 +	/showme
++ 	Smartphone App für ingame Anrufe/SMS
+
 
 ~ Fraktionskasse: In Dialog packen, Leader (= Rang 5) sollen abheben und einzahlen können)
 
