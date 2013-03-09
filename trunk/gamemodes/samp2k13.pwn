@@ -116,7 +116,7 @@ enum VehicleData
 };
 new Vehicles[MAX_VEHICLES][VehicleData];
 
-new query[715], motd[128];
+new query[715], motd[128], taxes;
 new CurrentSpawnedVehicle[MAX_PLAYERS];
 new pickupHospitalLow, pickupHospitalUp, pickupParlamentOut, pickupParlamentIn;
 new pickupStoreOut, pickupStoreIn;
@@ -135,12 +135,18 @@ public OnGameModeInit()
     SetTimer("ChangeWeather", 2700007, true); // 45min
 	SetTimer("AntiCheat", 5003, true);
 
-    mysql_query("SELECT `motd` FROM `Configurations`");
+    mysql_query("SELECT `motd` FROM `configuration`");
     mysql_store_result();
     if(mysql_retrieve_row()) {
         mysql_fetch_field_row(motd, "motd");
     }
     mysql_free_result();
+
+	mysql_query("SELECT `taxes` FROM `configuration`");
+	mysql_store_result();
+	taxes = mysql_fetch_int(); mysql_free_result();
+
+	printf("Database information:\r\n- MOTD: %s\r\n- TAXES: %d", motd, taxes);
 
     DisableInteriorEnterExits();
     EnableStuntBonusForAll(0);
@@ -778,8 +784,8 @@ command(motd, playerid, params[])
     ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "MOTD", string, "OK", " ");
 
     mysql_real_escape_string(params, motd);
-    if(mysql_num_fields() != 0) format(query, sizeof(query), "UPDATE `Configurations` SET `motd` = '%s'", motd);
-    else format(query, sizeof(query), "INSERT INTO `Configurations` (`motd`) VALUES('%s')", motd);
+    if(mysql_num_fields() != 0) format(query, sizeof(query), "UPDATE `configuration` SET `motd` = '%s'", motd);
+    else format(query, sizeof(query), "INSERT INTO `configuration` (`motd`) VALUES('%s')", motd);
     mysql_query(query);
     return true;
 }
@@ -1177,11 +1183,11 @@ command(getfunds, playerid, params[])
 {
 	if(pStats[playerid][pFactionRank] != 5) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_FACTIONRANK_TOOLOW);
 
-	if(pStats[playerid][pFaction] == 1) format(query, sizeof(query), "SELECT `faction_1_funds` FROM `Configurations`");
-	if(pStats[playerid][pFaction] == 2) format(query, sizeof(query), "SELECT `faction_2_funds` FROM `Configurations`");
-	if(pStats[playerid][pFaction] == 3) format(query, sizeof(query), "SELECT `faction_3_funds` FROM `Configurations`");
-	if(pStats[playerid][pFaction] == 4) format(query, sizeof(query), "SELECT `faction_4_funds` FROM `Configurations`");
-	if(pStats[playerid][pFaction] == 5) format(query, sizeof(query), "SELECT `faction_5_funds` FROM `Configurations`");
+	if(pStats[playerid][pFaction] == 1) format(query, sizeof(query), "SELECT `faction_1_funds` FROM `configuration`");
+	if(pStats[playerid][pFaction] == 2) format(query, sizeof(query), "SELECT `faction_2_funds` FROM `configuration`");
+	if(pStats[playerid][pFaction] == 3) format(query, sizeof(query), "SELECT `faction_3_funds` FROM `configuration`");
+	if(pStats[playerid][pFaction] == 4) format(query, sizeof(query), "SELECT `faction_4_funds` FROM `configuration`");
+	if(pStats[playerid][pFaction] == 5) format(query, sizeof(query), "SELECT `faction_5_funds` FROM `configuration`");
 
 	mysql_query(query); mysql_store_result();
 	new val = mysql_fetch_int(); mysql_free_result();
