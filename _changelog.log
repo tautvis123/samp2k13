@@ -3,3 +3,7 @@
 [08.03.13] [Harti]
 - Anti-Cheat gefixt und performanter gemacht (Test benötigt)
 - AllowAdminTeleport() entfernt (veraltete Funktion)
+
+
+[09.03.13] [Harti]
+- Taxes Variable eingefügt (ausgelesen aus DB)
