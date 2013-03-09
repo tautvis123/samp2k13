@@ -7,7 +7,7 @@
 #include <foreach>
 #include <md5>
 
-#define SERVER_VERSION          "0.1a"
+#define SERVER_VERSION          ".1r1"
 
 
 #define MYSQL_HOST              "db4free.net"
