@@ -42,6 +42,7 @@ Bugfixes
 ~ 	Bei /warn (3/3) keinen Kick, sondern einen Timebann erstellen; fixen (Errorcode tritt auf)
 ~ 	MOTD \r\n fixen
 ~	Pickups fixen
+~	/givecash (?, erst testen)
 
 
 Other
