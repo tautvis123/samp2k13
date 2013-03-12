@@ -10,3 +10,10 @@
 ~ clean_db.sql + DB Namen im Script updated
 + AddPlayerClass in OnGameModeInit() um Bugs zu vermeiden
 ~ sscanf plugin updated
+
+
+[12.03.13] [Harti]
++ Erste Implementation von YCMD
+  Buggy: /say /motd (nicht YMCD related)
+~ /help fixed
++ FactionRank in Accountübersicht

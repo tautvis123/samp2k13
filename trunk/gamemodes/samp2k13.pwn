@@ -160,6 +160,10 @@ public OnGameModeInit()
 
     LoadVehiclesFromDatabase();
 
+    Command_AddAltNamed("adminduty", "aduty"); // short forms for cmds
+    Command_AddAltNamed("ooc", "o");
+    Command_AddAltNamed("announce", "ann");
+    
 	AddStaticVehicle(416,1178.0715,-1308.3512,14.0024,269.4829,1,0); // Krankenwagen1
 	AddStaticVehicle(416,1178.0037,-1338.9781,14.0427,271.4690,1,0); // Krankenwagen2
 	AddStaticVehicle(416,1123.5791,-1328.7023,13.4239,0.3476,1,0); // Krankenwagen3(hinten)
@@ -178,7 +182,6 @@ public OnGameModeInit()
 	Create3DTextLabel("Store", COLOR_WHITE, 1471.2391, -1177.9728, 23.9215, 221.0, -1, 0);
 	
  	AddPlayerClass(0, 1958.33, 1343.12, 15.36, 269.15, 0, 0, 0, 0, 0, 0); // ( http://forum.sa-mp.com/showthread.php?t=269488 )
- 	
     return true;
 }
 
@@ -384,7 +387,6 @@ YCMD:ahelp(playerid, params[], help)
 YCMD:adminduty(playerid, params[], help)
 {
 #pragma unused params
-    Command_AddAltNamed("adminduty", "aduty");
     new string[128];
 
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -433,7 +435,7 @@ YCMD:spawnveh(playerid, params[], help)
 }
 
 
-YCMD:respawncar(playerid, params[], help)
+YCMD:respawnveh(playerid, params[], help)
 {
 #pragma unused params
 
@@ -532,8 +534,9 @@ YCMD:deleteveh(playerid, params[], help)
 YCMD:makeadmin(playerid, params[], help)
 {
     new giveplayerid, level, string[128];
-    if(!IsPlayerAdmin(playerid)/* && pStats[playerid][pAdminLevel] < 3*/)       return false;
-    if(sscanf(params, "ud", giveplayerid, level))           return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /setadmin [SpielerID] [Level (1-3)]");
+    if(pStats[playerid][pAdminLevel] < 3)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
+    if(!IsPlayerAdmin(playerid))       			return SendClientMessage(playerid, COLOR_RED, "** Dazu ist ein RCON Login notwendig.");
+    if(sscanf(params, "ud", giveplayerid, level))           return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /makeadmin [SpielerID] [Level (1-3)]");
     if(level == pStats[giveplayerid][pAdminLevel])      return SendClientMessage(playerid, COLOR_RED, "** Dieser Spieler besitzt bereits dieses AdminLevel.");
 
     pStats[giveplayerid][pAdminLevel] = level;
@@ -745,7 +748,6 @@ return true;
 
 YCMD:announce(playerid, params[], help)
 {
-    Command_AddAltNamed("announce", "ann");
     new string[128];
 
     if(pStats[playerid][pAdminLevel] < 3)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
@@ -770,19 +772,11 @@ YCMD:help(playerid, params[], help)
     SendClientMessage(playerid, COLOR_OOC, "* Allgemein: /admins /afk /givecash /buy");
     SendClientMessage(playerid, COLOR_OOC, "* Chat:     /s /b /me /ooc");
     if(pStats[playerid][pFaction] == 1) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
-    else if(pStats[playerid][pFactionRank] == 5)			SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /getfunds");
-
 	if(pStats[playerid][pFaction] == 2) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
-    else if(pStats[playerid][pFactionRank] == 5)			SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /getfunds");
-
 	if(pStats[playerid][pFaction] == 3) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
-    else if(pStats[playerid][pFactionRank] == 5)			SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /getfunds");
-
 	if(pStats[playerid][pFaction] == 4) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
-    else if(pStats[playerid][pFactionRank] == 5)			SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /getfunds");
-
 	if(pStats[playerid][pFaction] == 5) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
-    else if(pStats[playerid][pFactionRank] == 5)			SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /getfunds");
+    if(pStats[playerid][pFactionRank] == 5)					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /getfunds");
     return true;
 }
 
@@ -900,7 +894,6 @@ YCMD:me(playerid, params[], help)
 
 YCMD:ooc(playerid, params[], help)
 {
-    Command_AddAltNamed("ooc", "o");
     new string[128];
 
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
@@ -917,13 +910,13 @@ YCMD:ooc(playerid, params[], help)
 
 YCMD:givecash(playerid, params[], help)
 {
-    new string[128], giveplayerid, amount, Float:PosX, Float:PosY, Float:PosZ;
+    new string[128], giveplayerid, amount, Float:posX, Float:posY, Float:posZ;
 
     if(GetPVarInt(giveplayerid, "Authentication") != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
     if(sscanf(params, "ud", giveplayerid, amount))      return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /givecash [SpielerID] [Menge]"),
 
-    GetPlayerPos(giveplayerid, PosX, PosY, PosZ);
-    if(!IsPlayerInRangeOfPoint(playerid, 7.0, PosX, PosY, PosZ))                return SendClientMessage(playerid, COLOR_RED, "* Du bist zu weit von diesem Spieler entfernt.");
+    GetPlayerPos(giveplayerid, posX, posY, posZ);
+    if(!IsPlayerInRangeOfPoint(playerid, 7.0, posX, posY, posZ))                return SendClientMessage(playerid, COLOR_RED, "* Du bist zu weit von diesem Spieler entfernt.");
 
     if(giveplayerid != playerid) {
         GivePlayerCash(playerid, -amount);
@@ -1248,7 +1241,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             new string[256];
             new giveplayerid = GetPVarInt(playerid,"ClickedPlayer");
             if(!response) return false;
-            if(GetPVarInt(playerid, "AdminDuty") == 0) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_NOTONDUTY);
+            //if(GetPVarInt(playerid, "AdminDuty") == 0) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_NOTONDUTY);
             switch(listitem) {
 				case PLAYER_DIALOG_CLICKEDADM_ADMMENU_ACCOUNT:
 				{
@@ -1256,7 +1249,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				    new str[1024], coordstring0[256], coordstring1[256], coordstring2[256], coordstring3[256], coordstring4[256], coordstring5[256];
 				    
 					format(coordstring0, sizeof(coordstring0), "----------*** %s ***----------", GetName(giveplayerid));
-					format(coordstring1, sizeof(coordstring1), "* E-Mail: %s | IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d", pStats[giveplayerid][pEmail], pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction]);
+					format(coordstring1, sizeof(coordstring1), "* E-Mail: %s | IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d)", pStats[giveplayerid][pEmail], pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank]);
 					format(coordstring2, sizeof(coordstring2), "* Cash: %d | CC: %d | Level: %d | Skin: %d | Health: %f | Armor: %d", pStats[giveplayerid][pCash], pStats[giveplayerid][pCC], pStats[giveplayerid][pLevel], pStats[giveplayerid][pSkin],pStats[giveplayerid][pHealth], pStats[giveplayerid][pArmor]);
 					format(coordstring3, sizeof(coordstring3), "* Warns: %d | Warning1: %s | Warning2: %s | Warning3: %s", pStats[giveplayerid][pWarns], pStats[giveplayerid][pWarning1], pStats[giveplayerid][pWarning2], pStats[giveplayerid][pWarning3]);
 					format(coordstring4, sizeof(coordstring4), "* VehicleID1: %d | VehicleID2: %d | VehicleID3: %d", pStats[giveplayerid][pVeh1], pStats[giveplayerid][pVeh2], pStats[giveplayerid][pVeh3]);
