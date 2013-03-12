@@ -2319,6 +2319,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #define OnPlayerClickPlayer S@@_OnPlayerClickPlayer
 HOOK_FORWARD<PlayerClickPlayer>
 
+forward OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid);
 public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid)
 {
 	P:2("Hooks_OnPlayerTakeDamage called: %d, %d, %f, %d", playerid, issuerid, Float:amount, weaponid);
@@ -2365,6 +2366,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid)
 #define OnPlayerTakeDamage S@@_OnPlayerTakeDamage
 HOOK_FORWARD<PlayerTakeDamage>
 
+forward OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid);
 public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid)
 {
 	P:2("Hooks_OnPlayerGiveDamage called: %d, %d, %f, %d", playerid, damagedid, Float:amount, weaponid);
