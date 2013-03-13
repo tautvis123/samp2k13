@@ -599,7 +599,7 @@ YCMD:showmembers(playerid, params[], help)
 
 	for(new i = 0; i < mysql_affected_rows(); i++) {
 		print("test1");
-        if(mysql_fetch_row(query)) { // bug
+        while(mysql_fetch_row(query)) { // bug
 			print("test2");
             sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
             printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
@@ -609,7 +609,7 @@ YCMD:showmembers(playerid, params[], help)
 				strcat(coordstring, string, sizeof(coordstring));
 			}
         }
-        else printf("mysql_fetch_row failed: %d", mysql_fetch_row(query));
+        //else print("mysql_fetch_row failed");
         print(coordstring);
    		i++;
 	}

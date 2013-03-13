@@ -1,0 +1,10 @@
+samp2k13 UCP ToDo
+
++ = hinzufügen
+- = enfernen
+~ = verändern
+
+---------------------------------
+
+
++ 	Beim Registrieren in der DB die Variable JustRegistered auf 1 setzen, allgemein Standardwerte von MySQL übernehmen (meist -1)
