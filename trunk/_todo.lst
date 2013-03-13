@@ -10,10 +10,11 @@ samp2k13 ToDo
 
 
 
-BugFixes / small things
+BugFixes / simple things
 	~ 	Bei /warn (3/3) keinen Kick, sondern einen Timebann erstellen; fixen (Errorcode tritt auf)
 	~ 	MOTD \r\n fixen
 	~ 	SendNearByMessage Farbe je nach Entfernung verändern
+	+	/showmembers (factionid)
 
 	
 Dialoge / Design
@@ -28,7 +29,6 @@ Größere Sachen
 	+ 	Uhr
 	+	Blitzer
 	+	BSN DriveIn
-
 
 Komplexe Systeme
 	+	Handy/SMS System (911)
@@ -56,7 +56,6 @@ Fraktionen
 
 	Taxifahrer:
 
-	
 	Fahrlehrer:
 	+ Dialog: Scheine geben
 
