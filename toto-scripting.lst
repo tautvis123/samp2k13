@@ -15,8 +15,7 @@ BugFixes / simple things
 	~ 	MOTD \r\n fixen
 	~ 	SendNearByMessage Farbe je nach Entfernung verändern
 	~	/showmembers (factionid)
-	~	Login funktioniert auch mit falschem / ohne Passwort
-	
+
 Dialoge / Design
 	~ 	Fraktionskasse: In Dialog packen
 	~ 	"/set" ins Scoreboard integrieren

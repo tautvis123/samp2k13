@@ -131,6 +131,7 @@ public OnGameModeInit()
 {
     mysql_debug(1);
     mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_DB, MYSQL_PASS);
+	mysql_set_charset("latin1_german1_ci");
 
     foreach(Player, i) OnPlayerConnect(i);
     SetTimer("ChangeWeather", 2700007, true); // 45min
@@ -589,48 +590,46 @@ YCMD:say(playerid, params[], help)
 
 YCMD:showmembers(playerid, params[], help)
 {
-    new string[128], val, playerarray[3], coordstring[2048];
+    new string[128], val, playerarray[3], coordstring[2048], escp[1024];
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-    if(sscanf(params, "d", val))              	return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /showmembers [FraktionsID]"),
+    if(sscanf(params, "d", val))              	return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /showmembers [FraktionsID]");
 														//evtl. noch Fraktionen auflisten
 
 	format(query, sizeof(query), "SELECT `username`, `faction`, `faction_rank` FROM `accounts` WHERE `faction` = %d", val);
 	mysql_query(query);
 	mysql_store_result();
-	printf("mysql_num_rows: %d", mysql_num_rows());
 
-/*	for(new i = 0; i < mysql_affected_rows(); i++) {
-		print("test1");
-        while(mysql_fetch_row(query)) { // bug
-			print("test2");
-            sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
-            printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
-
-			if(playerarray[1] == val) {
-				format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
-				strcat(coordstring, string, sizeof(coordstring));
-			}
-        }
-        //else print("mysql_fetch_row failed");
-        print(coordstring);
-   		i++;
-	}
-	mysql_free_result();
-*/
-	if(mysql_num_rows() != 0) {
-		while(mysql_fetch_row(query)) { // bug
-	        sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
-	        printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
-
-			format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
-			strcat(coordstring, string, sizeof(coordstring));
-		}
-	}
- 	printf("Coordstring: %s", coordstring);
-
-	mysql_free_result();
-	
 	ClearChat(playerid);
+	while(mysql_fetch_row(query)) {
+        sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
+        printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
+
+		format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
+		strcat(coordstring, string, sizeof(coordstring));
+		SendClientMessage(playerid, COLOR_WHITE, coordstring);
+	}
+	mysql_free_result();
+
+		if(val == 1) {
+			format(string, sizeof(string), "*** Fraktionsmitglieder der Polizei ***\r\n%s", coordstring);
+			SendClientMessage(playerid, COLOR_PURPLE, string);
+		}
+		if(val == 2) {
+			format(string, sizeof(string), "*** Fraktionsmitglieder der Ärzte ***\r\n%s", coordstring);
+			SendClientMessage(playerid, COLOR_PURPLE, string);
+		}
+		if(val == 3) {
+			format(string, sizeof(string), "*** Fraktionsmitglieder der Fahrschule ***\r\n%s", coordstring);
+			SendClientMessage(playerid, COLOR_PURPLE, string);
+		}
+		if(val == 4) {
+			format(string, sizeof(string), "*** Fraktionsmitglieder des ADAC ***\r\n%s", coordstring);
+			SendClientMessage(playerid, COLOR_PURPLE, string);
+		}
+		if(val == 5) {
+			format(string, sizeof(string), "*** Fraktionsmitglieder der Taxifahrer ***\r\n%s", coordstring);
+			SendClientMessage(playerid, COLOR_PURPLE, string);
+		}
     return true;
 }
 
@@ -1291,11 +1290,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         case PLAYER_DIALOG_LOGIN:   // login
         {
             if(!response) Kick(playerid);
-            else if(strlen(inputtext) < 4 || strlen(inputtext) > 30) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein Passwort ein.", "Login", " ");
+            if(strlen(inputtext) < 4 || strlen(inputtext) > 30) {
+				ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
+				return false;
+			}
 
             mysql_GetString("password", "accounts", "username", GetName(playerid), pStats[playerid][pPassword]);
 			new sha256str[H_SHA256_LEN]; hhash(H_SHA256, inputtext, sha256str, sizeof(sha256str));
-            if(strcmp(sha256str, pStats[playerid][pPassword], true) == 0) {
+
+            if(strcmp(sha256str, pStats[playerid][pPassword], false) == 0) {
                 if(strlen(motd) != 0) {
                     new string[1024];
                     format(string, sizeof(string), "\r\n%s\r\n", motd);
@@ -1305,7 +1308,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 SetPVarInt(playerid, "JustLogged", 1);
                 SpawnPlayer(playerid);
             }
-            else return false;//ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
+            else ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
         }
 		/*case 1: { // registration
 		    if(!response) Kick(playerid);
