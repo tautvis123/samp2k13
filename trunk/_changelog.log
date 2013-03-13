@@ -24,3 +24,9 @@
 ~ Adminchat verändert + Supportchat eingeführt ( /a, testen mit non-Admin)
 + Funktion: ClearChat(playerid)
 ~ /ann updated
++ ChatBubbles
+~ /givecash fixed
++ Fahrlizenzen in Accountübersicht
+~ /set verbessert
++ Debug CMD: /loadacc
+~ Führerscheinmessages fixed
