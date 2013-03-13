@@ -156,6 +156,7 @@ public OnGameModeInit()
     SetGameModeText("SSRP");
     SetNameTagDrawDistance(20.0);
     ShowNameTags(1);
+	ShowPlayerMarkers(0);
     UsePlayerPedAnims();
 
     LoadVehiclesFromDatabase();
@@ -769,7 +770,7 @@ YCMD:help(playerid, params[], help)
 #pragma unused params
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
 
-    SendClientMessage(playerid, COLOR_OOC, "* Allgemein: /admins /afk /givecash /buy");
+    SendClientMessage(playerid, COLOR_OOC, "* Allgemein: /admins /afk /showme /givecash /buy");
     SendClientMessage(playerid, COLOR_OOC, "* Chat:      /a /s /b /me /ooc");
     if(pStats[playerid][pFaction] == 1) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
 	if(pStats[playerid][pFaction] == 2) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
@@ -843,6 +844,19 @@ YCMD:afk(playerid, params[], help)
     return true;
 }
 
+YCMD:showme(playerid, params[], help)
+{
+    if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
+
+	foreach(Player, i) {
+		//dialog:
+		// case white: SetPlayerMarkerForPlayer(i, playerid, COLOR_WHITE);
+		// case ultraviolettwithstripes: SetPlayerMarkerForPlayer(i, playerid, COLOR_ultraviolettwithstripes);
+	}
+	SendClientMessage(playerid, COLOR_OOC, "* Du hast deine Anzeigefarbe geändert. Cooler Typ.");
+	return true;
+}
+
 YCMD:adminchat(playerid, params[], help)
 {
     new string[128];
@@ -853,12 +867,15 @@ YCMD:adminchat(playerid, params[], help)
 	if(pStats[playerid][pAdminLevel] >= 1) {
         format(string, sizeof(string), "[ ** %s: %s ]", GetName(playerid), params);
         SendAdminMessage(COLOR_PURPLE, string, false);
+
        	format(string, sizeof(string), "[ADMIN] %s: %s", GetName(playerid), params);
     	Log2File("chat", string);
 	}
 	else {
         format(string, sizeof(string), "[ ** %s [ID: %d]: %s ]", GetName(playerid), playerid, params);
         SendAdminMessage(COLOR_RED, string, false);
+        SendClientMessage(playerid, COLOR_RED, string);
+        
        	format(string, sizeof(string), "[SUPPORT] %s: %s", GetName(playerid), params);
     	Log2File("chat", string);
 	}
