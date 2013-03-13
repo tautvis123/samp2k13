@@ -594,10 +594,12 @@ YCMD:showmembers(playerid, params[], help)
     if(sscanf(params, "d", val))              	return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /showmembers [FraktionsID]"),
 														//evtl. noch Fraktionen auflisten
 
-	mysql_query("SELECT `username`, `faction`, `faction_rank` FROM `accounts` WHERE `faction` >= 1"); mysql_store_result();
-	printf("mysql_affected_rows: %d", mysql_affected_rows());
+	format(query, sizeof(query), "SELECT `username`, `faction`, `faction_rank` FROM `accounts` WHERE `faction` = %d", val);
+	mysql_query(query);
+	mysql_store_result();
+	printf("mysql_num_rows: %d", mysql_num_rows());
 
-	for(new i = 0; i < mysql_affected_rows(); i++) {
+/*	for(new i = 0; i < mysql_affected_rows(); i++) {
 		print("test1");
         while(mysql_fetch_row(query)) { // bug
 			print("test2");
@@ -613,12 +615,22 @@ YCMD:showmembers(playerid, params[], help)
         print(coordstring);
    		i++;
 	}
-	//mysql_free_result();
+	mysql_free_result();
+*/
+	if(mysql_num_rows() != 0) {
+		while(mysql_fetch_row(query)) { // bug
+	        sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
+	        printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
 
+			format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
+			strcat(coordstring, string, sizeof(coordstring));
+		}
+	}
+ 	printf("Coordstring: %s", coordstring);
 
+	mysql_free_result();
+	
 	ClearChat(playerid);
-
-
     return true;
 }
 
@@ -1293,7 +1305,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 SetPVarInt(playerid, "JustLogged", 1);
                 SpawnPlayer(playerid);
             }
-            else ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
+            else return false;//ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
         }
 		/*case 1: { // registration
 		    if(!response) Kick(playerid);
