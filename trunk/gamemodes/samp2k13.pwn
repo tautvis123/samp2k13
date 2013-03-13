@@ -595,23 +595,24 @@ YCMD:showmembers(playerid, params[], help)
 														//evtl. noch Fraktionen auflisten
 
 	mysql_query("SELECT `username`, `faction`, `faction_rank` FROM `accounts` WHERE `faction` >= 1"); mysql_store_result();
-	printf("mysql_num_rows: %d", mysql_num_rows());
+	printf("mysql_affected_rows: %d", mysql_affected_rows());
 
-	for(new i = 0; i < mysql_num_rows(); i++) {
-        while(mysql_fetch_row(query)) {
+	for(new i = 0; i < mysql_affected_rows(); i++) {
+		print("test1");
+        while(mysql_fetch_row(query)) { // bug
+			print("test2");
             sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
-            //printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
+            printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
 
 			if(playerarray[1] == val) {
 				format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
 				strcat(coordstring, string, sizeof(coordstring));
 			}
         }
-        
         print(coordstring);
    		i++;
 	}
-	mysql_free_result();
+	//mysql_free_result();
 
 
 	ClearChat(playerid);
