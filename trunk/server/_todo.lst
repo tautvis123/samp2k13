@@ -14,12 +14,12 @@ BugFixes / simple things
 	~ 	Bei /warn (3/3) keinen Kick, sondern einen Timebann erstellen; fixen (Errorcode tritt auf)
 	~ 	MOTD \r\n fixen
 	~ 	SendNearByMessage Farbe je nach Entfernung verändern
-	+	/showmembers (factionid)
+	~	/showmembers (factionid)
 
 	
 Dialoge / Design
-	~ 	Fraktionskasse: In Dialog packen, Leader (= Rang 5) sollen abheben und einzahlen können)
-	~ 	"/set" ins Scoreboard integrieren (<- Kackarbeit)
+	~ 	Fraktionskasse: In Dialog packen
+	~ 	"/set" ins Scoreboard integrieren
 	~ 	Fraktions-Spawns nach LS verschieben
 	~	/showme in Dialog packen
 	~	SendClientMessage bei fehlendem Führerschein in TextDraw/Label/whatever ändern
