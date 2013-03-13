@@ -6,7 +6,7 @@
 #include <YSI\y_commands>
 #include <YSI\y_master>
 #include <foreach>
-#include <md5>
+#include <hash>
 
 
 
@@ -378,7 +378,7 @@ YCMD:ahelp(playerid, params[], help)
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
 
     //if(pStats[playerid][pAdminLevel] >= 1)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 1: /adminduty /kick /ban /warn /mute");
-	if(pStats[playerid][pAdminLevel] >= 1)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 1: /adminduty /say");
+	if(pStats[playerid][pAdminLevel] >= 1)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 1: /adminduty /say /showmembers");
 	//if(pStats[playerid][pAdminLevel] >= 2)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 2: /goto /gethere /freeze /spawnveh /respawnveh /respawnaveh /repairveh");
 	if(pStats[playerid][pAdminLevel] >= 2)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 2: /spawnveh /respawnveh /respawnaveh /repairveh");
 	if(pStats[playerid][pAdminLevel] == 3)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 3: /makeadmin /motd /set /announce");
@@ -584,6 +584,39 @@ YCMD:say(playerid, params[], help)
 
 	format(string, sizeof(string), "** Admin %s [/say]: %s", GetName(playerid), params);
     Log2File("admin", string);
+    return true;
+}
+
+YCMD:showmembers(playerid, params[], help)
+{
+    new string[128], val, playerarray[3], coordstring[2048];
+    if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
+    if(sscanf(params, "d", val))              	return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /showmembers [FraktionsID]"),
+														//evtl. noch Fraktionen auflisten
+
+	mysql_query("SELECT `username`, `faction`, `faction_rank` FROM `accounts` WHERE `faction` >= 1"); mysql_store_result();
+	printf("mysql_num_rows: %d", mysql_num_rows());
+
+	for(new i = 0; i < mysql_num_rows(); i++) {
+        while(mysql_fetch_row(query)) {
+            sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
+            //printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
+
+			if(playerarray[1] == val) {
+				format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
+				strcat(coordstring, string, sizeof(coordstring));
+			}
+        }
+        
+        print(coordstring);
+   		i++;
+	}
+	mysql_free_result();
+
+
+	ClearChat(playerid);
+
+
     return true;
 }
 
@@ -1247,7 +1280,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             else if(strlen(inputtext) < 4 || strlen(inputtext) > 30) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein Passwort ein.", "Login", " ");
 
             mysql_GetString("password", "accounts", "username", GetName(playerid), pStats[playerid][pPassword]);
-            if(strcmp(MD5_Hash(inputtext), pStats[playerid][pPassword], true) == 0) {
+			new sha256str[H_SHA256_LEN]; hhash(H_SHA256, inputtext, sha256str, sizeof(sha256str));
+            if(strcmp(sha256str, pStats[playerid][pPassword], true) == 0) {
                 if(strlen(motd) != 0) {
                     new string[1024];
                     format(string, sizeof(string), "\r\n%s\r\n", motd);
