@@ -10,7 +10,7 @@
 
 
 
-#define SERVER_VERSION          ".1r1"
+#define SERVER_VERSION          "2013/13/3"
 
 
 #define MYSQL_HOST              "db4free.net"
@@ -66,7 +66,7 @@
 forward ClearTextSpam(playerid);
 forward ClearCommandSpam(playerid);
 forward ChangeWeather();
-forward NearByMessage(playerid, color, string[]);
+forward SendNearByMessage(playerid, color, string[]);
 forward SendAdminMessage(color, string[], requireduty);
 forward ResetUnusedDBVehicles();
 forward AntiCheat();
@@ -153,7 +153,7 @@ public OnGameModeInit()
     EnableStuntBonusForAll(0);
     LimitGlobalChatRadius(20.0);
 	//ManualVehicleEngineAndLights();
-    SetGameModeText("SSRP");
+    SetGameModeText("samp2k13");
     SetNameTagDrawDistance(20.0);
     ShowNameTags(1);
 	ShowPlayerMarkers(0);
@@ -166,10 +166,10 @@ public OnGameModeInit()
     Command_AddAltNamed("announce", "ann");
     Command_AddAltNamed("adminchat", "a");
     
-	AddStaticVehicle(416,1178.0715,-1308.3512,14.0024,269.4829,1,0); // Krankenwagen1
-	AddStaticVehicle(416,1178.0037,-1338.9781,14.0427,271.4690,1,0); // Krankenwagen2
-	AddStaticVehicle(416,1123.5791,-1328.7023,13.4239,0.3476,1,0); // Krankenwagen3(hinten)
-	AddStaticVehicle(563,1161.8552,-1377.1299,27.3177,268.7520,1,0); // Helikopter
+	AddStaticVehicle(416,1178.0715,-1308.3512,14.0024,269.4829,1,0);	// Krankenwagen1
+	AddStaticVehicle(416,1178.0037,-1338.9781,14.0427,271.4690,1,0); 	// Krankenwagen2
+	AddStaticVehicle(416,1123.5791,-1328.7023,13.4239,0.3476,1,0); 		// Krankenwagen3(hinten)
+	AddStaticVehicle(563,1161.8552,-1377.1299,27.3177,268.7520,1,0); 	// Helikopter
 	
 	pickupHospitalLow = CreatePickup(1318, 1, 1172.0779, -1325.4570, 15.4076, -1);
 	pickupHospitalUp  = CreatePickup(1318, 1, 1163.7961, -1342.8069, 26.6160, -1);
@@ -190,8 +190,10 @@ public OnGameModeInit()
 
 public OnGameModeExit()
 {
-    foreach(Player, i) SavePlayerAccount(i);
-    foreach(Player, i) OnPlayerDisconnect(i, 2);
+    foreach(Player, i) {
+		SavePlayerAccount(i);
+		OnPlayerDisconnect(i, 2);
+	}
     mysql_close();
     return true;
 }
@@ -199,7 +201,7 @@ public OnGameModeExit()
 
 public OnPlayerRequestClass(playerid, classid)
 {
-	SpawnPlayer(playerid);
+	SpawnPlayer(playerid); // disables class selection
     return true;
 }
 
@@ -259,7 +261,8 @@ public OnPlayerSpawn(playerid)
     if(GetPVarInt(playerid, "JustLogged") == 1) {
         SetPVarInt(playerid, "JustLogged", 0);
 
-        new string[128]; format(string, sizeof(string), "* Willkommen auf dem SuchtStation-RolePlay Server v%s.", SERVER_VERSION);
+		new string[128];
+		format(string, sizeof(string), "* Willkommen auf dem SuchtStation-RolePlay Server ( %s ).", SERVER_VERSION);
         SendClientMessage(playerid, COLOR_OOC, string);
 
         LoadPlayerAccount(playerid);
@@ -270,6 +273,7 @@ public OnPlayerSpawn(playerid)
         SetPlayerSkin(playerid, pStats[playerid][pSkin]);
         SetPlayerPos(playerid, 1184.9803, -1323.1014, 13.5730);
         SetPlayerFacingAngle(playerid, 268.7873);
+        
         if(GetPlayerCash(playerid) > 60) GivePlayerCash(playerid, -60);
         SetPVarInt(playerid, "JustDied", 0);
         return true;
@@ -353,10 +357,14 @@ public OnPlayerText(playerid, text[])
         SendClientMessage(playerid, COLOR_RED, "* Du bist momentan stumm gestellt und kannst nicht reden.");
         return false;
     }
+	format(string, sizeof(string), "%s: %s", GetName(playerid), text);
+
+	SendNearByMessage(playerid, COLOR_WHITE, string);
+	SetPlayerChatBubble(playerid, text, COLOR_WHITE, 8.0, 4000);
 
 	format(string, sizeof(string), "[SAY] %s: %s", GetName(playerid), text);
     Log2File("chat", string);
-    return true;
+    return false;
 }
 
 
@@ -717,6 +725,7 @@ YCMD:set(playerid, params[], help)
 
 		SpawnPlayer(giveplayerid);
     }
+    else SendClientMessage(playerid, COLOR_PURPLE, "* Ungültiger Parameter.");
     SavePlayerAccount(giveplayerid);
     return true;
 }
@@ -786,9 +795,17 @@ YCMD:saveacc(playerid, params[], help)              // debug cmd
 {
 #pragma unused params
     SavePlayerAccount(playerid);
+    SendClientMessage(playerid, COLOR_PURPLE, "**** DBG: Account saved.");
     return true;
 }
 
+YCMD:loadacc(playerid, params[], help)              // debug cmd
+{
+#pragma unused params
+    LoadPlayerAccount(playerid);
+    SendClientMessage(playerid, COLOR_PURPLE, "**** DBG: Account loaded.");
+	return true;
+}
 
 YCMD:admins(playerid, params[], help)
 {
@@ -891,7 +908,10 @@ YCMD:s(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /s [Nachricht]");
 
     format(string, sizeof(string), "%s schreit: %s!!", GetNameEx(playerid), params);
-    NearByMessage(playerid, COLOR_LIGHTBLUE, string);
+    SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+
+    format(string, sizeof(string), "%s!!", params);
+	SetPlayerChatBubble(playerid, string, COLOR_WHITE, 15.0, 4000);
 
 	format(string, sizeof(string), "[S] %s schreit: %s!!", GetName(playerid), params);
     Log2File("chat", string);
@@ -907,7 +927,7 @@ YCMD:b(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /b [Nachricht]");
 
     format(string, sizeof(string), "(( %s: %s ))", GetNameEx(playerid), params);
-    NearByMessage(playerid, COLOR_LIGHTBLUE, string);
+    SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 
 	format(string, sizeof(string), "[B] (( %s: %s ))", GetName(playerid), params);
     Log2File("chat", string);
@@ -923,7 +943,7 @@ YCMD:me(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /me [Aktion]");
 
     format(string, sizeof(string), "* %s %s", GetNameEx(playerid), params);
-    NearByMessage(playerid, COLOR_LIGHTBLUE, string);
+    SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 
 	format(string, sizeof(string), "[ME] %s %s", GetName(playerid), params);
     Log2File("chat", string);
@@ -952,24 +972,24 @@ YCMD:givecash(playerid, params[], help)
     new string[128], giveplayerid, amount, Float:posX, Float:posY, Float:posZ;
 
     if(GetPVarInt(giveplayerid, "Authentication") != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
-    if(sscanf(params, "ud", giveplayerid, amount))      return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /givecash [SpielerID] [Menge]"),
-
-    GetPlayerPos(giveplayerid, posX, posY, posZ);
-    if(!IsPlayerInRangeOfPoint(playerid, 7.0, posX, posY, posZ))                return SendClientMessage(playerid, COLOR_RED, "* Du bist zu weit von diesem Spieler entfernt.");
-
-    if(giveplayerid != playerid) {
-        GivePlayerCash(playerid, -amount);
-        GivePlayerCash(giveplayerid, amount);
-    }
-
-    if(giveplayerid == playerid) format(string, sizeof(string), "* %s holt eine Münze aus der Tasche und spielt damit.", GetName(playerid), GetName(giveplayerid));
-    else {
-		format(string, sizeof(string), "* %s holt Geld aus der Tasche und gibt es %s.", GetName(playerid), GetName(giveplayerid));
-    	NearByMessage(playerid, COLOR_LIGHTBLUE, string);
-
-		format(string, sizeof(string), "[GIVECASH] %s - $%d - %s.", GetName(playerid), amount, GetName(giveplayerid));
-    	Log2File("money", string);
+    if(sscanf(params, "ud", giveplayerid, amount))      return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /givecash [SpielerID] [Menge]");
+    if(playerid == giveplayerid) {
+		format(string, sizeof(string), "* %s holt eine Münze aus der Tasche und spielt damit.", GetName(playerid), GetName(giveplayerid));
+		SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+		return true;
 	}
+	if(GetPlayerCash(playerid) < amount) return SendClientMessage(playerid, COLOR_RED,  "* Du hast nicht genügend Geld.");
+    GetPlayerPos(giveplayerid, posX, posY, posZ);
+    if(!IsPlayerInRangeOfPoint(playerid, 8.0, posX, posY, posZ))                return SendClientMessage(playerid, COLOR_RED, "* Du bist zu weit von diesem Spieler entfernt.");
+
+	GivePlayerCash(playerid, -amount);
+    GivePlayerCash(giveplayerid, amount);
+
+	format(string, sizeof(string), "* %s holt Geld aus der Tasche und gibt es %s.", GetName(playerid), GetName(giveplayerid));
+   	SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+
+	format(string, sizeof(string), "[GIVECASH] %s - $%d - %s.", GetName(playerid), amount, GetName(giveplayerid));
+   	Log2File("money", string);
 
     format(string, sizeof(string), "* Du hast %s $%d gegeben.", GetName(giveplayerid), amount);
     SendClientMessage(playerid, COLOR_OOC, string);
@@ -1052,9 +1072,9 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		
 		// faction cars query
 
-		if(IsACar(vehicle) && pStats[playerid][pLicenseCar] == -1) 																		SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Führerschein. Hüte dich vor der Polizei!");
-		else if(IsAMotorBike(vehicle) && pStats[playerid][pLicenseBike] == -1)															SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Motorradführerschein. Hüte dich vor der Polizei!");
-		else if(IsAPlane(vehicle) && pStats[playerid][pLicenseAir] == -1 || IsAHeli(vehicle) && pStats[playerid][pLicenseAir] == -1)	SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Flugschein. Hüte dich vor der Polizei!");
+		if(IsACar(vehicle) && pStats[playerid][pLicenseCar] != 1) 																		SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Führerschein. Hüte dich vor der Polizei!");
+		else if(IsAMotorBike(vehicle) && pStats[playerid][pLicenseBike] != 1)															SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Motorradführerschein. Hüte dich vor der Polizei!");
+		else if(IsAPlane(vehicle) && pStats[playerid][pLicenseAir] != 1 || IsAHeli(vehicle) && pStats[playerid][pLicenseAir] == -1)	SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Flugschein. Hüte dich vor der Polizei!");
 	}
     return true;
 }
@@ -1291,9 +1311,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					format(coordstring1, sizeof(coordstring1), "* E-Mail: %s | IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d)", pStats[giveplayerid][pEmail], pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank]);
 					format(coordstring2, sizeof(coordstring2), "* Cash: %d | CC: %d | Level: %d | Skin: %d | Health: %f | Armor: %d", pStats[giveplayerid][pCash], pStats[giveplayerid][pCC], pStats[giveplayerid][pLevel], pStats[giveplayerid][pSkin],pStats[giveplayerid][pHealth], pStats[giveplayerid][pArmor]);
 					format(coordstring3, sizeof(coordstring3), "* Warns: %d | Warning1: %s | Warning2: %s | Warning3: %s", pStats[giveplayerid][pWarns], pStats[giveplayerid][pWarning1], pStats[giveplayerid][pWarning2], pStats[giveplayerid][pWarning3]);
-					format(coordstring4, sizeof(coordstring4), "* VehicleID1: %d | VehicleID2: %d | VehicleID3: %d", pStats[giveplayerid][pVeh1], pStats[giveplayerid][pVeh2], pStats[giveplayerid][pVeh3]);
+					format(coordstring4, sizeof(coordstring4), "* LicenseCar: %d | LicenseBike: %d | LicenseAir: %d | VehicleID1: %d | VehicleID2: %d | VehicleID3: %d", pStats[playerid][pLicenseCar], pStats[playerid][pLicenseBike], pStats[playerid][pLicenseAir], pStats[giveplayerid][pVeh1], pStats[giveplayerid][pVeh2], pStats[giveplayerid][pVeh3]);
 					format(coordstring5, sizeof(coordstring5), "* PosX: %f | PosY: %f | PosZ: %f", pStats[giveplayerid][pPositionX], pStats[giveplayerid][pPositionY], pStats[giveplayerid][pPositionZ]);
-
 					format(str, sizeof(str), "%s\r\n %s\r\n %s\r\n %s\r\n %s\r\n %s\r\n", coordstring0, coordstring1, coordstring2, coordstring3, coordstring4, coordstring5);
 					
 					ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", str, "OK", " ");
@@ -1558,7 +1577,7 @@ public AntiCheat()
 			format(string, sizeof(string), "[Jetpack-Warnung]: %s", GetName(i));
 		    Log2File("anti-cheat", string);
 		}
-	    else if(GetPlayerCash(i) < GetPlayerMoney(i)) {
+	    else if(GetPlayerCash(i) < GetPlayerMoney(i)) { // buggy
                 format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte einen Geldcheat benutzen. (Geld 'erschaffen': $%d)", GetName(i), i, GetPlayerMoney(i));
                 SendAdminMessage(COLOR_RED, string, 0);
 
@@ -1596,7 +1615,7 @@ public SendAdminMessage(color, string[], requireduty)
     return true;
 }
 
-public NearByMessage(playerid, color, string[])
+public SendNearByMessage(playerid, color, string[])
 {
     new Float: PlayerX, Float: PlayerY, Float: PlayerZ;
     foreach(Player, i) {
