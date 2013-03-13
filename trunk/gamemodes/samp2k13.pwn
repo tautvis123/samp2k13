@@ -163,6 +163,7 @@ public OnGameModeInit()
     Command_AddAltNamed("adminduty", "aduty"); // short forms for cmds
     Command_AddAltNamed("ooc", "o");
     Command_AddAltNamed("announce", "ann");
+    Command_AddAltNamed("adminchat", "a");
     
 	AddStaticVehicle(416,1178.0715,-1308.3512,14.0024,269.4829,1,0); // Krankenwagen1
 	AddStaticVehicle(416,1178.0037,-1338.9781,14.0427,271.4690,1,0); // Krankenwagen2
@@ -352,14 +353,6 @@ public OnPlayerText(playerid, text[])
         return false;
     }
 
-    else if(text[0] == '@' && pStats[playerid][pAdminLevel] >= 1) {
-        format(string, sizeof(string), "** Admin %s: %s", GetName(playerid), text);
-        SendAdminMessage(COLOR_PURPLE, string, 0);
-        
-       	format(string, sizeof(string), "[ADMIN] %s: %s", GetName(playerid), text);
-    	Log2File("chat", string);
-        return false;
-    }
 	format(string, sizeof(string), "[SAY] %s: %s", GetName(playerid), text);
     Log2File("chat", string);
     return true;
@@ -575,9 +568,9 @@ YCMD:say(playerid, params[], help)
 {
     new string[128];
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-    if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /say [Nachricht]"),
+    if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /say [Nachricht]");
 
-    format(string, sizeof(string), "** Admin: %s", params);
+    format(string, sizeof(string), "** Admin %s: %s", GetName(playerid), params);
     SendClientMessageToAll(COLOR_PURPLE, string);
 
 	format(string, sizeof(string), "** Admin %s [/say]: %s", GetName(playerid), params);
@@ -753,8 +746,15 @@ YCMD:announce(playerid, params[], help)
     if(pStats[playerid][pAdminLevel] < 3)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /(ann)ounce [Nachricht]");
 
-    format(string, sizeof(string), "*** WICHTIGE Ankündigung: %s", params);
+	foreach(Player, i) ClearChat(i);
+
+    format(string, sizeof(string), "*** WICHTIGE Ankündigung von Administrator %s ***", GetName(playerid));
     SendClientMessageToAll(COLOR_PURPLE, string);
+    SendClientMessageToAll(COLOR_PURPLE, " ");
+    format(string, sizeof(string), "%s", params);
+    SendClientMessageToAll(COLOR_WHITE, string);
+    SendClientMessageToAll(COLOR_PURPLE, " ");
+    SendClientMessageToAll(COLOR_PURPLE, "**************************************************************");
 
 	format(string, sizeof(string), "** Admin %s [/announce]: %s", GetName(playerid), params);
     Log2File("admin", string);
@@ -770,7 +770,7 @@ YCMD:help(playerid, params[], help)
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
 
     SendClientMessage(playerid, COLOR_OOC, "* Allgemein: /admins /afk /givecash /buy");
-    SendClientMessage(playerid, COLOR_OOC, "* Chat:     /s /b /me /ooc");
+    SendClientMessage(playerid, COLOR_OOC, "* Chat:      /a /s /b /me /ooc");
     if(pStats[playerid][pFaction] == 1) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
 	if(pStats[playerid][pFaction] == 2) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
 	if(pStats[playerid][pFaction] == 3) 					SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
@@ -843,6 +843,28 @@ YCMD:afk(playerid, params[], help)
     return true;
 }
 
+YCMD:adminchat(playerid, params[], help)
+{
+    new string[128];
+
+    if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
+    if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /a(dminchat) [Nachricht]");
+
+	if(pStats[playerid][pAdminLevel] >= 1) {
+        format(string, sizeof(string), "[ ** %s: %s ]", GetName(playerid), params);
+        SendAdminMessage(COLOR_PURPLE, string, false);
+       	format(string, sizeof(string), "[ADMIN] %s: %s", GetName(playerid), params);
+    	Log2File("chat", string);
+	}
+	else {
+        format(string, sizeof(string), "[ ** %s [ID: %d]: %s ]", GetName(playerid), playerid, params);
+        SendAdminMessage(COLOR_RED, string, false);
+       	format(string, sizeof(string), "[SUPPORT] %s: %s", GetName(playerid), params);
+    	Log2File("chat", string);
+	}
+    Log2File("chat", string);
+    return true;
+}
 
 YCMD:s(playerid, params[], help)
 {
@@ -1955,6 +1977,11 @@ stock String2Integer(string)
 	new str[50];
 	format(str, sizeof(str), "%d", string);
 	return str;
+}
+
+stock ClearChat(playerid)
+{
+	for(new i = 0; i < 10; i++) SendClientMessage(playerid, COLOR_WHITE, " ");
 }
 
 stock GetEscName(playerid)

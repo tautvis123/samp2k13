@@ -17,3 +17,10 @@
   Buggy: /say /motd (nicht YMCD related)
 ~ /help fixed
 + FactionRank in Accountübersicht
+
+
+[13.03.13] [Harti]
+~ /say fixed
+~ Adminchat verändert + Supportchat eingeführt ( /a, testen mit non-Admin)
++ Funktion: ClearChat(playerid)
+~ /ann updated
