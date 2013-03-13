@@ -30,3 +30,4 @@
 ~ /set verbessert
 + Debug CMD: /loadacc
 ~ Führerscheinmessages fixed
+~ MD5 durch SHA256 Hash ausgetauscht
