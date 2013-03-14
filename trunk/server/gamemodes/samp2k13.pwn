@@ -66,7 +66,7 @@
 forward ClearTextSpam(playerid);
 forward ClearCommandSpam(playerid);
 forward ChangeWeather();
-forward SendNearByMessage(playerid, color, string[]);
+forward SendNearByMessage(playerid, string[]);
 forward SendAdminMessage(color, string[], requireduty);
 forward ResetUnusedDBVehicles();
 forward AntiCheat();
@@ -210,22 +210,29 @@ public OnPlayerRequestClass(playerid, classid)
 public OnPlayerConnect(playerid)
 {
     new string[128];
-    format(string, sizeof(string), "* %s [ID: %d] hat den Server betreten.", GetName(playerid), playerid);
-    SendClientMessageToAll(COLOR_OOC, string);
-
+    
     ResetPlayerVariables(playerid);
-    format(query, sizeof(query), "SELECT * FROM `accounts` WHERE `username` = '%s'", GetEscName(playerid)); mysql_query(query); mysql_store_result();
-    for(new i = 0; i < 10; i++) SendClientMessage(playerid, COLOR_GREY, " ");
+    //ClearChat(playerid);
 
+	new banned[15];
+	mysql_GetString("banned_until", "accounts", "username", GetEscName(playerid), banned);
+
+	if(gettime() < strval(banned)) {    // buggy cause of datatypes (int <> double)
+	    format(string, sizeof(string), "** Du bist noch %s gebannt.", timec(gettime(), strval(banned)));
+		SendClientMessage(playerid, COLOR_RED, string);
+	}
+
+    format(query, sizeof(query), "SELECT * FROM `accounts` WHERE `username` = '%s'", GetEscName(playerid)); mysql_query(query); mysql_store_result();
     if(mysql_num_rows() > 0) {
-        mysql_free_result();
+	    format(string, sizeof(string), "* %s [ID: %d] hat den Server betreten.", GetName(playerid), playerid);
+	    SendClientMessageToAll(COLOR_OOC, string);
         ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
     }
     else {
-        mysql_free_result();
         ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", "Dieser Account ist noch nicht registriert.\r\nBitte hole dies auf www.suchtstation.de nach.", "OK", " ");
-        Kick(playerid);
+        //Kick(playerid);
     }
+    mysql_free_result();
     return true;
 }
 
@@ -285,6 +292,12 @@ public OnPlayerSpawn(playerid)
 		SetPlayerPos(playerid, -1606.4093,673.4142,-5.2422);
 		SetPlayerFacingAngle(playerid, 359.0151);
 		
+		switch(pStats[playerid][pFactionRank]) {
+			case 1: 	SetPlayerSkin(playerid, 280);
+			case 2,3:   SetPlayerSkin(playerid, 281);
+			case 4:		SetPlayerSkin(playerid, 282);
+			case 5:     SetPlayerSkin(playerid, 283);
+		}
 		
 		//AddPlayerClass(0,-2665.5969,-2.1069,6.1328,93.2043,0,0,0,0,0,0); // Bank1
 		//AddPlayerClass(0,-2666.0901,-9.2802,6.1328,90.6976,0,0,0,0,0,0); // Bank2
@@ -295,6 +308,12 @@ public OnPlayerSpawn(playerid)
 		SetPlayerPos(playerid, 1178.3900, -1325.5103, 14.1177);
 		SetPlayerFacingAngle(playerid, 359.0151);
 
+		switch(pStats[playerid][pFactionRank]) {
+			case 1: 	SetPlayerSkin(playerid, 275);
+			case 2,3:   SetPlayerSkin(playerid, 274);
+			case 4:		SetPlayerSkin(playerid, 276);
+			case 5:     SetPlayerSkin(playerid, 70);
+		}
 		return true;
     }
     
@@ -302,6 +321,12 @@ public OnPlayerSpawn(playerid)
 		SetPlayerPos(playerid, -1606.4093, 673.4142, -5.2422); // 0
 		SetPlayerFacingAngle(playerid, 180.1302);
 
+		switch(pStats[playerid][pFactionRank]) {
+			//case 1: 	SetPlayerSkin(playerid, 275);
+			//case 2,3:   SetPlayerSkin(playerid, 274);
+			//case 4:		SetPlayerSkin(playerid, 276);
+			case 5:     SetPlayerSkin(playerid, 147);
+		}
 		return true;
     }
     
@@ -360,7 +385,7 @@ public OnPlayerText(playerid, text[])
     }
 	format(string, sizeof(string), "%s: %s", GetName(playerid), text);
 
-	SendNearByMessage(playerid, COLOR_WHITE, string);
+	SendNearByMessage(playerid, string);
 	SetPlayerChatBubble(playerid, text, COLOR_WHITE, 8.0, 4000);
 
 	format(string, sizeof(string), "[SAY] %s: %s", GetName(playerid), text);
@@ -478,7 +503,7 @@ YCMD:repairveh(playerid, params[], help)
     new string[128], giveplayerid;
     if(pStats[playerid][pAdminLevel] < 2)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
     if(sscanf(params, "u", giveplayerid))                   return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /repairveh [SpielerID]"),
-            SendClientMessage(playerid, COLOR_WHITE, "Function: Will repair the specified players vehicle - health and body.");
+            														SendClientMessage(playerid, COLOR_WHITE, "Function: Will repair the specified players vehicle - health and body.");
     if(GetPVarInt(giveplayerid, "Authentication") != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_ID_NOTONLINE);
     if(!IsPlayerInAnyVehicle(giveplayerid))             return SendClientMessage(playerid, COLOR_RED, "** Dieser Spieler ist in keinem Vehikel.");
 
@@ -590,7 +615,7 @@ YCMD:say(playerid, params[], help)
 
 YCMD:showmembers(playerid, params[], help)
 {
-    new string[128], val, playerarray[3], coordstring[2048], escp[1024];
+    new string[128], val, playerarray[3][128], coordstring[2048];
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
     if(sscanf(params, "d", val))              	return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /showmembers [FraktionsID]");
 														//evtl. noch Fraktionen auflisten
@@ -602,34 +627,33 @@ YCMD:showmembers(playerid, params[], help)
 	ClearChat(playerid);
 	while(mysql_fetch_row(query)) {
         sscanf(query, "p<|>s[128]dd", playerarray[0], playerarray[1], playerarray[2]);
-        printf("[SSCANF] Name: %s, Faction: %d, FactionRank: %d", playerarray[0], playerarray[1], playerarray[2]);
-
-		format(string, sizeof(string), "Name: %s, Rang: %d\r\n", playerarray[0], playerarray[2]);
+		format(string, sizeof(string), "Name: %s, Rang: %d \n", playerarray[0], playerarray[2]);
 		strcat(coordstring, string, sizeof(coordstring));
-		SendClientMessage(playerid, COLOR_WHITE, coordstring);
 	}
 	mysql_free_result();
 
-		if(val == 1) {
-			format(string, sizeof(string), "*** Fraktionsmitglieder der Polizei ***\r\n%s", coordstring);
-			SendClientMessage(playerid, COLOR_PURPLE, string);
+	switch(val) {
+		case 1: {
+			SendClientMessage(playerid, COLOR_PURPLE, "*** Fraktionsmitglieder der Polizei ***");
+			SendClientMessage(playerid, COLOR_WHITE, coordstring);
 		}
-		if(val == 2) {
-			format(string, sizeof(string), "*** Fraktionsmitglieder der Ärzte ***\r\n%s", coordstring);
-			SendClientMessage(playerid, COLOR_PURPLE, string);
+		case 2: {
+			SendClientMessage(playerid, COLOR_PURPLE, "*** Fraktionsmitglieder der Ärzte ***");
+			SendClientMessage(playerid, COLOR_PURPLE, coordstring);
 		}
-		if(val == 3) {
-			format(string, sizeof(string), "*** Fraktionsmitglieder der Fahrschule ***\r\n%s", coordstring);
-			SendClientMessage(playerid, COLOR_PURPLE, string);
+		case 3: {
+			SendClientMessage(playerid, COLOR_PURPLE, "*** Fraktionsmitglieder der Fahrschule ***");
+			SendClientMessage(playerid, COLOR_PURPLE, coordstring);
 		}
-		if(val == 4) {
-			format(string, sizeof(string), "*** Fraktionsmitglieder des ADAC ***\r\n%s", coordstring);
-			SendClientMessage(playerid, COLOR_PURPLE, string);
+		case 4: {
+			SendClientMessage(playerid, COLOR_PURPLE, "*** Fraktionsmitglieder des ADAC ***");
+			SendClientMessage(playerid, COLOR_PURPLE, coordstring);
 		}
-		if(val == 5) {
-			format(string, sizeof(string), "*** Fraktionsmitglieder der Taxifahrer ***\r\n%s", coordstring);
-			SendClientMessage(playerid, COLOR_PURPLE, string);
+		case 5: {
+			SendClientMessage(playerid, COLOR_PURPLE, "*** Fraktionsmitglieder der Taxifahrer ***");
+			SendClientMessage(playerid, COLOR_PURPLE, coordstring);
 		}
+	}
     return true;
 }
 
@@ -955,7 +979,7 @@ YCMD:s(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /s [Nachricht]");
 
     format(string, sizeof(string), "%s schreit: %s!!", GetNameEx(playerid), params);
-    SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+    SendNearByMessage(playerid, string);
 
     format(string, sizeof(string), "%s!!", params);
 	SetPlayerChatBubble(playerid, string, COLOR_WHITE, 15.0, 4000);
@@ -974,7 +998,7 @@ YCMD:b(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /b [Nachricht]");
 
     format(string, sizeof(string), "(( %s: %s ))", GetNameEx(playerid), params);
-    SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+    SendNearByMessage(playerid, string);
 
 	format(string, sizeof(string), "[B] (( %s: %s ))", GetName(playerid), params);
     Log2File("chat", string);
@@ -990,7 +1014,7 @@ YCMD:me(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /me [Aktion]");
 
     format(string, sizeof(string), "* %s %s", GetNameEx(playerid), params);
-    SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+    SendNearByMessage(playerid, string);
 
 	format(string, sizeof(string), "[ME] %s %s", GetName(playerid), params);
     Log2File("chat", string);
@@ -1022,7 +1046,7 @@ YCMD:givecash(playerid, params[], help)
     if(sscanf(params, "ud", giveplayerid, amount))      return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /givecash [SpielerID] [Menge]");
     if(playerid == giveplayerid) {
 		format(string, sizeof(string), "* %s holt eine Münze aus der Tasche und spielt damit.", GetName(playerid), GetName(giveplayerid));
-		SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+		SendNearByMessage(playerid, string);
 		return true;
 	}
 	if(GetPlayerCash(playerid) < amount) return SendClientMessage(playerid, COLOR_RED,  "* Du hast nicht genügend Geld.");
@@ -1033,7 +1057,7 @@ YCMD:givecash(playerid, params[], help)
     GivePlayerCash(giveplayerid, amount);
 
 	format(string, sizeof(string), "* %s holt Geld aus der Tasche und gibt es %s.", GetName(playerid), GetName(giveplayerid));
-   	SendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+   	SendNearByMessage(playerid, string);
 
 	format(string, sizeof(string), "[GIVECASH] %s - $%d - %s.", GetName(playerid), amount, GetName(giveplayerid));
    	Log2File("money", string);
@@ -1546,42 +1570,45 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             new string[256], giveplayerid;
             if(!response) return false;
             if(GetPVarInt(giveplayerid, "Authentication") != 1)         return SendClientMessage(playerid, COLOR_RED,  ERRORMESSAGE_USER_ID_NOTONLINE);
-            pStats[giveplayerid][pWarns] ++;
+            pStats[giveplayerid][pWarns] ++; SavePlayerAccount(giveplayerid);
 
-            if(strlen(inputtext) == 0) {
+			if(strlen(inputtext) == 0) {
                 /*format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3].", GetName(playerid), GetName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns]);
                 SendClientMessageToAll(COLOR_PURPLE, string);
                 Log2File("admin", string);*/
                 return false;
             }
             else {
+                mysql_real_escape_string(inputtext, inputtext);
                 format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3]. Grund: %s", GetName(playerid), GetName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns], inputtext);
                 SendClientMessageToAll(COLOR_PURPLE, string);
                 Log2File("admin", string);
             }
 
-            if(pStats[giveplayerid][pWarns] == -1) {
+            if(pStats[giveplayerid][pWarns] == 1) {
                 SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 1/3 gestiegen.");
                 format(query, sizeof(query), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
-                mysql_query(query);
-                pStats[playerid][pWarns] ++;
+                mysql_query(query); mysql_free_result();
             }
 
-            else if(pStats[giveplayerid][pWarns] == 1) {
+            else if(pStats[giveplayerid][pWarns] == 2) {
                 SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 2/3 gestiegen.");
-                format(query, sizeof(query), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, GetName(playerid));
-                mysql_query(query);
+                format(query, sizeof(query), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
+                mysql_query(query); mysql_free_result();
             }
 
-            else if(pStats[playerid][pWarns] == 2) {
+            else if(pStats[playerid][pWarns] == 3) {
+                SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 3/3 gestiegen.");
                 format(string, sizeof(string), "** %s [ID: %d] wurde aufgrund von zuvielen Verwarnungen vom Server gebannt.", GetName(giveplayerid), giveplayerid);
                 SendClientMessageToAll(COLOR_PURPLE, string);
-                format(query, sizeof(query), "UPDATE `accounts` SET `warning3` = '%s' WHERE `username` = '%s'", inputtext, GetName(playerid));
-                mysql_query(query);
-                Kick(giveplayerid);
+                
+                new banduration = (gettime() + 604800); // 1 week
+                
+                format(query, sizeof(query), "UPDATE `accounts` SET `warning3` = '%s', `banned_until` = %d WHERE `username` = '%s'", inputtext, banduration, GetName(giveplayerid));
+                mysql_query(query); mysql_free_result();
+				Kick(giveplayerid);
             }
             else SendClientMessage(playerid, COLOR_RED, "* SERVER: Bei dieser Interaktion ist ein Fehler aufgetreten. (Errorcode: #001)");
-            SavePlayerAccount(playerid);
         }
     }
     return false;
@@ -1667,15 +1694,19 @@ public SendAdminMessage(color, string[], requireduty)
     return true;
 }
 
-public SendNearByMessage(playerid, color, string[])
+public SendNearByMessage(playerid, string[])
 {
     new Float: PlayerX, Float: PlayerY, Float: PlayerZ;
     foreach(Player, i) {
         if(GetPVarInt(i, "Authentication") == 1) {
             GetPlayerPos(playerid, PlayerX, PlayerY, PlayerZ);
-            if(IsPlayerInRangeOfPoint(i, 12, PlayerX, PlayerY, PlayerZ)) {
-                if(GetPlayerVirtualWorld(playerid) == GetPlayerVirtualWorld(i) && GetPlayerInterior(playerid) == GetPlayerInterior(i)) SendClientMessage(i, color, string);
-            }
+            if(GetPlayerVirtualWorld(playerid) == GetPlayerVirtualWorld(i) && GetPlayerInterior(playerid) == GetPlayerInterior(i)) {
+	            if(IsPlayerInRangeOfPoint(i, 12, PlayerX, PlayerY, PlayerZ))	SendClientMessage(i, 0x6E6E6E6E, string);
+	            if(IsPlayerInRangeOfPoint(i, 9, PlayerX, PlayerY, PlayerZ)) 	SendClientMessage(i, 0x8C8C8C8C, string);
+	            if(IsPlayerInRangeOfPoint(i, 6, PlayerX, PlayerY, PlayerZ)) 	SendClientMessage(i, 0xAAAAAAAA, string);
+	            if(IsPlayerInRangeOfPoint(i, 3, PlayerX, PlayerY, PlayerZ)) 	SendClientMessage(i, 0xE6E6E6E6, string);
+
+			}
         }
     }
     return true;
@@ -1751,6 +1782,15 @@ stock mysql_GetInt(field[], table[], req[], requirement[])
     return var;
 }
 
+stock mysql_GetDouble(field[], table[], req[], requirement[])
+{
+    mysql_real_escape_string(field, field); mysql_real_escape_string(req, req); mysql_real_escape_string(requirement, requirement);
+    format(query, sizeof(query), "SELECT `%s` FROM `%s` WHERE `%s` = '%s'", field, table, req, requirement); mysql_query(query); mysql_store_result();
+    new double var = mysql_fetch_int(); mysql_free_result();
+	//if(var == -1) return false;
+    return var;
+}
+
 
 stock Float:mysql_GetFloat(field[], table[], req[], requirement[])
 {
@@ -1798,38 +1838,38 @@ stock LoadPlayerAccount(playerid)
 {
     if(GetPVarInt(playerid, "Authentication") != 1) return false;
 
-    mysql_GetString("email",        "accounts", "username", GetName(playerid), pStats[playerid][pEmail]);
-    mysql_GetString("ip_address",   "accounts", "username", GetName(playerid), pStats[playerid][pIPAddress]);
+    mysql_GetString("email",        "accounts", "username", GetEscName(playerid), pStats[playerid][pEmail]);
+    mysql_GetString("ip_address",   "accounts", "username", GetEscName(playerid), pStats[playerid][pIPAddress]);
 
-    pStats[playerid][pAdminLevel]   = mysql_GetInt("admin_level",   "accounts", "username", GetName(playerid));
-    pStats[playerid][pFaction]      = mysql_GetInt("faction",       "accounts", "username", GetName(playerid));
-    pStats[playerid][pFactionRank]  = mysql_GetInt("faction_rank",  "accounts", "username", GetName(playerid));
-    pStats[playerid][pJob]          = mysql_GetInt("job",           "accounts", "username", GetName(playerid));
-    pStats[playerid][pCash]         = mysql_GetInt("cash",          "accounts", "username", GetName(playerid));
-    pStats[playerid][pCC]           = mysql_GetInt("cc",            "accounts", "username", GetName(playerid));
-    pStats[playerid][pLevel]        = mysql_GetInt("level",         "accounts", "username", GetName(playerid));
-    pStats[playerid][pSkin]         = mysql_GetInt("skin",          "accounts", "username", GetName(playerid));
+    pStats[playerid][pAdminLevel]   = mysql_GetInt("admin_level",   "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pFaction]      = mysql_GetInt("faction",       "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pFactionRank]  = mysql_GetInt("faction_rank",  "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pJob]          = mysql_GetInt("job",           "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pCash]         = mysql_GetInt("cash",          "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pCC]           = mysql_GetInt("cc",            "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pLevel]        = mysql_GetInt("level",         "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pSkin]         = mysql_GetInt("skin",          "accounts", "username", GetEscName(playerid));
 
-    pStats[playerid][pHealth]       = mysql_GetFloat("health",      "accounts", "username", GetName(playerid));
-    pStats[playerid][pArmor]        = mysql_GetFloat("armor",       "accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionX]    = mysql_GetFloat("position_X",  "accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionY]    = mysql_GetFloat("position_Y",  "accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionZ]    = mysql_GetFloat("position_Z",  "accounts", "username", GetName(playerid));
-    pStats[playerid][pPositionA]    = mysql_GetFloat("position_A",  "accounts", "username", GetName(playerid));
+    pStats[playerid][pHealth]       = mysql_GetFloat("health",      "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pArmor]        = mysql_GetFloat("armor",       "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pPositionX]    = mysql_GetFloat("position_X",  "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pPositionY]    = mysql_GetFloat("position_Y",  "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pPositionZ]    = mysql_GetFloat("position_Z",  "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pPositionA]    = mysql_GetFloat("position_A",  "accounts", "username", GetEscName(playerid));
 
-    pStats[playerid][pLogins]       = mysql_GetInt("logins",        "accounts", "username", GetName(playerid));
-    pStats[playerid][pWarns]        = mysql_GetInt("warns",         "accounts", "username", GetName(playerid));
+    pStats[playerid][pLogins]       = mysql_GetInt("logins",        "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pWarns]        = mysql_GetInt("warns",         "accounts", "username", GetEscName(playerid));
 
-    mysql_GetString("warning1",     "accounts", "username", GetName(playerid), pStats[playerid][pWarning1]);
-    mysql_GetString("warning2",     "accounts", "username", GetName(playerid), pStats[playerid][pWarning2]);
-    mysql_GetString("warning3",     "accounts", "username", GetName(playerid), pStats[playerid][pWarning3]);
+    mysql_GetString("warning1",     "accounts", "username", GetEscName(playerid), pStats[playerid][pWarning1]);
+    mysql_GetString("warning2",     "accounts", "username", GetEscName(playerid), pStats[playerid][pWarning2]);
+    mysql_GetString("warning3",     "accounts", "username", GetEscName(playerid), pStats[playerid][pWarning3]);
 
-    pStats[playerid][pVeh1]         = mysql_GetInt("vehicleID1",    "accounts", "username", GetName(playerid));
-    pStats[playerid][pVeh2]         = mysql_GetInt("vehicleID2",    "accounts", "username", GetName(playerid));
-    pStats[playerid][pVeh3]         = mysql_GetInt("vehicleID3",    "accounts", "username", GetName(playerid));
-    pStats[playerid][pLicenseCar]   = mysql_GetInt("license_car",   "accounts", "username", GetName(playerid));
-    pStats[playerid][pLicenseBike]  = mysql_GetInt("license_bike",  "accounts", "username", GetName(playerid));
-    pStats[playerid][pLicenseAir]   = mysql_GetInt("license_air",   "accounts", "username", GetName(playerid));
+    pStats[playerid][pVeh1]         = mysql_GetInt("vehicleID1",    "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pVeh2]         = mysql_GetInt("vehicleID2",    "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pVeh3]         = mysql_GetInt("vehicleID3",    "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pLicenseCar]   = mysql_GetInt("license_car",   "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pLicenseBike]  = mysql_GetInt("license_bike",  "accounts", "username", GetEscName(playerid));
+    pStats[playerid][pLicenseAir]   = mysql_GetInt("license_air",   "accounts", "username", GetEscName(playerid));
 
     pStats[playerid][pLogins] ++;
 
@@ -2051,8 +2091,8 @@ stock Log2File(filename[], string[])
 	getdate(year, month, day);
 	gettime(hour, minute, second);
 	
-    format(str, sizeof(str), "[%d:%d:%d]: %s\r\n", hour, minute, second, string);
-    format(str2, sizeof(str2), "logs/%d-%d-%d-%s.log", year, day, month, filename);
+    format(str, sizeof(str), "[%02d:%02d:%02d]: %s\r\n", hour, minute, second, string);
+    format(str2, sizeof(str2), "logs/%d-%02d-%02d-%s.log", year, day, month, filename);
 
     new File:hFile;
     hFile = fopen(str2, io_append);
@@ -2060,16 +2100,70 @@ stock Log2File(filename[], string[])
     fclose(hFile);
 }
 
-stock String2Integer(string)
+stock ConvertNewLine(string[], backstring[]) // credits: http://forum.sa-mp.de/san-andreas-multiplayer/scripting-base/103555-n-wird-nicht-erkannt-dialog/#post944053 , edited by Harti
 {
-	new str[50];
-	format(str, sizeof(str), "%d", string);
-	return str;
+	new pos;
+	while(strfind(string, "~n~", false) != -1) {
+	    pos = strfind(string,"~n~",false);
+	    strdel(string, pos, pos+2);
+	    strins(string, "\n", pos, 1500);
+	}
+	strins(backstring, string, 0, 1500);
+	return true;
+}
+
+stock IntInStr(string[])
+{
+	new i;
+	if(
+	return i;
+}
+
+stock timec(timestamp, compare = -1) // http://forum.sa-mp.com/showthread.php?t=254915
+{
+    if (compare == -1) compare = gettime();
+
+    new n, Float:d = (timestamp > compare) ? timestamp - compare : compare - timestamp, returnstr[32];
+    if (d < 60) {
+        format(returnstr, sizeof(returnstr), "< 1 Minute");
+        return returnstr;
+    }
+	else if (d < 3600) { // 3600 = 1 hour
+        n = floatround(floatdiv(d, 60.0), floatround_floor);
+        format(returnstr, sizeof(returnstr), "Minute");
+    }
+	else if (d < 86400) { // 86400 = 1 day
+        n = floatround(floatdiv(d, 3600.0), floatround_floor);
+        format(returnstr, sizeof(returnstr), "Stunde");
+    }
+	else if (d < 2592000) { // 2592000 = 1 month
+        n = floatround(floatdiv(d, 86400.0), floatround_floor);
+        format(returnstr, sizeof(returnstr), "Tag");
+    }
+	else if (d < 31536000) { // 31536000 = 1 year
+        n = floatround(floatdiv(d, 2592000.0), floatround_floor);
+        format(returnstr, sizeof(returnstr), "Monat");
+    }
+	else {
+        n = floatround(floatdiv(d, 31536000.0), floatround_floor);
+        format(returnstr, sizeof(returnstr), "Jahr");
+    }
+    if (n == 1) format(returnstr, sizeof(returnstr), "1 %s", returnstr);
+	else format(returnstr, sizeof(returnstr), "%d %ss", n, returnstr);
+    return returnstr;
 }
 
 stock ClearChat(playerid)
 {
 	for(new i = 0; i < 10; i++) SendClientMessage(playerid, COLOR_WHITE, " ");
+}
+
+stock GetName(playerid)
+{
+    new name[MAX_PLAYER_NAME];
+    if(IsPlayerConnected(playerid)) GetPlayerName(playerid, name, sizeof(name));
+    else name = "Unbekannt";
+    return name;
 }
 
 stock GetEscName(playerid)
@@ -2079,16 +2173,8 @@ stock GetEscName(playerid)
         GetPlayerName(playerid, name, sizeof(name));
         mysql_real_escape_string(name, EscapedName);
     }
-    else EscapedName = "Unknown";
+    else EscapedName = "Unbekannt";
     return EscapedName;
-}
-
-stock GetName(playerid)
-{
-    new name[MAX_PLAYER_NAME];
-    if(IsPlayerConnected(playerid)) GetPlayerName(playerid, name, sizeof(name));
-    else name = "Unknown";
-    return name;
 }
 
 stock GetNameEx(playerid)
