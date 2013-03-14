@@ -32,3 +32,12 @@
 ~ Führerscheinmessages fixed
 ~ MD5 durch SHA256 Hash ausgetauscht
 ~ MySQL Charsets angepasst
+
+[14.03.13] [Harti]
+~ /showmembers, /warn fixed, timeban eingeführt (7 Tage)
++ banned_until in DB, charsets angepasst
++ Funktion: ConvertNewLine(string[], backstring[])
+- String2Integer (strval does the same)
+~ String2Log verbessert (01.03.2013 anstatt 1.3.2013, Zeit auch immer zweistellig)
+~ Skins von Arzt, Medic und Fahrschule verändert
+~ SendNearByMessage Farben verändert (TESTEN!)

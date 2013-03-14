@@ -11,21 +11,19 @@ samp2k13 ToDo
 
 
 BugFixes / simple things
-	~ 	Bei /warn (3/3) keinen Kick, sondern einen Timebann erstellen; fixen (Errorcode tritt auf)
-	~ 	MOTD \r\n fixen
-	~ 	SendNearByMessage Farbe je nach Entfernung verändern
-	~	/showmembers (factionid)
+	~ 	Bei OnPlayerConnect richtig auf Ban prüfen
 
 Dialoge / Design
 	~ 	Fraktionskasse: In Dialog packen
 	~ 	"/set" ins Scoreboard integrieren
 	~ 	Fraktions-Spawns nach LS verschieben
-	~	/showme in Dialog packen
+	~	/showme, /showmembers in Dialog packen
 	~	SendClientMessage bei fehlendem Führerschein in TextDraw/Label/whatever ändern
 	~	Pickups fixen
+	~ 	MOTD newline fixen
 	
 Größere Sachen
-	+ 	Uhr
+	+ 	Uhr (nur anzeigen, wenn man eine gekauft hat + attachment armbanduhr ?)
 	+	Blitzer
 	+	BSN DriveIn
 
