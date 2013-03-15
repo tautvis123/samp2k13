@@ -41,3 +41,6 @@
 ~ String2Log verbessert (01.03.2013 anstatt 1.3.2013, Zeit auch immer zweistellig)
 ~ Skins von Arzt, Medic und Fahrschule verändert
 ~ SendNearByMessage Farben verändert (TESTEN!)
+~ /set performanter gemacht
+~ Includes updated
++ /tazer

@@ -20,7 +20,6 @@
 
 
 #define mysql_fetch_row(%1)     mysql_fetch_row_format(%1,"|")
-
                   
 #define GivePlayerCash(%0,%1)   SetPVarInt(%0,"Money", GetPlayerCash(%0)+%1), GivePlayerMoney(%0,%1) // ServerSide Money (credits to Luka P.)
 #define ResetPlayerCash(%0)     SetPVarInt(%0,"Money", 0), ResetPlayerMoney(%0)
@@ -32,6 +31,7 @@
 #define ERRORMESSAGE_USER_NOTLOGGEDIN   "* Du bist nicht eingeloggt."
 #define ERRORMESSAGE_USER_ID_NOTONLINE  "* Dieser Spieler ist nicht online bzw. eingeloggt."
 #define ERRORMESSAGE_FACTIONRANK_TOOLOW "* Dein Fraktionsrang ist dafür zu niedrig."
+#define ERRORMESSAGE_WRONG_FACTION      "* Du bist in der falschen Fraktion."
 
 #define CARMENU 25000
 #define MAX_PING 550
@@ -65,11 +65,16 @@
 
 forward ClearTextSpam(playerid);
 forward ClearCommandSpam(playerid);
+
+forward ResetTazerStatus(playerid);
+forward UnfreezePlayer(playerid);
+
 forward ChangeWeather();
 forward SendNearByMessage(playerid, string[]);
 forward SendAdminMessage(color, string[], requireduty);
 forward ResetUnusedDBVehicles();
 forward AntiCheat();
+
 
 enum PlayerData
 {
@@ -351,6 +356,7 @@ public OnPlayerSpawn(playerid)
 public OnPlayerDeath(playerid, killerid, reason)
 {
     SetPVarInt(playerid, "JustDied", 1);
+	TogglePlayerSpectating(playerid, false);
     return true;
 }
 
@@ -403,9 +409,7 @@ YCMD:ahelp(playerid, params[], help)
     Command_AddAltNamed("ahelp", "ah");
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
 
-    //if(pStats[playerid][pAdminLevel] >= 1)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 1: /adminduty /kick /ban /warn /mute");
 	if(pStats[playerid][pAdminLevel] >= 1)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 1: /adminduty /say /showmembers");
-	//if(pStats[playerid][pAdminLevel] >= 2)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 2: /goto /gethere /freeze /spawnveh /respawnveh /respawnaveh /repairveh");
 	if(pStats[playerid][pAdminLevel] >= 2)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 2: /spawnveh /respawnveh /respawnaveh /repairveh");
 	if(pStats[playerid][pAdminLevel] == 3)  SendClientMessage(playerid, COLOR_PURPLE, "** Level 3: /makeadmin /motd /set /announce");
     return true;
@@ -660,12 +664,14 @@ YCMD:showmembers(playerid, params[], help)
 
 YCMD:set(playerid, params[], help)
 {
-    new string[128], Usage[16], giveplayerid, val;
+    new string[128], param[16], giveplayerid, val;
 
 	if(pStats[playerid][pAdminLevel] < 3) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-    if(sscanf(params, "us[16]d", giveplayerid, Usage, val))                             return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /set [SpielerID] [Parameter] [Wert]"),
+    if(sscanf(params, "us[16]d", giveplayerid, param, val))                             return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /set [SpielerID] [Parameter] [Wert]"),
             																					SendClientMessage(playerid, COLOR_GREY, "* Parameter: Health, Armor, Interior, (V)irtual(W)orld, Skin, Cash, Level, Faction, Rank");
-    if(strcmp(Usage, "skin", true) == 0) {
+
+
+    if(strcmp(param, "skin", true) == 0) {
         SetPlayerSkin(giveplayerid, val);
         pStats[giveplayerid][pSkin] = val;
 
@@ -673,7 +679,7 @@ YCMD:set(playerid, params[], help)
         SendClientMessage(playerid, COLOR_PURPLE, string);
     }
 
-    else if(strcmp(Usage, "cash", true) == 0) {
+    else if(strcmp(param, "cash", true) == 0) {
 
         SetPVarInt(giveplayerid, "pMoney", GetPlayerMoney(playerid));
 
@@ -690,7 +696,7 @@ YCMD:set(playerid, params[], help)
 		format(string, sizeof(string), "** %s hat das Geld von %s auf $%d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
     }
-    else if(strcmp(Usage, "health", true) == 0) {
+    else if(strcmp(param, "health", true) == 0) {
         SetPlayerHealth(giveplayerid, val);
         pStats[giveplayerid][pHealth] = val;
 
@@ -700,7 +706,7 @@ YCMD:set(playerid, params[], help)
 		format(string, sizeof(string), "** %s hat die HP von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
     }
-    else if(strcmp(Usage, "armor", true) == 0 || strcmp(Usage, "armor", true) == 0) {
+    else if(strcmp(param, "armor", true) == 0) {
         SetPlayerArmour(giveplayerid, val);
         pStats[giveplayerid][pArmor] = val;
         format(string, sizeof(string), "** Du hast die Rüstung von %s auf %d gesetzt.", GetName(giveplayerid), val);
@@ -709,7 +715,7 @@ YCMD:set(playerid, params[], help)
 		format(string, sizeof(string), "** %s hat die Armor von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
     }
-    else if(strcmp(Usage, "vw", true) == 0 || strcmp(Usage, "virtualworld", true) == 0) {
+    else if(strcmp(param, "vw", true) == 0 || strcmp(param, "virtualworld", true) == 0) {
         SetPlayerVirtualWorld(giveplayerid, val);
         format(string, sizeof(string), "** Du hast die Virtuelle Welt von %s auf %d gesetzt.", GetName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
@@ -717,7 +723,7 @@ YCMD:set(playerid, params[], help)
         format(string, sizeof(string), "** %s hat die Virtuelle Welt von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
     }
-    else if(strcmp(Usage, "interior", true) == 0) {
+    else if(strcmp(param, "interior", true) == 0) {
         SetPlayerInterior(giveplayerid, val);
         format(string, sizeof(string), "** Du hast den Interior von %s auf %d gesetzt.", GetName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
@@ -725,7 +731,7 @@ YCMD:set(playerid, params[], help)
         format(string, sizeof(string), "** %s hat den Interior von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
     }
-    else if(strcmp(Usage, "level",  true) == 0) {
+    else if(strcmp(param, "level",  true) == 0) {
         SetPlayerScore(giveplayerid, val);
         pStats[giveplayerid][pLevel] = val;
         format(string, sizeof(string), "** Du hast das Level von %s auf %d gesetzt.", GetName(giveplayerid), val);
@@ -735,54 +741,64 @@ YCMD:set(playerid, params[], help)
 		format(string, sizeof(string), "** %s hat das Level von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
     }
-    else if(strcmp(Usage, "faction",  true) == 0) {
+    else if(strcmp(param, "faction",  true) == 0) {
         pStats[giveplayerid][pFaction] = val;
+		switch(val) {
+			case 1: {
+				format(string, sizeof(string), "** Du hast %s der Fraktion Polizei zugeordnet.", 					GetName(giveplayerid));
+		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-        if(val == 1) {
-			format(string, sizeof(string), "** Du hast %s der Fraktion Polizei zugeordnet.", 					GetName(giveplayerid));
-	        SendClientMessage(playerid, COLOR_PURPLE, string);
-	        
-			format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Polizei zugeordnet.", GetName(playerid), GetName(giveplayerid));
-    		Log2File("admin", string);
-		}
-        if(val == 2) {
-			format(string, sizeof(string), "** Du hast %s der Fraktion Arzt zugeordnet.",           GetName(giveplayerid));
-	        SendClientMessage(playerid, COLOR_PURPLE, string);
-	        
-			format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Arzt zugeordnet.", GetName(playerid), GetName(giveplayerid));
-    		Log2File("admin", string);
-		}
-        if(val == 3) {
-		    format(string, sizeof(string), "** Du hast %s der Fraktion Fahrschule zugeordnet.",     GetName(giveplayerid));
-	        SendClientMessage(playerid, COLOR_PURPLE, string);
-	        
-			format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Fahrschule zugeordnet.", GetName(playerid), GetName(giveplayerid));
-    		Log2File("admin", string);
-		}
-		if(val == 4) {
-		    format(string, sizeof(string), "** Du hast %s der Fraktion ADAC zugeordnet.",           GetName(giveplayerid));
-	        SendClientMessage(playerid, COLOR_PURPLE, string);
-	        
-			format(string, sizeof(string), "** Administrator %s hat %s der Fraktion ADAC zugeordnet.", GetName(playerid), GetName(giveplayerid));
-    		Log2File("admin", string);
-		}
-		if(val == 5) {
-			format(string, sizeof(string), "** Administrator Du hast %s der Fraktion Taxifahrer zugeordnet.",     GetName(giveplayerid));
-	        SendClientMessage(playerid, COLOR_PURPLE, string);
+				format(string, sizeof(string), "** %s hat dich der Fraktion Polizei zugeordnet.", GetName(playerid));
+				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-			format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Taxifahrer zugeordnet.", GetName(playerid), GetName(giveplayerid));
-    		Log2File("admin", string);
+				format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Polizei zugeordnet.", GetName(playerid), GetName(giveplayerid));
+	    		Log2File("admin", string);
+			}
+			case 2: {
+				format(string, sizeof(string), "** Du hast %s der Fraktion Arzt zugeordnet.",           GetName(giveplayerid));
+		        SendClientMessage(playerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** %s hat dich der Fraktion Arzt zugeordnet.", GetName(playerid));
+				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Arzt zugeordnet.", GetName(playerid), GetName(giveplayerid));
+	    		Log2File("admin", string);
+			}
+			case 3: {
+			    format(string, sizeof(string), "** Du hast %s der Fraktion Fahrschule zugeordnet.",     GetName(giveplayerid));
+		        SendClientMessage(playerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** %s hat dich der Fraktion Fahrschule zugeordnet.", GetName(playerid));
+				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Fahrschule zugeordnet.", GetName(playerid), GetName(giveplayerid));
+	    		Log2File("admin", string);
+			}
+			case 4: {
+			    format(string, sizeof(string), "** Du hast %s der Fraktion ADAC zugeordnet.",           GetName(giveplayerid));
+		        SendClientMessage(playerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** %s hat dich der Fraktion ADAC zugeordnet.", GetName(playerid));
+				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** Administrator %s hat %s der Fraktion ADAC zugeordnet.", GetName(playerid), GetName(giveplayerid));
+	    		Log2File("admin", string);
+			}
+			case 5: {
+				format(string, sizeof(string), "** Administrator Du hast %s der Fraktion Taxifahrer zugeordnet.",     GetName(giveplayerid));
+		        SendClientMessage(playerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** %s hat dich der Fraktion Taxifahrer zugeordnet.", GetName(playerid));
+				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
+
+				format(string, sizeof(string), "** Administrator %s hat %s der Fraktion Taxifahrer zugeordnet.", GetName(playerid), GetName(giveplayerid));
+	    		Log2File("admin", string);
+			}
 		}
-        if(val == 1)    format(string, sizeof(string), "** %s hat dich der Fraktion Polizei zugeordnet.",       GetName(playerid));
-        if(val == 2)    format(string, sizeof(string), "** %s hat dich der Fraktion Arzt zugeordnet.",          GetName(playerid));
-        if(val == 3)    format(string, sizeof(string), "** %s hat dich der Fraktion Fahrschule zugeordnet.",    GetName(playerid));
-        if(val == 4)    format(string, sizeof(string), "** %s hat dich der Fraktion ADAC zugeordnet.",          GetName(playerid));
-        if(val == 5)    format(string, sizeof(string), "** %s hat dich der Fraktion Taxifahrer zugeordnet.",    GetName(playerid));
-        SendClientMessage(giveplayerid, COLOR_PURPLE, string);
         SpawnPlayer(giveplayerid);
     }
 
-    else if(strcmp(Usage, "rank",  true) == 0) {
+    else if(strcmp(param, "rank",  true) == 0) {
         pStats[giveplayerid][pFactionRank] = val;
 
 		format(string, sizeof(string), "** Du hast %s den Rang %d seiner Fraktion gegeben.", GetName(giveplayerid), val);
@@ -1092,6 +1108,61 @@ YCMD:getfunds(playerid, params[], help)
 	return true;
 }
 
+// police
+
+YCMD:tazer(playerid, params[], help)
+{
+	if(pStats[playerid][pFaction] != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_WRONG_FACTION);
+
+	new giveplayer = GetPlayerTargetPlayer(playerid), keys[3], string[128], Float:posX, Float:posY, Float:posZ;
+	if(giveplayer == INVALID_PLAYER_ID) return true;
+
+	if(GetPVarInt(playerid, "TazerAvailable") == 0) return SendClientMessage(playerid, COLOR_RED, "* Der Tazer ist noch am Aufladen."); // change
+
+	if(GetPlayerWeapon(playerid) != 0) return SendClientMessage(playerid, COLOR_RED, "* Du darfst zum Tazern keine Waffe in der Hand halten.");
+	//if((pStats[giveplayer][pFaction] == 1) return SendClientMessage(playerid, COLOR_RED, "* Du kannst keine anderen Polizisten tazern.");
+	if(IsPlayerInAnyVehicle(giveplayer)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst niemanden Tazern, der in einem Vehikel sitzt.");
+	if(IsPlayerInAnyVehicle(playerid)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst aus einem Vehikel heraus niemanden Tazern.");
+
+	GetPlayerPos(giveplayer, posX, posY, posZ);
+	if(!IsPlayerInRangeOfPoint(playerid, 3.0, posX, posY, posZ)) {
+		SetPVarInt(playerid, "TazerAvailable", 0);
+		SetTimerEx("ResetTazerStatus", 30000, false, "i", giveplayer); // 30sek
+
+        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht. [30 Sekunden]", GetName(giveplayer));
+		SendClientMessage(playerid, COLOR_RED, string);
+
+		// nearbymessage
+		return true;
+	}
+	GetPlayerKeys(playerid, keys[0], keys[1], keys[2]);
+	if(keys[0] == KEY_SPRINT) {
+		if(random(1) == 0) {
+			SendClientMessage(playerid, COLOR_RED, "* Du hast den Tazerschuss verfehlt. [45 Sekunden]");
+			SetPVarInt(playerid, "TazerAvailable", 0);
+			SetTimerEx("ResetTazerStatus", 45000, false, "i", giveplayer); // 45sec
+			return true;
+		}
+
+		ApplyAnimation(giveplayer, "CRACK", "crckdeth2", 4.0, 1, 0, 0, 10000, 1); // 10sec
+		TogglePlayerControllable(giveplayer, false);
+		SetTimerEx("UnfreezePlayer", 10000, false, "i", giveplayer);
+
+		SetPVarInt(playerid, "TazerAvailable", 0);
+		SetTimerEx("ResetTazerStatus", 120000, false, "i", giveplayer); // 2min
+
+		format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
+		SendClientMessage(playerid, COLOR_WHITE, string);
+
+	}
+	SetPVarInt(playerid, "TazerAvailable", 0);
+	SetTimerEx("ResetTazerStatus", 60000, false, "i", giveplayer); // 1min
+
+	format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
+	SendClientMessage(playerid, COLOR_WHITE, string);
+	return true;
+}
+
 
 public OnPlayerCommandReceived(playerid, cmdtext[])
 {
@@ -1268,6 +1339,58 @@ public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+	#define PRESSED(%0) \
+	    (((newkeys & (%0)) == (%0)) && ((oldkeys & (%0)) != (%0)))
+
+				// N
+	if(PRESSED(KEY_NO) && pStats[playerid][pFaction] == 1 && GetPlayerWeapon(playerid) == 0) {
+		//if(pStats[playerid][pFaction] != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_WRONG_FACTION);
+
+		new giveplayer = GetPlayerTargetPlayer(playerid), string[128], Float:posX, Float:posY, Float:posZ;
+		if(giveplayer == INVALID_PLAYER_ID) return true;
+
+		if(GetPVarInt(playerid, "TazerAvailable") == 0) return SendClientMessage(playerid, COLOR_RED, "* Der Tazer ist noch nicht wieder aufgeladen."); // change
+
+		//if(GetPlayerWeapon(playerid) != 0) return SendClientMessage(playerid, COLOR_RED, "* Du darfst zum Tazern keine Waffe in der Hand halten.");
+		//if((pStats[giveplayer][pFaction] == 1) return SendClientMessage(playerid, COLOR_RED, "* Du kannst keine anderen Polizisten tazern.");
+		if(IsPlayerInAnyVehicle(giveplayer)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst niemanden Tazern, der in einem Vehikel sitzt.");
+		if(IsPlayerInAnyVehicle(playerid)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst aus einem Vehikel heraus niemanden Tazern.");
+
+		GetPlayerPos(giveplayer, posX, posY, posZ);
+		if(!IsPlayerInRangeOfPoint(playerid, 3.0, posX, posY, posZ)) {
+			SetPVarInt(playerid, "TazerAvailable", 0);
+			SetTimerEx("ResetTazerStatus", 30000, false, "i", giveplayer); // 30sek
+
+	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht. [30 Sekunden]", GetName(giveplayer));
+			SendClientMessage(playerid, COLOR_RED, string);
+
+			// nearbymessage
+			return true;
+		}
+		if(newkeys & KEY_SPRINT) {
+			if(random(1) == 0) {
+				SendClientMessage(playerid, COLOR_RED, "* Du hast den Tazerschuss verfehlt. [45 Sekunden]");
+				SetPVarInt(playerid, "TazerAvailable", 0);
+				SetTimerEx("ResetTazerStatus", 45000, false, "i", giveplayer); // 45sec
+				return true;
+			}
+
+			ApplyAnimation(giveplayer, "CRACK", "crckdeth2", 4.0, 1, 0, 0, 10000, 1); // 10sec
+			TogglePlayerControllable(giveplayer, false);
+			SetTimerEx("UnfreezePlayer", 10000, false, "i", giveplayer);
+
+			SetPVarInt(playerid, "TazerAvailable", 0);
+			SetTimerEx("ResetTazerStatus", 120000, false, "i", giveplayer); // 2min
+
+			format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
+			SendClientMessage(playerid, COLOR_WHITE, string);
+		}
+		SetPVarInt(playerid, "TazerAvailable", 0);
+		SetTimerEx("ResetTazerStatus", 60000, false, "i", giveplayer); // 1min
+
+		format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
+		SendClientMessage(playerid, COLOR_WHITE, string);
+	}
     return true;
 }
 
@@ -1720,9 +1843,10 @@ public ChangeWeather()
     return true;
 }
 
-public ClearTextSpam(playerid) SetPVarInt(playerid, "TextSpam", 0);
-public ClearCommandSpam(playerid) SetPVarInt(playerid, "CommandSpam", 0);
-
+public ClearTextSpam(playerid) 		SetPVarInt(playerid, "TextSpam", 0);
+public ClearCommandSpam(playerid) 	SetPVarInt(playerid, "CommandSpam", 0);
+public ResetTazerStatus(playerid) 	SetPVarInt(playerid, "TazerAvailable", 1);
+public UnfreezePlayer(playerid) 	TogglePlayerControllable(playerid, true);
 
 // stocks
 
@@ -1758,6 +1882,7 @@ stock ResetPlayerVariables(playerid)
     SetPVarInt(playerid, "LoggingOut", 0);
     SetPVarInt(playerid, "JustLogged", 1);
     SetPVarInt(playerid, "PlayerMuted", 0);
+	SetPVarInt(playerid, "TazerAvailable", 0);
 
     TogglePlayerSpectating(playerid, false);
     return true;
