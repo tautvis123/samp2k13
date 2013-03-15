@@ -12,7 +12,10 @@ samp2k13 ToDo
 
 BugFixes / simple things
 	~ 	Bei OnPlayerConnect richtig auf Ban prüfen
-
+	+	Autoradio
+	~	/tazer fixen
+	+	Update MySQL plugin
+	
 Dialoge / Design
 	~ 	Fraktionskasse: In Dialog packen
 	~ 	"/set" ins Scoreboard integrieren
@@ -26,7 +29,9 @@ Größere Sachen
 	+ 	Uhr (nur anzeigen, wenn man eine gekauft hat + attachment armbanduhr ?)
 	+	Blitzer
 	+	BSN DriveIn
-
+	+	PayDay System
+	+ 	/spectate
+	
 Komplexe Systeme
 	+	Handy/SMS System (911)
 	+ 	Vehikel System(Engine, KMH, Tank, etc.) http://forum.sa-mp.com/showthread.php?t=222233 http://forum.sa-mp.com/showthread.php?t=228620 http://forum.sa-mp.com/showthread.php?t=87631&highlight=speedo http://forum.sa-mp.com/showthread.php?t=136277
@@ -35,7 +40,8 @@ Komplexe Systeme
 	+ 	Fraktionskasse
 	~ 	Anti Cheat
 	+ 	Smartphone App für ingame Anrufe/SMS
-
+	+	Verkehrsschilder hinstellen
+	
 Fraktionen
 
 	Polizei:
