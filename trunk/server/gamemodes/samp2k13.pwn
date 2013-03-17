@@ -230,19 +230,7 @@ public OnPlayerConnect(playerid)
     ClearChat(playerid);
 	
 	format(querystring, sizeof(querystring), "SELECT * FROM `accounts` WHERE `username` = '%s'", GetEscName(playerid));
-	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "_OnMySQLPlayerDataLoad", "i", playerid);
-
-	/*if(gettime() < pStats[playerid][pBannedUntil]) {    // buggy cause of datatypes (int <> double)
-		new banned[15];
-	    format(string, sizeof(string), "** Du bist noch %s gebannt.", timec(gettime(), strval(banned)));
-		SendClientMessage(playerid, COLOR_RED, string);
-	}*/
-
-    if(strcmp(pStats[playerid][pUsername], GetName(playerid), false) == 0) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
-    else {
-        ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", "Dieser Account ist noch nicht registriert.\r\nBitte hole dies auf www.suchtstation.de nach.", "OK", " ");
-        //Kick(playerid);
-    }
+	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "_OnMySQLPlayerDataLoad", "i", playerid); // login procedure
 
 	format(string, sizeof(string), "* %s [ID: %d] hat den Server betreten.", GetName(playerid), playerid);
 	SendClientMessageToAll(COLOR_OOC, string);
@@ -854,14 +842,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(pStats[giveplayerid][pWarns] == 1) {
                 SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 1/3 gestiegen.");
                 format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
-				mysql_function_query(MYSQL_DBHANDLE, querystring, true, "", "");
+				mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 			    strdel(pStats[playerid][pWarning1], 0, 256), strcat(pStats[playerid][pWarning1], inputtext, 256);
             }
 
             else if(pStats[giveplayerid][pWarns] == 2) {
                 SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 2/3 gestiegen.");
                 format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
-				mysql_function_query(MYSQL_DBHANDLE, querystring, true, "", "");
+				mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 			    strdel(pStats[playerid][pWarning2], 0, 256), strcat(pStats[playerid][pWarning2], inputtext, 256);
             }
 
@@ -873,7 +861,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 new banduration = (gettime() + 604800); // 1 week
                 
                 format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning3` = '%s', `banned_until` = %d WHERE `username` = '%s'", inputtext, banduration, GetName(giveplayerid));
-				mysql_function_query(MYSQL_DBHANDLE, querystring, true, "", "");
+				mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 			    strdel(pStats[playerid][pWarning3], 0, 256), strcat(pStats[playerid][pWarning3], inputtext, 256);
 				
 				Kick(giveplayerid);
@@ -965,7 +953,7 @@ public _OnMySQLPlayerDataSave(playerid)
 		pStats[playerid][pPositionZ],
 		pStats[playerid][pPositionA],
 		GetEscName(playerid));
-	mysql_function_query(MYSQL_DBHANDLE, bigstring, true, "", "");
+	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
 
 
     format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `logins` = '%d', `warns` = '%d', `banned_until` = '%d', `vehicleID1` = '%d', `vehicleID2` = '%d', \
@@ -982,21 +970,21 @@ public _OnMySQLPlayerDataSave(playerid)
 		pStats[playerid][pLicenseAir],
 		GetEscName(playerid)
 	);
-	mysql_function_query(MYSQL_DBHANDLE, bigstring, true, "", "");
+	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
     return true;
 }
 
-public _OnMySQLPlayerDataLoad(playerid)
+public _OnMySQLPlayerDataLoad(playerid) // only call on connect !
 {
     new temp[512], rows, fields;
 
     cache_get_data(rows, fields);
-    if(!rows) strcat(pStats[playerid][pUsername], "notRegistered", 14);
+    if(!rows) print("Error on rows #22");
 
-    cache_get_field_content(0, "username", 			temp), strcat(pStats[playerid][pUsername], 	temp, 29);
-    cache_get_field_content(0, "password", 			temp), strcat(pStats[playerid][pPassword], 	temp, 129);
-    cache_get_field_content(0, "email", 			temp), strcat(pStats[playerid][pEmail], 	temp, 129);
-    cache_get_field_content(0, "ip_address", 		temp), strcat(pStats[playerid][pIPAddress], temp, 17);
+    cache_get_field_content(0, "username", 			temp), strdel(pStats[playerid][pUsername], 0, 25),		strcat(pStats[playerid][pUsername], temp, 29);
+    cache_get_field_content(0, "password", 			temp), strdel(pStats[playerid][pPassword], 0, 129),		strcat(pStats[playerid][pPassword], temp, 129);
+    cache_get_field_content(0, "email", 			temp), strdel(pStats[playerid][pEmail], 0, 129), 		strcat(pStats[playerid][pEmail], temp, 129);
+    cache_get_field_content(0, "ip_address", 		temp), strdel(pStats[playerid][pIPAddress], 0, 17), 	strcat(pStats[playerid][pIPAddress], temp, 17);
 
     cache_get_field_content(0, "admin_level", 		temp), pStats[playerid][pAdminLevel]	= strval(temp);
     cache_get_field_content(0, "faction", 			temp), pStats[playerid][pFaction] 		= strval(temp);
@@ -1017,10 +1005,10 @@ public _OnMySQLPlayerDataLoad(playerid)
     cache_get_field_content(0, "logins", 			temp), pStats[playerid][pLogins] 		= strval(temp);
     cache_get_field_content(0, "warns", 			temp), pStats[playerid][pWarns] 		= strval(temp);
 
-    cache_get_field_content(0, "warning1", 			temp), strcat(pStats[playerid][pWarning1], 	temp, 256);
-    cache_get_field_content(0, "warning2", 			temp), strcat(pStats[playerid][pWarning2], 	temp, 256);
-    cache_get_field_content(0, "warning3", 			temp), strcat(pStats[playerid][pWarning3], 	temp, 256);
-
+    cache_get_field_content(0, "warning1", 			temp), strdel(pStats[playerid][pWarning1], 0, 256), strcat(pStats[playerid][pWarning1], temp, 256);
+    cache_get_field_content(0, "warning2", 			temp), strdel(pStats[playerid][pWarning2], 0, 256), strcat(pStats[playerid][pWarning2], temp, 256);
+    cache_get_field_content(0, "warning3", 			temp), strdel(pStats[playerid][pWarning3], 0, 256), strcat(pStats[playerid][pWarning3], temp, 256);
+    
     cache_get_field_content(0, "banned_until", 		temp), pStats[playerid][pBannedUntil] 	= strval(temp);
 
     cache_get_field_content(0, "vehicleID1", 		temp), pStats[playerid][pVeh1] 			= strval(temp);
@@ -1032,9 +1020,23 @@ public _OnMySQLPlayerDataLoad(playerid)
     cache_get_field_content(0, "license_air", 		temp), pStats[playerid][pLicenseAir]	= strval(temp);
 
 	if(pStats[playerid][pFaction] == 0) pStats[playerid][pFactionRank] = 0;
+	
+	if(GetPVarInt(playerid, "Authentication") != 1) {
+		/*if(gettime() < pStats[playerid][pBannedUntil]) {    // buggy cause of datatypes (int <> double)
+			new banned[15];
+		    format(string, sizeof(string), "** Du bist noch %s gebannt.", timec(gettime(), strval(banned)));
+			SendClientMessage(playerid, COLOR_RED, string);
+		}*/
+
+	    if(strcmp(pStats[playerid][pUsername], GetEscName(playerid)) == 0) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
+	    else {
+	        ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", "Dieser Account ist noch nicht registriert.\r\nBitte hole dies auf www.suchtstation.de nach.", "OK", " ");
+	        //Kick(playerid);
+	        return true;
+	    }
+	}
     return true;
 }
-
 
 public _OnPlayerDataAssign(playerid)
 {
@@ -1236,6 +1238,10 @@ public _sendNearByMessage(playerid, string[])
 
 public _resetPlayerDataArray(playerid)
 {
+    pStats[playerid][pUsername]     = -1;
+    pStats[playerid][pPassword]     = -1;
+    pStats[playerid][pEmail]        = -1;
+    pStats[playerid][pIPAddress]    = -1;
     pStats[playerid][pAdminLevel]   = -1;
     pStats[playerid][pFaction]      = -1;
     pStats[playerid][pFactionRank]  = -1;
@@ -1503,7 +1509,7 @@ YCMD:motd(playerid, params[], help)
     ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "MOTD", string, "OK", " ");
 
 	format(querystring, sizeof(querystring), "UPDATE `configuration` SET `motd` = '%s' WHERE `motd` = '%s'", params, sConfig[motd]);
-	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "", "");
+	mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 
     strdel(sConfig[motd], 0, sizeof(sConfig[motd])), strcat(sConfig[motd], params, sizeof(sConfig[motd]));
 
