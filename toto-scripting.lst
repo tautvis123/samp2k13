@@ -13,7 +13,7 @@ samp2k13 ToDo
 BugFixes / simple things
 	~ 	Bei OnPlayerConnect richtig auf Ban prüfen
 	+	Autoradio
-	~	/tazer fixen
+	~	/tazer testen
 	+	Update MySQL plugin
 	
 Dialoge / Design
