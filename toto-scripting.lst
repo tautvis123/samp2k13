@@ -14,7 +14,8 @@ BugFixes / simple things
 	~ 	Bei OnPlayerConnect richtig auf Ban prüfen
 	+	Autoradio
 	~	/tazer testen
-	+	Update MySQL plugin
+	+	Wanted Variable
+	+	Gemeinsamer Funkchat für Polizei und Arzt (Frequenzen)
 	
 Dialoge / Design
 	~ 	Fraktionskasse: In Dialog packen
@@ -23,7 +24,7 @@ Dialoge / Design
 	~	/showme, /showmembers in Dialog packen
 	~	SendClientMessage bei fehlendem Führerschein in TextDraw/Label/whatever ändern
 	~	Pickups fixen
-	~ 	MOTD newline fixen
+	~ 	MOTD fixen: \r\n wird ausgegeben anstatt eine neue Zeile angefangen 
 	
 Größere Sachen
 	+ 	Uhr (nur anzeigen, wenn man eine gekauft hat + attachment armbanduhr ?)
@@ -41,11 +42,10 @@ Komplexe Systeme
 	~ 	Anti Cheat
 	+ 	Smartphone App für ingame Anrufe/SMS
 	+	Verkehrsschilder hinstellen
-	
+
 Fraktionen
 
 	Polizei:
-	+ /tazer (Wenn Wanted > 2)
 	+ /medic (Arzt direkt rufen)
 	+ Dialog: Scheine entziehen
 	+ /ticket (Wenn Wanted = 0)
