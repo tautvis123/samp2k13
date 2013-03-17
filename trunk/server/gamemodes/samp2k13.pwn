@@ -207,7 +207,7 @@ public OnGameModeInit()
 public OnGameModeExit()
 {
     foreach(Player, i) {
-		_OnMySQLPlayerDataLoad(i);
+		_OnMySQLPlayerDataSave(i);
 		OnPlayerDisconnect(i, 2);
 	}
     mysql_close();
@@ -227,19 +227,18 @@ public OnPlayerConnect(playerid)
     new string[128];
     
     _resetPlayerDataArray(playerid);
-    //ClearChat(playerid);
-
-	new banned[15];
+    ClearChat(playerid);
 	
 	format(querystring, sizeof(querystring), "SELECT * FROM `accounts` WHERE `username` = '%s'", GetEscName(playerid));
-	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "MySQL_Load_PlayerData", "i", playerid);
+	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "_OnMySQLPlayerDataLoad", "i", playerid);
 
-	if(gettime() < pStats[playerid][pBannedUntil]) {    // buggy cause of datatypes (int <> double)
+	/*if(gettime() < pStats[playerid][pBannedUntil]) {    // buggy cause of datatypes (int <> double)
+		new banned[15];
 	    format(string, sizeof(string), "** Du bist noch %s gebannt.", timec(gettime(), strval(banned)));
 		SendClientMessage(playerid, COLOR_RED, string);
-	}
+	}*/
 
-    if(strcmp(pStats[playerid][pUsername], "notRegistered", false) == 0) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
+    if(strcmp(pStats[playerid][pUsername], GetName(playerid), false) == 0) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
     else {
         ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", "Dieser Account ist noch nicht registriert.\r\nBitte hole dies auf www.suchtstation.de nach.", "OK", " ");
         //Kick(playerid);
@@ -262,7 +261,7 @@ public OnPlayerDisconnect(playerid, reason)
 
     if(reason == 1 && GetPVarInt(playerid, "Authentication") == 1) {
         SetPVarInt(playerid, "LoggingOut", 1);
-        _OnMySQLPlayerDataLoad(playerid);
+        _OnMySQLPlayerDataSave(playerid);
     }
     return true;
 }
@@ -276,17 +275,18 @@ public OnPlayerSpawn(playerid)
         SetPlayerSkin(playerid, random(299));
         SetPlayerPos(playerid, -2706.5261, 397.7129, 4.3672);
         SetPVarInt(playerid, "JustRegistered", 0);
-        _OnMySQLPlayerDataLoad(playerid);
+        _OnMySQLPlayerDataSave(playerid);
         return true;
     }
     if(GetPVarInt(playerid, "JustLogged") == 1) {
         SetPVarInt(playerid, "JustLogged", 0);
 
 		new string[128];
-		format(string, sizeof(string), "* Willkommen auf dem SuchtStation-RolePlay Server ( %s ).", SERVER_VERSION);
+		format(string, sizeof(string), "* Willkommen auf dem samp2k13 Server (%s).", SERVER_VERSION);
         SendClientMessage(playerid, COLOR_OOC, string);
 
         _OnPlayerDataAssign(playerid);
+        _OnMySQLPlayerDataSave(playerid); // IP-Save
         return true;
     }
     
@@ -522,22 +522,22 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	if(PRESSED(KEY_NO) && pStats[playerid][pFaction] == 1 && GetPlayerWeapon(playerid) == 0) {
 		//if(pStats[playerid][pFaction] != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_WRONG_FACTION);
 
-		new giveplayer = GetPlayerTargetPlayer(playerid), string[128], Float:posX, Float:posY, Float:posZ;
-		if(giveplayer == INVALID_PLAYER_ID) return true;
+		new giveplayerid = GetPlayerTargetPlayer(playerid), string[128], Float:posX, Float:posY, Float:posZ;
+		if(giveplayerid == INVALID_PLAYER_ID) return true;
 
 		if(GetPVarInt(playerid, "TazerAvailable") == 0) return SendClientMessage(playerid, COLOR_RED, "* Der Tazer ist noch nicht wieder aufgeladen."); // change
 
 		//if(GetPlayerWeapon(playerid) != 0) return SendClientMessage(playerid, COLOR_RED, "* Du darfst zum Tazern keine Waffe in der Hand halten.");
-		//if((pStats[giveplayer][pFaction] == 1) return SendClientMessage(playerid, COLOR_RED, "* Du kannst keine anderen Polizisten tazern.");
-		if(IsPlayerInAnyVehicle(giveplayer)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst niemanden Tazern, der in einem Vehikel sitzt.");
+		//if((pStats[giveplayerid][pFaction] == 1) return SendClientMessage(playerid, COLOR_RED, "* Du kannst keine anderen Polizisten tazern.");
+		if(IsPlayerInAnyVehicle(giveplayerid)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst niemanden Tazern, der in einem Vehikel sitzt.");
 		if(IsPlayerInAnyVehicle(playerid)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst aus einem Vehikel heraus niemanden Tazern.");
 
-		GetPlayerPos(giveplayer, posX, posY, posZ);
+		GetPlayerPos(giveplayerid, posX, posY, posZ);
 		if(!IsPlayerInRangeOfPoint(playerid, 3.0, posX, posY, posZ)) {
 			SetPVarInt(playerid, "TazerAvailable", 0);
-			SetTimerEx("ResetTazerStatus", 30000, false, "i", giveplayer); // 30sek
+			SetTimerEx("ResetTazerStatus", 30000, false, "i", giveplayerid); // 30sek
 
-	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht. [30 Sekunden]", GetName(giveplayer));
+	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht. [30 Sekunden]", GetName(giveplayerid));
 			SendClientMessage(playerid, COLOR_RED, string);
 
 			// nearbymessage
@@ -547,22 +547,22 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			if(random(1) == 0) {
 				SendClientMessage(playerid, COLOR_RED, "* Du hast den Tazerschuss verfehlt. [45 Sekunden]");
 				SetPVarInt(playerid, "TazerAvailable", 0);
-				SetTimerEx("ResetTazerStatus", 45000, false, "i", giveplayer); // 45sec
+				SetTimerEx("ResetTazerStatus", 45000, false, "i", giveplayerid); // 45sec
 				return true;
 			}
 
-			ApplyAnimation(giveplayer, "CRACK", "crckdeth2", 4.0, 1, 0, 0, 10000, 1); // 10sec
-			TogglePlayerControllable(giveplayer, false);
-			SetTimerEx("UnfreezePlayer", 10000, false, "i", giveplayer);
+			ApplyAnimation(giveplayerid, "CRACK", "crckdeth2", 4.0, 1, 0, 0, 10000, 1); // 10sec
+			TogglePlayerControllable(giveplayerid, false);
+			SetTimerEx("UnfreezePlayer", 10000, false, "i", giveplayerid);
 
 			SetPVarInt(playerid, "TazerAvailable", 0);
-			SetTimerEx("ResetTazerStatus", 120000, false, "i", giveplayer); // 2min
+			SetTimerEx("ResetTazerStatus", 120000, false, "i", giveplayerid); // 2min
 
 			format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
 			SendClientMessage(playerid, COLOR_WHITE, string);
 		}
 		SetPVarInt(playerid, "TazerAvailable", 0);
-		SetTimerEx("ResetTazerStatus", 60000, false, "i", giveplayer); // 1min
+		SetTimerEx("ResetTazerStatus", 60000, false, "i", giveplayerid); // 1min
 
 		format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
 		SendClientMessage(playerid, COLOR_WHITE, string);
@@ -600,8 +600,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 }
                 SetPVarInt(playerid, "Authentication", 1);
                 SetPVarInt(playerid, "JustLogged", 1);
-                _OnPlayerDataAssign(playerid);
-            	SpawnPlayer(playerid);
+                pStats[playerid][pLogins] ++;
             }
             else ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
         }
@@ -652,15 +651,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				case PLAYER_DIALOG_CLICKEDADM_ADMMENU_ACCOUNT:
 				{
 	    			if(pStats[playerid][pAdminLevel] < 3)                       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
-				    new str[1024], coordstring0[256], coordstring1[256], coordstring2[256], coordstring3[256], coordstring4[256], coordstring5[256];
+				    new str[1024], coordstring[6][256];
 				    
-					format(coordstring0, sizeof(coordstring0), "----------*** %s ***----------", GetName(giveplayerid));
-					format(coordstring1, sizeof(coordstring1), "* E-Mail: %s | IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d)", pStats[giveplayerid][pEmail], pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank]);
-					format(coordstring2, sizeof(coordstring2), "* Cash: %d | CC: %d | Level: %d | Skin: %d | Health: %f | Armor: %d", pStats[giveplayerid][pCash], pStats[giveplayerid][pCC], pStats[giveplayerid][pLevel], pStats[giveplayerid][pSkin],pStats[giveplayerid][pHealth], pStats[giveplayerid][pArmor]);
-					format(coordstring3, sizeof(coordstring3), "* Warns: %d | Warning1: %s | Warning2: %s | Warning3: %s", pStats[giveplayerid][pWarns], pStats[giveplayerid][pWarning1], pStats[giveplayerid][pWarning2], pStats[giveplayerid][pWarning3]);
-					format(coordstring4, sizeof(coordstring4), "* LicenseCar: %d | LicenseBike: %d | LicenseAir: %d | VehicleID1: %d | VehicleID2: %d | VehicleID3: %d", pStats[playerid][pLicenseCar], pStats[playerid][pLicenseBike], pStats[playerid][pLicenseAir], pStats[giveplayerid][pVeh1], pStats[giveplayerid][pVeh2], pStats[giveplayerid][pVeh3]);
-					format(coordstring5, sizeof(coordstring5), "* PosX: %f | PosY: %f | PosZ: %f", pStats[giveplayerid][pPositionX], pStats[giveplayerid][pPositionY], pStats[giveplayerid][pPositionZ]);
-					format(str, sizeof(str), "%s\r\n %s\r\n %s\r\n %s\r\n %s\r\n %s\r\n", coordstring0, coordstring1, coordstring2, coordstring3, coordstring4, coordstring5);
+					format(coordstring[0], sizeof(coordstring[]), "----------*** %s (%s) ***----------", GetName(giveplayerid), pStats[giveplayerid][pEmail]);
+					format(coordstring[1], sizeof(coordstring[]), "* IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d) | Job: %d", pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank], pStats[giveplayerid][pJob]);
+					format(coordstring[2], sizeof(coordstring[]), "* Cash: %d | CC: %d | Level: %d | Skin: %d | Health: %f | Armor: %d", pStats[giveplayerid][pCash], pStats[giveplayerid][pCC], pStats[giveplayerid][pLevel], pStats[giveplayerid][pSkin],pStats[giveplayerid][pHealth], pStats[giveplayerid][pArmor]);
+					format(coordstring[3], sizeof(coordstring[]), "* Warns: %d | Warning1: %s | Warning2: %s | Warning3: %s | BannedUntil: %d", pStats[giveplayerid][pWarns], pStats[giveplayerid][pWarning1], pStats[giveplayerid][pWarning2], pStats[giveplayerid][pWarning3], pStats[giveplayerid][pBannedUntil]);
+					format(coordstring[4], sizeof(coordstring[]), "* LicenseCar: %d | LicenseBike: %d | LicenseAir: %d | VehicleID1: %d | VehicleID2: %d | VehicleID3: %d", pStats[playerid][pLicenseCar], pStats[playerid][pLicenseBike], pStats[playerid][pLicenseAir], pStats[giveplayerid][pVeh1], pStats[giveplayerid][pVeh2], pStats[giveplayerid][pVeh3]);
+					format(coordstring[5], sizeof(coordstring[]), "* PosX: %f | PosY: %f | PosZ: %f | PosA: %f", pStats[giveplayerid][pPositionX], pStats[giveplayerid][pPositionY], pStats[giveplayerid][pPositionZ], pStats[giveplayerid][pPositionA]);
+					format(str, sizeof(str), "%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n", coordstring[0], coordstring[1], coordstring[2], coordstring[3], coordstring[4], coordstring[5]);
 					
 					ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", str, "OK", " ");
 	    			return true;
@@ -796,7 +795,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         }
 		case PLAYER_DIALOG_CLICKEDADM_ADMMENU_KICKRSN:   // kick reason
         {
-            new string[256], giveplayerid;
             if(!response) return false;
             if(strlen(inputtext) == 0) {
                 format(string, sizeof(string), "** Du wurdest von Administrator %s gekickt.", GetName(playerid));
@@ -817,7 +815,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         }
         case PLAYER_DIALOG_CLICKEDADM_ADMMENU_BANRSN:   // ban reason
         {
-            new string[256], giveplayerid;
             if(!response) return false;
             if(strlen(inputtext) == 0) {
                 format(string, sizeof(string), "** Du wurdest von Administrator %s gebannt.", GetName(playerid));
@@ -838,10 +835,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         }
         case PLAYER_DIALOG_CLICKEDADM_ADMMENU_WARNRSN:  // warn reason
         {
-            new string[256], giveplayerid;
             if(!response) return false;
             if(GetPVarInt(giveplayerid, "Authentication") != 1)         return SendClientMessage(playerid, COLOR_RED,  ERRORMESSAGE_USER_ID_NOTONLINE);
-            pStats[giveplayerid][pWarns] ++; _OnMySQLPlayerDataLoad(giveplayerid);
+            pStats[giveplayerid][pWarns] ++;
 
 			if(strlen(inputtext) == 0) {
                 /*format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3].", GetName(playerid), GetName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns]);
@@ -860,8 +856,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
 				mysql_function_query(MYSQL_DBHANDLE, querystring, true, "", "");
 			    strdel(pStats[playerid][pWarning1], 0, 256), strcat(pStats[playerid][pWarning1], inputtext, 256);
-
-
             }
 
             else if(pStats[giveplayerid][pWarns] == 2) {
@@ -885,6 +879,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				Kick(giveplayerid);
             }
             else SendClientMessage(playerid, COLOR_RED, "* SERVER: Bei dieser Interaktion ist ein Fehler aufgetreten. (Errorcode: #001)");
+			_OnMySQLPlayerDataSave(giveplayerid);
+			printf("Warns: %d\nW1:%s\nW2:%s\n W3:%s", pStats[playerid][pWarns], pStats[playerid][pWarning1], pStats[playerid][pWarning2], pStats[playerid][pWarning3]);
         }
     }
     return false;
@@ -972,21 +968,18 @@ public _OnMySQLPlayerDataSave(playerid)
 	mysql_function_query(MYSQL_DBHANDLE, bigstring, true, "", "");
 
 
-    format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `logins` = '%d', `warns` = '%d', `warning1` = '%s', `warning2` = '%s', `warning3` = '%s', \
-										 `banned_until` = '%d', `vehicleID1` = '%d', `vehicleID2` = '%d', `vehicleID3` = '%d', `license_car` = '%d', `license_bike` = '%d', \
+    format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `logins` = '%d', `warns` = '%d', `banned_until` = '%d', `vehicleID1` = '%d', `vehicleID2` = '%d', \
+										 `vehicleID3` = '%d', `license_car` = '%d', `license_bike` = '%d', \
 					         			 `license_air` = '%d' WHERE `username` = '%s'",
 		pStats[playerid][pLogins],
 		pStats[playerid][pWarns],
-		pStats[playerid][pWarning1],
-		pStats[playerid][pWarning2],
-		pStats[playerid][pWarning3],
+		pStats[playerid][pBannedUntil],
 		pStats[playerid][pVeh1],
 		pStats[playerid][pVeh2],
 		pStats[playerid][pVeh3],
  		pStats[playerid][pLicenseCar],
 		pStats[playerid][pLicenseBike],
 		pStats[playerid][pLicenseAir],
-		pStats[playerid][pBannedUntil],
 		GetEscName(playerid)
 	);
 	mysql_function_query(MYSQL_DBHANDLE, bigstring, true, "", "");
@@ -1030,7 +1023,6 @@ public _OnMySQLPlayerDataLoad(playerid)
 
     cache_get_field_content(0, "banned_until", 		temp), pStats[playerid][pBannedUntil] 	= strval(temp);
 
-
     cache_get_field_content(0, "vehicleID1", 		temp), pStats[playerid][pVeh1] 			= strval(temp);
     cache_get_field_content(0, "vehicleID2", 		temp), pStats[playerid][pVeh2] 			= strval(temp);
     cache_get_field_content(0, "vehicleID3", 		temp), pStats[playerid][pVeh3] 			= strval(temp);
@@ -1038,6 +1030,8 @@ public _OnMySQLPlayerDataLoad(playerid)
     cache_get_field_content(0, "license_car", 		temp), pStats[playerid][pLicenseCar] 	= strval(temp);
     cache_get_field_content(0, "license_bike", 		temp), pStats[playerid][pLicenseBike] 	= strval(temp);
     cache_get_field_content(0, "license_air", 		temp), pStats[playerid][pLicenseAir]	= strval(temp);
+
+	if(pStats[playerid][pFaction] == 0) pStats[playerid][pFactionRank] = 0;
     return true;
 }
 
@@ -1046,19 +1040,16 @@ public _OnPlayerDataAssign(playerid)
 {
     if(GetPVarInt(playerid, "Authentication") != 1) return false;
 
-    pStats[playerid][pLogins] ++;
     ResetPlayerCash(playerid);
     GivePlayerCash(playerid,            pStats[playerid][pCash]);
     SetPlayerScore(playerid,            pStats[playerid][pLevel]);
     SetPlayerSkin(playerid,             pStats[playerid][pSkin]);
-    SetPlayerHealth(playerid,           (pStats[playerid][pHealth] + 1.0));
+    SetPlayerHealth(playerid,           pStats[playerid][pHealth] + 1.0);
     SetPlayerArmour(playerid,           pStats[playerid][pArmor]);
-    SetPlayerPos(playerid,              pStats[playerid][pPositionX], pStats[playerid][pPositionY], pStats[playerid][pPositionZ] + 3);
+    SetPlayerPos(playerid,              pStats[playerid][pPositionX], pStats[playerid][pPositionY], pStats[playerid][pPositionZ] + 0.5);
     SetPlayerFacingAngle(playerid,      pStats[playerid][pPositionA]);
 
     SetPlayerColor(playerid, COLOR_WHITE);
-    _OnMySQLPlayerDataLoad(playerid);                  // IP-Save
-
 	SetPlayerMapIcon(playerid, 0, 1172.0768, -1321.5231, 15.3990, 22, 1); // Hospital
 	return true;
 }
@@ -1282,10 +1273,6 @@ public _resetPlayerDataArray(playerid)
     return true;
 }
 
-
-
-
-
 /*public ResetUnusedDBVehicles()
 {
 	new playerOnline[MAX_PLAYERS];
@@ -1492,7 +1479,7 @@ YCMD:makeadmin(playerid, params[], help)
     if(val == pStats[giveplayerid][pAdminLevel])      return SendClientMessage(playerid, COLOR_RED, "** Dieser Spieler besitzt bereits dieses AdminLevel.");
 
     pStats[giveplayerid][pAdminLevel] = val;
-    _OnMySQLPlayerDataLoad(giveplayerid);
+    _OnMySQLPlayerDataSave(giveplayerid);
 
     format(string, sizeof(string), "** %s hat dein AdminLevel auf %d gesetzt.", GetName(playerid), val);
     SendClientMessage(giveplayerid, COLOR_PURPLE, string);
@@ -1522,7 +1509,6 @@ YCMD:motd(playerid, params[], help)
 
     format(string, sizeof(string), "MOTD geändert: %s", sConfig[motd]);
     SendClientMessageToAll(COLOR_WHITE, string);
-	//MySQL_UpdateField("configuration", "motd", params, " ");
     return true;
 }
 
@@ -1667,7 +1653,6 @@ YCMD:set(playerid, params[], help)
         pStats[giveplayerid][pLevel] = val;
         format(string, sizeof(string), "** Du hast das Level von %s auf %d gesetzt.", GetName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
-        _OnMySQLPlayerDataLoad(giveplayerid);
 
 		format(string, sizeof(string), "** %s hat das Level von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
     	Log2File("admin", string);
@@ -1676,7 +1661,7 @@ YCMD:set(playerid, params[], help)
         pStats[giveplayerid][pFaction] = val;
 		switch(val) {
 			case 1: {
-				format(string, sizeof(string), "** Du hast %s der Fraktion Polizei zugeordnet.", 					GetName(giveplayerid));
+				format(string, sizeof(string), "** Du hast %s der Fraktion Polizei zugeordnet.", GetName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
 				format(string, sizeof(string), "** %s hat dich der Fraktion Polizei zugeordnet.", GetName(playerid));
@@ -1686,7 +1671,7 @@ YCMD:set(playerid, params[], help)
 	    		Log2File("admin", string);
 			}
 			case 2: {
-				format(string, sizeof(string), "** Du hast %s der Fraktion Arzt zugeordnet.",           GetName(giveplayerid));
+				format(string, sizeof(string), "** Du hast %s der Fraktion Arzt zugeordnet.", GetName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
 				format(string, sizeof(string), "** %s hat dich der Fraktion Arzt zugeordnet.", GetName(playerid));
@@ -1696,7 +1681,7 @@ YCMD:set(playerid, params[], help)
 	    		Log2File("admin", string);
 			}
 			case 3: {
-			    format(string, sizeof(string), "** Du hast %s der Fraktion Fahrschule zugeordnet.",     GetName(giveplayerid));
+			    format(string, sizeof(string), "** Du hast %s der Fraktion Fahrschule zugeordnet.", GetName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
 				format(string, sizeof(string), "** %s hat dich der Fraktion Fahrschule zugeordnet.", GetName(playerid));
@@ -1706,7 +1691,7 @@ YCMD:set(playerid, params[], help)
 	    		Log2File("admin", string);
 			}
 			case 4: {
-			    format(string, sizeof(string), "** Du hast %s der Fraktion ADAC zugeordnet.",           GetName(giveplayerid));
+			    format(string, sizeof(string), "** Du hast %s der Fraktion ADAC zugeordnet.", GetName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
 				format(string, sizeof(string), "** %s hat dich der Fraktion ADAC zugeordnet.", GetName(playerid));
@@ -1743,7 +1728,7 @@ YCMD:set(playerid, params[], help)
 		SpawnPlayer(giveplayerid);
     }
     else SendClientMessage(playerid, COLOR_PURPLE, "* Ungültiger Parameter.");
-    _OnMySQLPlayerDataLoad(giveplayerid);
+    _OnMySQLPlayerDataSave(giveplayerid);
     return true;
 }
 

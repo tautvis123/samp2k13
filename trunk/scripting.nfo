@@ -1,4 +1,8 @@
-Fraktions-IDs:
+samp2k13 scripting reference
+---------------------------------
+
+
+Faction IDs:
 1 - Polizei
 2 - Arzt
 3 - Fahrschule
@@ -6,15 +10,14 @@ Fraktions-IDs:
 5 - Taxi
 
 
-Aufbau des Scriptes:
-- #includes
-- #defines
-- forwards
-- enums
-- news
-- main()
+Script structure:
+- #include
+- #define
+- forward
+- enum
+- new
 
-- Callbacks (Reference: http://wiki.sa-mp.com/wiki/Category:Scripting_Callbacks)
+- callbacks (reference: http://wiki.sa-mp.com/wiki/Category:Scripting_Callbacks)
 	OnGameModeInit()
 	OnGameModeExit()
 	OnPlayerRequestClass(playerid, classid)
@@ -23,7 +26,7 @@ Aufbau des Scriptes:
 	OnPlayerSpawn(playerid)
 	OnPlayerDeath(playerid, killerid, reason)
 	OnVehicleSpawn(vehicleid) return true;
-	OnVehicleDeath(vehicleid, killerid) return true;
+	OnVehicleDeath(vehicleid, killerid)
 	OnPlayerText(playerid, text[])
 	OnPlayerCommandReceived(playerid, cmdtext[])
 	OnPlayerCommandPerformed(playerid, cmdtext[], success)
@@ -56,16 +59,16 @@ Aufbau des Scriptes:
 	OnPlayerClickPlayer(playerid, clickedplayerid, source)
 	OnQueryError(errorid, error[], callback[], query[], connectionHandle)
 
-- Custom Callbacks
+- custom callbacks
 	_OnMySQLConfigurationLoad()								(Loads the mysql configuration table into sConfig)
 	_OnMySQLPlayerDataSave(playerid)						(Saves the playerdata from pStats to the database)
 	_OnMySQLPlayerDataLoad(playerid)						(Loads the playerdata from the database into pStats)
 	_OnPlayerDataAssign(playerid)							(Assigns pStats array to playerid)
 	_OnAntiCheatTick()										(called by script yevery 5sec, executed anti-cheat routines)
 	_OnWeatherChange(weatherid)								(called by script every 45min, changes weather randomly)
-		
-		
-- Custom Functions
+
+
+- custom functions
 	_resetPlayerDataArray(playerid)							(Resets pStats array to prevent bugs)
 	_sendAdminMessage(color, string[], requireduty)			(Sends message to admins online)
 	_sendNearByMessage(playerid, string[])					(Sends message to player nearby playerid)
@@ -75,11 +78,3 @@ Aufbau des Scriptes:
 	_clearCommandSpam(playerid)								(still not needed)
 
 - YCMD commands
-	
-	
-	
-	
-	
---- Fahrschule:
-Rang 4 und 5 Prüfer: Dürfen Scheine verteilen
-ab 4: flugschein, nur 5 Waffenschein
