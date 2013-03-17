@@ -44,3 +44,11 @@
 ~ /set performanter gemacht
 ~ Includes updated
 + /tazer
+
+
+[15.03.13 - 17.03.13] [Harti]
+*** MAJOR Update (REV2):
+	~ MySQL Plugin auf R7r8 udpated (höhere Versionen geben Fehler)
+	~ Script umstrukturiert (siehe scripting.lst)
+	~ Kleine Funktionen outsourced (samp2k13.inc)
+	~ Viele Bugfixes und Performanceverbesserungen

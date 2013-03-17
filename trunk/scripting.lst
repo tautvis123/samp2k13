@@ -1,0 +1,85 @@
+Fraktions-IDs:
+1 - Polizei
+2 - Arzt
+3 - Fahrschule
+4 - ADAC
+5 - Taxi
+
+
+Aufbau des Scriptes:
+- #includes
+- #defines
+- forwards
+- enums
+- news
+- main()
+
+- Callbacks (Reference: http://wiki.sa-mp.com/wiki/Category:Scripting_Callbacks)
+	OnGameModeInit()
+	OnGameModeExit()
+	OnPlayerRequestClass(playerid, classid)
+	OnPlayerConnect(playerid)
+	OnPlayerDisconnect(playerid, reason)
+	OnPlayerSpawn(playerid)
+	OnPlayerDeath(playerid, killerid, reason)
+	OnVehicleSpawn(vehicleid) return true;
+	OnVehicleDeath(vehicleid, killerid) return true;
+	OnPlayerText(playerid, text[])
+	OnPlayerCommandReceived(playerid, cmdtext[])
+	OnPlayerCommandPerformed(playerid, cmdtext[], success)
+	OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
+	OnPlayerExitVehicle(playerid, vehicleid)
+	OnPlayerStateChange(playerid, newstate, oldstate)
+	OnPlayerEnterCheckpoint(playerid)
+	OnPlayerLeaveCheckpoint(playerid)
+	OnPlayerEnterRaceCheckpoint(playerid)
+	OnPlayerLeaveRaceCheckpoint(playerid)
+	OnRconCommand(cmd[])
+	OnPlayerRequestSpawn(playerid)
+	OnObjectMoved(objectid)
+	OnPlayerObjectMoved(playerid, objectid)
+	OnPlayerPickUpPickup(playerid, pickupid)
+	OnVehicleMod(playerid, vehicleid, componentid)
+	OnVehiclePaintjob(playerid, vehicleid, paintjobid)
+	OnVehicleRespray(playerid, vehicleid, color1, color2)
+	OnPlayerSelectedMenuRow(playerid, row)
+	OnPlayerExitedMenu(playerid)
+	OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
+	OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+	OnRconLoginAttempt(ip[], password[], success)
+	OnPlayerUpdate(playerid)
+	OnPlayerStreamIn(playerid, forplayerid)
+	OnPlayerStreamOut(playerid, forplayerid)
+	OnVehicleStreamIn(vehicleid, forplayerid)
+	OnVehicleStreamOut(vehicleid, forplayerid)
+	OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+	OnPlayerClickPlayer(playerid, clickedplayerid, source)
+	OnQueryError(errorid, error[], callback[], query[], connectionHandle)
+
+- Custom Callbacks
+	_OnMySQLConfigurationLoad()								(Loads the mysql configuration table into sConfig)
+	_OnMySQLPlayerDataSave(playerid)						(Saves the playerdata from pStats to the database)
+	_OnMySQLPlayerDataLoad(playerid)						(Loads the playerdata from the database into pStats)
+	_OnPlayerDataAssign(playerid)							(Assigns pStats array to playerid)
+	_OnAntiCheatTick()										(called by script yevery 5sec, executed anti-cheat routines)
+	_OnWeatherChange(weatherid)								(called by script every 45min, changes weather randomly)
+		
+		
+- Custom Functions
+	_resetPlayerDataArray(playerid)							(Resets pStats array to prevent bugs)
+	_sendAdminMessage(color, string[], requireduty)			(Sends message to admins online)
+	_sendNearByMessage(playerid, string[])					(Sends message to player nearby playerid)
+	_resetTazerAvailability(playerid)						(Resets tazer pVar to 1)
+	_unfreezePlayer(playerid)								(Unfreezes playerid)
+	_clearTextSpam(playerid)								(still not needed)
+	_clearCommandSpam(playerid)								(still not needed)
+
+- YCMD commands
+	
+	
+	
+	
+	
+--- Fahrschule:
+Rang 4 und 5 Prüfer: Dürfen Scheine verteilen
+ab 4: flugschein, nur 5 Waffenschein
