@@ -60,20 +60,20 @@ Script structure:
 	OnQueryError(errorid, error[], callback[], query[], connectionHandle)
 
 - custom callbacks
-	_OnMySQLConfigurationLoad()								(Loads the mysql configuration table into sConfig)
-	_OnMySQLPlayerDataSave(playerid)						(Saves the playerdata from pStats to the database)
-	_OnMySQLPlayerDataLoad(playerid)						(Loads the playerdata from the database into pStats)
-	_OnPlayerDataAssign(playerid)							(Assigns pStats array to playerid)
+	_OnMySQLConfigurationLoad()								(loads the mysql configuration table into sConfig)
+	_OnMySQLPlayerDataSave(playerid)						(saves the playerdata from pStats to the database)
+	_OnMySQLPlayerDataLoad(playerid)						(loads the playerdata from the database into pStats)
+	_OnPlayerDataAssign(playerid)							(assigns pStats array to playerid)
 	_OnAntiCheatTick()										(called by script yevery 5sec, executed anti-cheat routines)
 	_OnWeatherChange(weatherid)								(called by script every 45min, changes weather randomly)
 
 
 - custom functions
-	_resetPlayerDataArray(playerid)							(Resets pStats array to prevent bugs)
-	_sendAdminMessage(color, string[], requireduty)			(Sends message to admins online)
-	_sendNearByMessage(playerid, string[])					(Sends message to player nearby playerid)
-	_resetTazerAvailability(playerid)						(Resets tazer pVar to 1)
-	_unfreezePlayer(playerid)								(Unfreezes playerid)
+	_resetPlayerDataArray(playerid)							(resets pStats array to prevent bugs)
+	_sendAdminMessage(color, string[], requireduty)			(sends message to admins online)
+	_sendNearByMessage(playerid, string[])					(sends message to player nearby playerid)
+	_resetTazerAvailability(playerid)						(resets tazer pVar to 1)
+	_unfreezePlayer(playerid)								(unfreezes playerid)
 	_clearTextSpam(playerid)								(still not needed)
 	_clearCommandSpam(playerid)								(still not needed)
 

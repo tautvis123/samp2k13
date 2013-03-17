@@ -16,6 +16,7 @@ BugFixes / simple things
 	~	/tazer testen
 	+	Wanted Variable
 	+	Gemeinsamer Funkchat für Polizei und Arzt (Frequenzen)
+	~	Fix crash on warn
 	
 Dialoge / Design
 	~ 	Fraktionskasse: In Dialog packen
