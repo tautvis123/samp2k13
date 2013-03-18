@@ -71,13 +71,16 @@
 forward _OnMySQLConfigurationLoad();
 forward _OnMySQLPlayerDataSave(playerid);
 forward _OnMySQLPlayerDataLoad(playerid);
+forward _OnMySQLVehicleDataSave(vehicle[]);
+forward _OnMySQLVehicleDataLoad();
 forward _OnPlayerDataAssign(playerid);
 forward _OnAntiCheatTick();
 forward _OnWeatherChange(weatherid);
 
 // custom functions
 forward _sendAdminMessage(color, string[], requireduty);
-forward _sendNearByMessage(playerid, string[]);
+forward _sendFactionMessage(color, string[], factionid);
+forward _sendNearByMessage(playerid, Float:extraRadius, string[]);
 forward _setPlayerDuty(playerid, bool:status);
 forward _resetPlayerDataArray(playerid);
 forward _resetTazerAvailability(playerid);
@@ -139,17 +142,23 @@ new pStats[MAX_PLAYERS][PlayerData];
 
 enum VehicleData
 {
+    vPlate[8 + 1],
     vVehicleID,
-    vOwner,
+    vOwner[MAX_PLAYER_NAME + 1],
     vModelID,
-    Float: vPositionX,
-    Float: vPositionY,
-    Float: vPositionZ,
-    Float: vPositionA,
+    Float: vPosX,
+    Float: vPosY,
+    Float: vPosZ,
+    Float: vPosA,
     vColor1,
-    vColor2
+    vColor2,
+    vNavigation,
+    vLocked,
+    vFuel,
+    vFilled
+    //vehicle mods
 };
-//new Vehicles[MAX_VEHICLES][VehicleData];
+new vVehicles[MAX_VEHICLES][VehicleData]; // MAX_VEHICLES currently 2000 (0.3x)
 
 
 new querystring[715];
@@ -170,14 +179,16 @@ public OnGameModeInit()
     mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_DB, MYSQL_PASS);
 	mysql_set_charset("latin1_german1_ci");
 	mysql_function_query(MYSQL_DBHANDLE, "SELECT * FROM `configuration`", true, "_OnMySQLConfigurationLoad", "");
-	
+	mysql_function_query(MYSQL_DBHANDLE, "SELECT * FROM `vehicles`", true, "_OnMySQLVehicleDataLoad", "");
+
     foreach(Player, i) OnPlayerConnect(i);
-    SetTimer("ChangeWeather", 2700007, true); // 45min
-	SetTimer("AntiCheat", 5003, true);
+    SetTimer("_OnWeatherChange", 2700007, true); // 45min
+	SetTimer("_OnAntiCheatTick", 5003, true);
 
     DisableInteriorEnterExits();
     EnableStuntBonusForAll(0);
     LimitGlobalChatRadius(20.0);
+	LimitPlayerMarkerRadius(300.0);
 	//ManualVehicleEngineAndLights();
     SetGameModeText("samp2k13");
     SetNameTagDrawDistance(20.0);
@@ -185,17 +196,16 @@ public OnGameModeInit()
 	ShowPlayerMarkers(0);
     UsePlayerPedAnims();
 
-    LoadVehiclesFromDatabase();
-
     Command_AddAltNamed("adminduty", "aduty"); // short forms for cmds
     Command_AddAltNamed("ooc", "o");
     Command_AddAltNamed("announce", "ann");
     Command_AddAltNamed("adminchat", "a");
+    Command_AddAltNamed("radio", "r");
     
-	AddStaticVehicle(416,1178.0715,-1308.3512,14.0024,269.4829,1,0);	// Krankenwagen1
-	AddStaticVehicle(416,1178.0037,-1338.9781,14.0427,271.4690,1,0); 	// Krankenwagen2
+/*	AddStaticVehicle(416,1178.0715,-1308.3512,14.0024,269.4829,1,0);	// Krankenwagen1
+	AddStaticVehicle(416,1178.0037,-1338.9781,14.0427,271.4690,1,0); 	// Krankenwagen2                ---- DB !
 	AddStaticVehicle(416,1123.5791,-1328.7023,13.4239,0.3476,1,0); 		// Krankenwagen3(hinten)
-	AddStaticVehicle(563,1161.8552,-1377.1299,27.3177,268.7520,1,0); 	// Helikopter
+	AddStaticVehicle(563,1161.8552,-1377.1299,27.3177,268.7520,1,0); 	// Helikopter*/
 	
 	pickupHospitalLow = CreatePickup(1318, 1, 1172.0779, -1325.4570, 15.4076, -1);
 	pickupHospitalUp  = CreatePickup(1318, 1, 1163.7961, -1342.8069, 26.6160, -1);
@@ -203,7 +213,6 @@ public OnGameModeInit()
 	//pickupParlamentIn =
 	pickupStoreOut = CreatePickup(1318, 1, 1471.2391, -1177.9728, 23.9215, -1);
 	//pickupStoreIn = CreatePickup(1318, 1, 1471.2391, -1177.9728, 23.9215, -1);
-
 
 	Create3DTextLabel("Krankenhausdach", COLOR_WHITE, 1172.0779, -1325.4570, 90.0, -1, 0);
 	Create3DTextLabel("Parlament", COLOR_WHITE, 1310.0339, -1367.0052, 353.0, -1, 0);
@@ -324,17 +333,10 @@ public OnPlayerSpawn(playerid)
 					case 5:     SetPlayerSkin(playerid, 283);
 				}
 			}
-
-			if(pStats[playerid][pDuty] == 0) {
-			}
 		}
 
 		case 2: { // Arzt
 		    if(pStats[playerid][pDuty] == 1) {
-
-				SetPlayerPos(playerid, 1178.3900, -1325.5103, 14.1177);
-				SetPlayerFacingAngle(playerid, 359.0151);
-
 				SetPlayerHealth(playerid, 100.0);
 
 				switch(pStats[playerid][pFactionRank]) {
@@ -413,7 +415,7 @@ public OnPlayerText(playerid, text[])
     }
 	format(string, sizeof(string), "%s: %s", GetName(playerid), text);
 
-	_sendNearByMessage(playerid, string);
+	_sendNearByMessage(playerid, 1.0, string);
 	SetPlayerChatBubble(playerid, text, COLOR_WHITE, 8.0, 4000);
 
 	format(string, sizeof(string), "[SAY] %s: %s", GetName(playerid), text);
@@ -1095,48 +1097,60 @@ public _OnMySQLPlayerDataLoad(playerid)
 }
 
 
-public _OnPlayerDataAssign(playerid)
+public _OnMySQLVehicleDataSave(vehicle[])
 {
-    if(GetPVarInt(playerid, "Authentication") != 1) return false;
-
-    ResetPlayerCash(playerid);
-    GivePlayerCash(playerid,            pStats[playerid][pCash]);
-    SetPlayerScore(playerid,            pStats[playerid][pLevel]);
-    //SetPlayerWantedLevel(playerid,      pStats[playerid][pWantedLevel]);
-
-	if(pStats[playerid][pDuty] == 0) {
-		SetPlayerSkin(playerid,             pStats[playerid][pSkin]);
-	    SetPlayerHealth(playerid,           pStats[playerid][pHealth] + 1.0);
-	    SetPlayerArmour(playerid,           pStats[playerid][pArmor]);
-	}
-
-    SetPlayerPos(playerid,              pStats[playerid][pPosX], pStats[playerid][pPosY], pStats[playerid][pPosZ]);
-    SetPlayerFacingAngle(playerid,      pStats[playerid][pPosA]);
-	SetCameraBehindPlayer(playerid);
-	
-    SetPlayerColor(playerid, COLOR_WHITE);
-	SetPlayerMapIcon(playerid, 0, 1172.0768, -1321.5231, 15.3990, 22, 1); // Hospital
 	return true;
 }
 
 
-stock LoadVehiclesFromDatabase()
+public _OnMySQLVehicleDataLoad()
 {
+    new rows, fields;
+    cache_get_data(rows, fields);
+
+    new temp[128];
+    for(new i = 0; i < rows; i++) {
+	    cache_get_field_content(i, "plate", 			temp), strcat(vVehicles[i][vPlate], temp, 9);
+    	cache_get_field_content(i, "vehicleid", 		temp), vVehicles[i][vVehicleID] 	= strval(temp);
+	    cache_get_field_content(i, "owner", 			temp), strcat(vVehicles[i][vOwner], temp, 25);
+    	cache_get_field_content(i, "model", 			temp), vVehicles[i][vModelID] 		= strval(temp);
+    	cache_get_field_content(i, "posX", 				temp), vVehicles[i][vPosX] 			= floatstr(temp);
+    	cache_get_field_content(i, "posY", 				temp), vVehicles[i][vPosY] 			= floatstr(temp);
+    	cache_get_field_content(i, "posZ", 				temp), vVehicles[i][vPosZ] 			= floatstr(temp);
+    	cache_get_field_content(i, "posA", 				temp), vVehicles[i][vPosA] 			= floatstr(temp);
+    	cache_get_field_content(i, "color1", 			temp), vVehicles[i][vColor1] 		= strval(temp);
+    	cache_get_field_content(i, "color2", 			temp), vVehicles[i][vColor2] 		= strval(temp);
+    	cache_get_field_content(i, "navigation", 		temp), vVehicles[i][vNavigation] 	= strval(temp);
+    	cache_get_field_content(i, "locked", 			temp), vVehicles[i][vLocked] 		= strval(temp);
+    	cache_get_field_content(i, "fuel", 				temp), vVehicles[i][vFuel] 			= strval(temp);
+    	cache_get_field_content(i, "filled", 			temp), vVehicles[i][vFilled] 		= strval(temp);
+    	
+		vVehicles[i][vVehicleID] = CreateVehicle(vVehicles[i][vModelID], vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ], vVehicles[i][vPosA], vVehicles[i][vColor1], vVehicles[i][vColor2], -1);
+		printf("\r\nPlate: %s, Owner: %s, vehID: %d, Model: %d, posX: %f,\r\n posY: %f, posZ: %f, posA: %f, Color1: %d,\r\n Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+		vVehicles[i][vPlate], vVehicles[i][vOwner], vVehicles[i][vVehicleID], vVehicles[i][vModelID], vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ], vVehicles[i][vPosA],
+		vVehicles[i][vColor1], vVehicles[i][vColor2], vVehicles[i][vNavigation], vVehicles[i][vLocked], vVehicles[i][vFuel], vVehicles[i][vFilled]);
+        SetVehicleNumberPlate(vVehicles[i][vVehicleID], vVehicles[i][vPlate]);
+        //ChangeVehicleBlowjob(veh[i], xx);
+	}
+	return true;
+}
+
+stock _getVehicleIDByPlate(vehicleid)
+{
+
+}
+
+YCMD:rveh(playerid, params[], help)
+{
+
+	return true;
+}
+
 /*
 //    mysql_query("SELECT COUNT(*) FROM `vehicles`"); mysql_store_result();
 //	new count = mysql_fetch_int(); mysql_free_result();
 
 
-
-	vVehicleID,
-    vOwner,
-    vModelID,
-    Float: vPositionX,
-    Float: vPositionY,
-    Float: vPositionZ,
-    Float: vPositionA,
-    vColor1,
-    vColor2
 */
 /*	new idx = 0;
 	new Float:X, Float:Y, Float:Z, Float:A;
@@ -1215,7 +1229,30 @@ stock LoadVehiclesFromDatabase()
 
 */
 //	printf("\n* SERVER: Loaded %d MySQL vehicles successfully.", idx);
-    return true;
+
+
+public _OnPlayerDataAssign(playerid)
+{
+    if(GetPVarInt(playerid, "Authentication") != 1) return false;
+
+    ResetPlayerCash(playerid);
+    GivePlayerCash(playerid,            pStats[playerid][pCash]);
+    SetPlayerScore(playerid,            pStats[playerid][pLevel]);
+    //SetPlayerWantedLevel(playerid,      pStats[playerid][pWantedLevel]);
+
+	if(pStats[playerid][pDuty] == 0) {
+		SetPlayerSkin(playerid,             pStats[playerid][pSkin]);
+	    SetPlayerHealth(playerid,           pStats[playerid][pHealth] + 1.0);
+	    SetPlayerArmour(playerid,           pStats[playerid][pArmor]);
+	}
+
+    SetPlayerPos(playerid,              pStats[playerid][pPosX], pStats[playerid][pPosY], pStats[playerid][pPosZ]);
+    SetPlayerFacingAngle(playerid,      pStats[playerid][pPosA]);
+	SetCameraBehindPlayer(playerid);
+	
+    SetPlayerColor(playerid, COLOR_WHITE);
+	SetPlayerMapIcon(playerid, 0, 1172.0768, -1321.5231, 15.3990, 22, 1); // Hospital
+	return true;
 }
 
 
@@ -1280,8 +1317,15 @@ public _sendAdminMessage(color, string[], requireduty)
     return true;
 }
 
+public _sendFactionMessage(color, string[], factionid)
+{
+    foreach(Player, i) {
+        if(pStats[i][pFaction] == factionid) SendClientMessage(i, color, string);
+    }
+    return true;
+}
 
-public _sendNearByMessage(playerid, string[])
+public _sendNearByMessage(playerid, Float:extraRadius, string[])
 {
     new Float: PlayerX, Float: PlayerY, Float: PlayerZ;
     foreach(Player, i) {
@@ -1289,10 +1333,10 @@ public _sendNearByMessage(playerid, string[])
             GetPlayerPos(playerid, PlayerX, PlayerY, PlayerZ);
             if(GetPlayerVirtualWorld(playerid) == GetPlayerVirtualWorld(i) && GetPlayerInterior(playerid) == GetPlayerInterior(i)) {
 				if(playerid == i)												return SendClientMessage(i, 0xE6E6E6E6, string);
-				if(IsPlayerInRangeOfPoint(i, 3, PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0xE6E6E6E6, string);
-	            if(IsPlayerInRangeOfPoint(i, 6, PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0xAAAAAAAA, string);
-	            if(IsPlayerInRangeOfPoint(i, 9, PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0x8C8C8C8C, string);
-	            if(IsPlayerInRangeOfPoint(i, 12, PlayerX, PlayerY, PlayerZ))	return SendClientMessage(i, 0x6E6E6E6E, string);
+				if(IsPlayerInRangeOfPoint(i, (3  * extraRadius), PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0xE6E6E6E6, string);
+	            if(IsPlayerInRangeOfPoint(i, (6  * extraRadius), PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0xAAAAAAAA, string);
+	            if(IsPlayerInRangeOfPoint(i, (9  * extraRadius), PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0x8C8C8C8C, string);
+	            if(IsPlayerInRangeOfPoint(i, (12 * extraRadius), PlayerX, PlayerY, PlayerZ))	return SendClientMessage(i, 0x6E6E6E6E, string);
 			}
         }
     }
@@ -1904,11 +1948,11 @@ YCMD:help(playerid, params[], help)
 #pragma unused params
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
 
-    SendClientMessage(playerid, COLOR_OOC, "* Allgemein: /admins /afk /showme /givecash /buy");
+    SendClientMessage(playerid, COLOR_OOC, "* Allgemein: /admins /afk /showme /givecash");
     SendClientMessage(playerid, COLOR_OOC, "* Chat:      /a /s /b /me /ooc");
     switch(pStats[playerid][pFaction]) {
-		case 1: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
-		case 2: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
+		case 1: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /duty /r(adio)");
+		case 2: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: /duty /r(adio)");
 		case 3: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
 		case 4: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
 		case 5: SendClientMessage(playerid, COLOR_OOC, "* Fraktion: ");
@@ -2042,7 +2086,7 @@ YCMD:s(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /s [Nachricht]");
 
     format(string, sizeof(string), "%s schreit: %s!!", GetNameEx(playerid), params);
-    _sendNearByMessage(playerid, string);
+    _sendNearByMessage(playerid, 2.5, string);
 
     format(string, sizeof(string), "%s!!", params);
 	SetPlayerChatBubble(playerid, string, COLOR_WHITE, 15.0, 4000);
@@ -2061,7 +2105,7 @@ YCMD:b(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /b [Nachricht]");
 
     format(string, sizeof(string), "(( %s: %s ))", GetNameEx(playerid), params);
-    _sendNearByMessage(playerid, string);
+    _sendNearByMessage(playerid, 1.0, string);
 
 	format(string, sizeof(string), "[B] (( %s: %s ))", GetName(playerid), params);
     Log2File("chat", string);
@@ -2077,7 +2121,7 @@ YCMD:me(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /me [Aktion]");
 
     format(string, sizeof(string), "* %s %s", GetNameEx(playerid), params);
-    _sendNearByMessage(playerid, string);
+    _sendNearByMessage(playerid, 1, string);
 
 	format(string, sizeof(string), "[ME] %s %s", GetName(playerid), params);
     Log2File("chat", string);
@@ -2109,7 +2153,7 @@ YCMD:givecash(playerid, params[], help)
     if(sscanf(params, "ud", giveplayerid, amount))      return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /givecash [SpielerID] [Menge]");
     if(playerid == giveplayerid) {
 		format(string, sizeof(string), "* %s holt eine Münze aus der Tasche und spielt damit.", GetName(playerid), GetName(giveplayerid));
-		_sendNearByMessage(playerid, string);
+		_sendNearByMessage(playerid, 1.0, string);
 		return true;
 	}
 	if(GetPlayerCash(playerid) < amount) return SendClientMessage(playerid, COLOR_RED,  "* Du hast nicht genügend Geld.");
@@ -2120,7 +2164,7 @@ YCMD:givecash(playerid, params[], help)
     GivePlayerCash(giveplayerid, amount);
 
 	format(string, sizeof(string), "* %s holt Geld aus der Tasche und gibt es %s.", GetName(playerid), GetName(giveplayerid));
-   	_sendNearByMessage(playerid, string);
+   	_sendNearByMessage(playerid, 1.0, string);
 
 	format(string, sizeof(string), "[GIVECASH] %s - $%d - %s.", GetName(playerid), amount, GetName(giveplayerid));
    	Log2File("money", string);
@@ -2134,7 +2178,7 @@ YCMD:givecash(playerid, params[], help)
 }
 
 
-// faction
+// factions
 YCMD:getfunds(playerid, params[], help)
 {
 	if(pStats[playerid][pFactionRank] != 5) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_FACTIONRANK_TOOLOW);
@@ -2150,6 +2194,7 @@ YCMD:getfunds(playerid, params[], help)
 	SendClientMessage(playerid, COLOR_OOC, string);
 	return true;
 }
+
 
 YCMD:duty(playerid, params[], help)
 {
@@ -2172,3 +2217,22 @@ YCMD:duty(playerid, params[], help)
 	}
 	return true;
 }
+
+/*
+YCMD:radio(playerid, params[], help)
+{
+	new freq, string[128];
+    if(sscanf(params, "us[128]d", giveplayerid, param, val))                     return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /radio [Frequenz] [Text]"),
+                                                                                	    SendClientMessage(playerid, COLOR_GREY, "* Frequenz ist ein optionaler Parameter.");
+
+	format(string, sizeof(string, "[RADIO] %s: %s", GetName(playerid), params);
+	_sendFactionMessage(COLOR_WHITE, string, 1),
+	return true;
+}
+
+*/
+
+
+
+
+

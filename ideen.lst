@@ -29,3 +29,12 @@ Soll etwas "cooles" werden (für Roleplay)
 Ist für die Spieler eine sehr wichtige Anzeige, da sie jeder sehen kann. Hohes Level = hoher Ego-Push.
 Um den Suchtfaktor des Servers zu erhöhen, müssen wir daraus also was sehr wertvolles machen.
 Niedrige Level müssen einfach erreichbar sein, hohe schwieriger (siehe Diablo 3 Konzept von Blizzard)
+
+
+--- SetPlayerFightingStyle verwenden
+
+
+--- Vehikel
+Jedes Vehikel ist unique und wird in der DB gespeichert.
+Es ist durch das Nummernschild identifizierbar (Primärkey in der DB). Syntax Nummernschild: Kaufort-CC-ii (BSP: LS-AB-13)
+Wenn das Auto kaputt ist wird es aus der DB gelöscht.
