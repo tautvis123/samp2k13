@@ -56,5 +56,6 @@
 	
 [18.03.13] [Harti]
 ~ MySQL fixed, DB Struktur verändert
-+ justRegistered und wanted Variable
++ justRegistered, duty und wanted Variable
 ~ /getfunds verbessert
++ unglaublich geiler /duty cmd

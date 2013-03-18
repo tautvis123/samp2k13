@@ -23,7 +23,7 @@ Neue Spieler bekommen ein Visum, damit nur eingeschränkte Rechte (Kein Auto/Hä
 Soll etwas "cooles" werden (für Roleplay)
 - Drunk level bei Alkohol größer, dafür uU. Crack-Animation und höhere negative Auswirkungen (HP Verlust?)
 - Gras: Drunk level niedriger, dafür länger. Leichte positive Auswirkungen
-
+- SetPlayerSkillLevel niedriger
 
 --- Level im Scoreboard:
 Ist für die Spieler eine sehr wichtige Anzeige, da sie jeder sehen kann. Hohes Level = hoher Ego-Push.

@@ -78,6 +78,7 @@ forward _OnWeatherChange(weatherid);
 // custom functions
 forward _sendAdminMessage(color, string[], requireduty);
 forward _sendNearByMessage(playerid, string[]);
+forward _setPlayerDuty(playerid, bool:status);
 forward _resetPlayerDataArray(playerid);
 forward _resetTazerAvailability(playerid);
 forward _unfreezePlayer(playerid);
@@ -108,6 +109,7 @@ enum PlayerData
     pAdminLevel,
     pFaction,
     pFactionRank,
+	pDuty,
     pWantedLevel,
     pJob,
     pCash,
@@ -268,18 +270,21 @@ public OnPlayerDisconnect(playerid, reason)
 public OnPlayerSpawn(playerid)
 {
     if(pStats[playerid][pJustRegistered] == 1) {
+		pStats[playerid][pJustRegistered] = 0;
+		SetPVarInt(playerid, "JustLogged", 1);
+		
         GivePlayerCash(playerid, 100);
         SetPlayerScore(playerid, 1);
         SetPlayerSkin(playerid, random(299));
         SetPlayerPos(playerid, -2706.5261, 397.7129, 4.3672);
 
-		pStats[playerid][pJustRegistered] = 0;
 		format(querystring, sizeof(querystring), "UPDATE `accounts` SET `justRegistered` = '0' WHERE `username` = '%s'", GetEscName(playerid));
 		mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
+
         _OnMySQLPlayerDataSave(playerid);
-		SetPVarInt(playerid, "JustLogged", 1);
         return true;
     }
+    
     if(GetPVarInt(playerid, "JustLogged") == 1) {
         SetPVarInt(playerid, "JustLogged", 0);
 
@@ -301,31 +306,43 @@ public OnPlayerSpawn(playerid)
         SetPVarInt(playerid, "JustDied", 0);
         return true;
     }
-    
-    switch(pStats[playerid][pFaction]) {
-		case 1: { // Polizei
-			SetPlayerPos(playerid, -1606.4093,673.4142,-5.2422);
-			SetPlayerFacingAngle(playerid, 359.0151);
 
-			switch(pStats[playerid][pFactionRank]) {
-				case 1: 	SetPlayerSkin(playerid, 280);
-				case 2,3:   SetPlayerSkin(playerid, 281);
-				case 4:		SetPlayerSkin(playerid, 282);
-				case 5:     SetPlayerSkin(playerid, 283);
+	_OnPlayerDataAssign(playerid);
+
+	switch(pStats[playerid][pFaction]) {
+		case 1: { // Polizei
+		    if(pStats[playerid][pDuty] == 1) {
+				SetPlayerHealth(playerid, 100.0);
+				SetPlayerArmour(playerid, 100.0);
+				GivePlayerWeapon(playerid, 24, 50); // deagle
+				SetPlayerSkillLevel(playerid, 2, 500);
+
+				switch(pStats[playerid][pFactionRank]) {
+					case 1: 	SetPlayerSkin(playerid, 280);
+					case 2,3:   SetPlayerSkin(playerid, 281);
+					case 4:		SetPlayerSkin(playerid, 282);
+					case 5:     SetPlayerSkin(playerid, 283);
+				}
 			}
-			//AddPlayerClass(0,-2665.5969,-2.1069,6.1328,93.2043,0,0,0,0,0,0); // Bank1
-			//AddPlayerClass(0,-2666.0901,-9.2802,6.1328,90.6976,0,0,0,0,0,0); // Bank2
+
+			if(pStats[playerid][pDuty] == 0) {
+			}
 		}
 
 		case 2: { // Arzt
-			SetPlayerPos(playerid, 1178.3900, -1325.5103, 14.1177);
-			SetPlayerFacingAngle(playerid, 359.0151);
+		    if(pStats[playerid][pDuty] == 1) {
 
-			switch(pStats[playerid][pFactionRank]) {
-				case 1: 	SetPlayerSkin(playerid, 275);
-				case 2,3:   SetPlayerSkin(playerid, 274);
-				case 4:		SetPlayerSkin(playerid, 276);
-				case 5:     SetPlayerSkin(playerid, 70);
+				SetPlayerPos(playerid, 1178.3900, -1325.5103, 14.1177);
+				SetPlayerFacingAngle(playerid, 359.0151);
+
+				SetPlayerHealth(playerid, 100.0);
+
+				switch(pStats[playerid][pFactionRank]) {
+					case 1: 	SetPlayerSkin(playerid, 275);
+					case 2,3:   SetPlayerSkin(playerid, 274);
+					case 4:		SetPlayerSkin(playerid, 276);
+					case 5:     SetPlayerSkin(playerid, 70);
+				}
 			}
 		}
 
@@ -656,7 +673,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				    new coordstring[6][256];
 				    
 					format(coordstring[0], sizeof(coordstring[]), "----------*** %s (%s) ***----------", GetName(giveplayerid), pStats[giveplayerid][pEmail]);
-					format(coordstring[1], sizeof(coordstring[]), "* IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d) | Job: %d", pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank], pStats[giveplayerid][pJob]);
+					format(coordstring[1], sizeof(coordstring[]), "* IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d) | Duty: %d | Job: %d", pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank], pStats[giveplayerid][pDuty], pStats[giveplayerid][pJob]);
 					format(coordstring[2], sizeof(coordstring[]), "* Cash: %d | bank: %d | Level: %d | Skin: %d | Health: %f | Armor: %d", pStats[giveplayerid][pCash], pStats[giveplayerid][pBank], pStats[giveplayerid][pLevel], pStats[giveplayerid][pSkin],pStats[giveplayerid][pHealth], pStats[giveplayerid][pArmor]);
 					format(coordstring[3], sizeof(coordstring[]), "* Warns: %d | Warning1: %s | Warning2: %s | Warning3: %s | BannedUntil: %d", pStats[giveplayerid][pWarns], pStats[giveplayerid][pWarning1], pStats[giveplayerid][pWarning2], pStats[giveplayerid][pWarning3], pStats[giveplayerid][pBanstamp]);
 					format(coordstring[4], sizeof(coordstring[]), "* LicenseCar: %d | LicenseBike: %d | LicenseAir: %d | VehicleID1: %d | VehicleID2: %d | VehicleID3: %d", pStats[playerid][pLicenseCar], pStats[playerid][pLicenseBike], pStats[playerid][pLicenseAir], pStats[giveplayerid][pVeh1], pStats[giveplayerid][pVeh2], pStats[giveplayerid][pVeh3]);
@@ -952,14 +969,18 @@ public _OnMySQLPlayerDataSave(playerid)
 
     if(GetPVarInt(playerid, "LoggingOut") == 0) GetPlayerIp(playerid, pStats[playerid][pIPAddress], 17);
     pStats[playerid][pCash]         = GetPlayerCash(playerid);
-    pStats[playerid][pSkin]         = GetPlayerSkin(playerid);
-    GetPlayerHealth(playerid,       pStats[playerid][pHealth]);
-    GetPlayerArmour(playerid,       pStats[playerid][pArmor]);
+
+    if(pStats[playerid][pDuty] == 0) {
+	    pStats[playerid][pSkin]         = GetPlayerSkin(playerid);
+	    GetPlayerHealth(playerid,       pStats[playerid][pHealth]);
+	    GetPlayerArmour(playerid,       pStats[playerid][pArmor]);
+    }
+    
     GetPlayerPos(playerid,          pStats[playerid][pPosX], pStats[playerid][pPosY], pStats[playerid][pPosZ]);
     GetPlayerFacingAngle(playerid,  pStats[playerid][pPosA]);
 
 	new bigstring[2048];
-    format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `ip` = '%s', `adminLevel` = '%d', `faction` = '%d', `factionRank` = '%d', `wantedLevel` = '%d', \
+    format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `ip` = '%s', `adminLevel` = '%d', `faction` = '%d', `factionRank` = '%d', `duty` = '%d', `wantedLevel` = '%d', \
 											 `job` = '%d', `cash` = '%d', `bank` = '%d', `level` = '%d', `skin` = '%d', `health` = '%f', `armor` = '%f', `posX` = '%f', `posY` = '%f', \
 											 `posZ` = '%f', `posA` = '%f' WHERE `username` = '%s'",
     	/*
@@ -970,6 +991,7 @@ public _OnMySQLPlayerDataSave(playerid)
 		pStats[playerid][pAdminLevel],
 		pStats[playerid][pFaction],
 		pStats[playerid][pFactionRank],
+		pStats[playerid][pDuty],
 		pStats[playerid][pWantedLevel],
 		pStats[playerid][pJob],
 		pStats[playerid][pCash],
@@ -1020,6 +1042,7 @@ public _OnMySQLPlayerDataLoad(playerid)
     cache_get_field_content(0, "adminLevel", 		temp), pStats[playerid][pAdminLevel]		= strval(temp);
     cache_get_field_content(0, "faction", 			temp), pStats[playerid][pFaction] 			= strval(temp);
     cache_get_field_content(0, "factionRank", 		temp), pStats[playerid][pFactionRank] 		= strval(temp);
+    cache_get_field_content(0, "duty", 				temp), pStats[playerid][pDuty] 				= strval(temp);
     cache_get_field_content(0, "wantedLevel", 		temp), pStats[playerid][pWantedLevel] 		= strval(temp);
     cache_get_field_content(0, "job", 				temp), pStats[playerid][pJob] 				= strval(temp);
     cache_get_field_content(0, "cash", 				temp), pStats[playerid][pCash] 				= strval(temp);
@@ -1079,13 +1102,18 @@ public _OnPlayerDataAssign(playerid)
     ResetPlayerCash(playerid);
     GivePlayerCash(playerid,            pStats[playerid][pCash]);
     SetPlayerScore(playerid,            pStats[playerid][pLevel]);
-    SetPlayerSkin(playerid,             pStats[playerid][pSkin]);
     //SetPlayerWantedLevel(playerid,      pStats[playerid][pWantedLevel]);
-    SetPlayerHealth(playerid,           pStats[playerid][pHealth] + 1.0);
-    SetPlayerArmour(playerid,           pStats[playerid][pArmor]);
+
+	if(pStats[playerid][pDuty] == 0) {
+		SetPlayerSkin(playerid,             pStats[playerid][pSkin]);
+	    SetPlayerHealth(playerid,           pStats[playerid][pHealth] + 1.0);
+	    SetPlayerArmour(playerid,           pStats[playerid][pArmor]);
+	}
+
     SetPlayerPos(playerid,              pStats[playerid][pPosX], pStats[playerid][pPosY], pStats[playerid][pPosZ]);
     SetPlayerFacingAngle(playerid,      pStats[playerid][pPosA]);
-
+	SetCameraBehindPlayer(playerid);
+	
     SetPlayerColor(playerid, COLOR_WHITE);
 	SetPlayerMapIcon(playerid, 0, 1172.0768, -1321.5231, 15.3990, 22, 1); // Hospital
 	return true;
@@ -1272,6 +1300,22 @@ public _sendNearByMessage(playerid, string[])
 }
 
 
+public _setPlayerDuty(playerid, bool:status) {
+	if(status == true) {
+		_OnMySQLPlayerDataSave(playerid);
+		pStats[playerid][pDuty] = 1;
+		SendClientMessage(playerid, COLOR_WHITE, "* Du hast dir die Arbeitskleidung angezogen.");
+	}
+	else {
+		_OnMySQLPlayerDataSave(playerid);
+		pStats[playerid][pDuty] = 0;
+		SendClientMessage(playerid, COLOR_WHITE, "* Du hast dir die Arbeitskleidung ausgezogen.");
+	}
+	SpawnPlayer(playerid);
+	return true;
+}
+
+
 public _resetPlayerDataArray(playerid)
 {
     pStats[playerid][pUsername]     	= -1;
@@ -1282,6 +1326,7 @@ public _resetPlayerDataArray(playerid)
     pStats[playerid][pAdminLevel]   	= -1;
     pStats[playerid][pFaction]      	= -1;
     pStats[playerid][pFactionRank]  	= -1;
+    pStats[playerid][pDuty]  			= -1;
     pStats[playerid][pWantedLevel]  	= -1;
     pStats[playerid][pJob]		        = -1;
     pStats[playerid][pCash]         	= -1;
@@ -1931,16 +1976,19 @@ YCMD:afk(playerid, params[], help)
 
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
 
-    if(GetPVarInt(playerid, "AFKStatus") == 1) {
-        SendClientMessage(playerid, COLOR_OOC, "* Du bist nun nicht mehr AFK.");
-        SetPVarInt(playerid, "AFKStatus", 0);
-        TogglePlayerControllable(playerid, true);
-    }
-    else if(GetPVarInt(playerid, "AFKStatus") == 0) {
-        SendClientMessage(playerid, COLOR_OOC, "* Du bist nun AFK.");
-        SetPVarInt(playerid, "AFKStatus", 1);
-        TogglePlayerControllable(playerid, false);
-    }
+	switch(GetPVarInt(playerid, "AFKStatus")) {
+		case 0: {
+	        SendClientMessage(playerid, COLOR_OOC, "* Du bist nun AFK.");
+	        SetPVarInt(playerid, "AFKStatus", 1);
+	        TogglePlayerControllable(playerid, false);
+		}
+
+		case 1: {
+	        SendClientMessage(playerid, COLOR_OOC, "* Du bist nun nicht mehr AFK.");
+	        SetPVarInt(playerid, "AFKStatus", 0);
+	        TogglePlayerControllable(playerid, true);
+		}
+	}
     return true;
 }
 
@@ -2105,6 +2153,22 @@ YCMD:getfunds(playerid, params[], help)
 
 YCMD:duty(playerid, params[], help)
 {
-
+	if(pStats[playerid][pFaction] == 0 || pStats[playerid][pFaction] > 2) return SendClientMessage(playerid, COLOR_RED, "* Deine Fraktion besitzt keine Arbeitskleidung.");
+	switch(pStats[playerid][pFaction]) {
+		case 1: {
+			//if(!IsPlayerInRangeOfPoint(playerid, 3.0, posX, posY, posZ)) return SendClientMessage(playerid, COLOR_RED, "* Dazu musst du in der Umkleidekabine sein.");
+			switch(pStats[playerid][pDuty]) {
+				case 0: _setPlayerDuty(playerid, true);
+				case 1: _setPlayerDuty(playerid, false);
+			}
+		}
+		case 2: {
+			//if(!IsPlayerInRangeOfPoint(playerid, 3.0, posX, posY, posZ)) return SendClientMessage(playerid, COLOR_RED, "* Dazu musst du in der Umkleidekabine sein.");
+			switch(pStats[playerid][pDuty]) {
+				case 0: _setPlayerDuty(playerid, true);
+				case 1: _setPlayerDuty(playerid, false);
+			}
+		}
+	}
 	return true;
 }
