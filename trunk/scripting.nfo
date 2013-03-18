@@ -10,6 +10,20 @@ Faction IDs:
 5 - Taxi
 
 
+To add new faction:
++ sConfiguration enum add faction_x_funds (+ db field)
+~ OnPlayerSpawn(playerid)
+~ /showmembers /getfunds /help
+
+
+To add new player variable:
++ pStats enum add x (+ db field)
++ _resetPlayerDataArray(playerid)
++ _OnMySQLPlayerDataLoad(playerid)
+(+ _OnPlayerDataAssign(playerid))
+(+ _OnMySQLPlayerDataSave(playerid))
+
+
 Script structure:
 - #include
 - #define
