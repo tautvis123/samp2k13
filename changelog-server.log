@@ -54,3 +54,7 @@
 	~ Viele Bugfixes und Performanceverbesserungen (zB. Accountanzeige)
 	
 	
+[18.03.13] [Harti]
+~ MySQL fixed, DB Struktur verändert
++ justRegistered Variable
+~ /getfunds verbessert
