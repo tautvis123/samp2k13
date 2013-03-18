@@ -8,4 +8,4 @@ samp2k13 UCP ToDo
 
 
 + 	Beim Registrieren in der DB die Variable JustRegistered auf 1 setzen, allgemein Standardwerte von MySQL übernehmen (meist -1)
-+	Registrieren nur mit RP Namen und echter Email (also kein 5min mail usw)
++	Registrieren nur mit RP Namen und echter Email (also kein hushmail usw)

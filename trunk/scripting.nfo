@@ -1,4 +1,5 @@
 samp2k13 scripting reference
+created by Harti aka. surrender
 ---------------------------------
 
 
@@ -10,10 +11,12 @@ Faction IDs:
 5 - Taxi
 
 
+
 To add new faction:
 + sConfiguration enum add faction_x_funds (+ db field)
 ~ OnPlayerSpawn(playerid)
 ~ /showmembers /getfunds /help
+
 
 
 To add new player variable:
@@ -22,6 +25,7 @@ To add new player variable:
 + _OnMySQLPlayerDataLoad(playerid)
 (+ _OnPlayerDataAssign(playerid))
 (+ _OnMySQLPlayerDataSave(playerid))
+
 
 
 Script structure:

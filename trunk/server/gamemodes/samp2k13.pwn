@@ -108,6 +108,7 @@ enum PlayerData
     pAdminLevel,
     pFaction,
     pFactionRank,
+    pWantedLevel,
     pJob,
     pCash,
     pBank,
@@ -958,7 +959,7 @@ public _OnMySQLPlayerDataSave(playerid)
     GetPlayerFacingAngle(playerid,  pStats[playerid][pPosA]);
 
 	new bigstring[2048];
-    format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `ip` = '%s', `adminlevel` = '%d', `faction` = '%d', `factionRank` = '%d', \
+    format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `ip` = '%s', `adminLevel` = '%d', `faction` = '%d', `factionRank` = '%d', `wantedLevel` = '%d', \
 											 `job` = '%d', `cash` = '%d', `bank` = '%d', `level` = '%d', `skin` = '%d', `health` = '%f', `armor` = '%f', `posX` = '%f', `posY` = '%f', \
 											 `posZ` = '%f', `posA` = '%f' WHERE `username` = '%s'",
     	/*
@@ -969,6 +970,7 @@ public _OnMySQLPlayerDataSave(playerid)
 		pStats[playerid][pAdminLevel],
 		pStats[playerid][pFaction],
 		pStats[playerid][pFactionRank],
+		pStats[playerid][pWantedLevel],
 		pStats[playerid][pJob],
 		pStats[playerid][pCash],
 		pStats[playerid][pBank],
@@ -1015,9 +1017,10 @@ public _OnMySQLPlayerDataLoad(playerid)
     cache_get_field_content(0, "ip", 				temp), strdel(pStats[playerid][pIPAddress], 0, 17), 	strcat(pStats[playerid][pIPAddress], 	temp, 17);
 
     cache_get_field_content(0, "justRegistered",	temp), pStats[playerid][pJustRegistered]	= strval(temp);
-    cache_get_field_content(0, "adminlevel", 		temp), pStats[playerid][pAdminLevel]		= strval(temp);
+    cache_get_field_content(0, "adminLevel", 		temp), pStats[playerid][pAdminLevel]		= strval(temp);
     cache_get_field_content(0, "faction", 			temp), pStats[playerid][pFaction] 			= strval(temp);
     cache_get_field_content(0, "factionRank", 		temp), pStats[playerid][pFactionRank] 		= strval(temp);
+    cache_get_field_content(0, "wantedLevel", 		temp), pStats[playerid][pWantedLevel] 		= strval(temp);
     cache_get_field_content(0, "job", 				temp), pStats[playerid][pJob] 				= strval(temp);
     cache_get_field_content(0, "cash", 				temp), pStats[playerid][pCash] 				= strval(temp);
     cache_get_field_content(0, "bank", 				temp), pStats[playerid][pBank] 				= strval(temp);
@@ -1077,6 +1080,7 @@ public _OnPlayerDataAssign(playerid)
     GivePlayerCash(playerid,            pStats[playerid][pCash]);
     SetPlayerScore(playerid,            pStats[playerid][pLevel]);
     SetPlayerSkin(playerid,             pStats[playerid][pSkin]);
+    //SetPlayerWantedLevel(playerid,      pStats[playerid][pWantedLevel]);
     SetPlayerHealth(playerid,           pStats[playerid][pHealth] + 1.0);
     SetPlayerArmour(playerid,           pStats[playerid][pArmor]);
     SetPlayerPos(playerid,              pStats[playerid][pPosX], pStats[playerid][pPosY], pStats[playerid][pPosZ]);
@@ -1278,6 +1282,7 @@ public _resetPlayerDataArray(playerid)
     pStats[playerid][pAdminLevel]   	= -1;
     pStats[playerid][pFaction]      	= -1;
     pStats[playerid][pFactionRank]  	= -1;
+    pStats[playerid][pWantedLevel]  	= -1;
     pStats[playerid][pJob]		        = -1;
     pStats[playerid][pCash]         	= -1;
     pStats[playerid][pBank]         	= -1;
