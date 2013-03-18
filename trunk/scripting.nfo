@@ -25,6 +25,7 @@ To add new player variable:
 + _OnMySQLPlayerDataLoad(playerid)
 (+ _OnPlayerDataAssign(playerid))
 (+ _OnMySQLPlayerDataSave(playerid))
+(+ Account overview)
 
 
 
@@ -90,6 +91,7 @@ Script structure:
 	_resetPlayerDataArray(playerid)							(resets pStats array to prevent bugs)
 	_sendAdminMessage(color, string[], requireduty)			(sends message to admins online)
 	_sendNearByMessage(playerid, string[])					(sends message to player nearby playerid)
+	_setPlayerDuty(playerid, factionid, bool:status)		(sets player duty status)
 	_resetTazerAvailability(playerid)						(resets tazer pVar to 1)
 	_unfreezePlayer(playerid)								(unfreezes playerid)
 	_clearTextSpam(playerid)								(still not needed)
