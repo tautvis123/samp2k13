@@ -45,7 +45,7 @@
 #define COLOR_PURPLE    0xC2A2DADD                // admin messages
 #define COLOR_RED       0xAA333333                // error messages
 #define COLOR_OOC       0xFF9900AA                // ooc messages
-#define COLOR_LIGHTBLUE 0x33CCFFAA                // me/do messages
+#define COLOR_LIGHTBLUE 0x1464F4FF                // me/do messages
 
 #define PLAYER_DIALOG_LOGIN 					0
 #define PLAYER_DIALOG_REGISTER 					1
@@ -71,7 +71,7 @@
 forward _OnMySQLConfigurationLoad();
 forward _OnMySQLPlayerDataSave(playerid);
 forward _OnMySQLPlayerDataLoad(playerid);
-forward _OnMySQLVehicleDataSave(vehicle[]);
+forward _OnMySQLVehicleDataSave(vehicleid);
 forward _OnMySQLVehicleDataLoad();
 forward _OnPlayerDataAssign(playerid);
 forward _OnAntiCheatTick();
@@ -88,6 +88,350 @@ forward _unfreezePlayer(playerid);
 forward _clearTextSpam(playerid);
 forward _clearCommandSpam(playerid);
 
+forward _processObjects();
+forward _setObjectsForPlayer(playerid);
+
+public _processObjects()
+{
+	CreateObject(8569, 1514.59961, -1659.89941, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59961, -1677.7998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59961, -1695.69922, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59961, -1713.59961, 9.6, 0, 0, 359.995);
+	CreateObject(17522, 1577.09998, -1754.40002, 1.1, 0, 90, 359);
+	CreateObject(1675, 1413.09998, -1715.90002, 5.1, 0, 272, 354);
+	CreateObject(8569, 1494.59961, -1718.39941, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1494.59998, -1700.5, 9.6, 0, 0, 359.995);
+	CreateObject(10032, 1508, -1691.09998, 12.4, 0, 0, 270);
+	CreateObject(8569, 1494.59961, -1682.59961, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1494.59961, -1664.69922, 9.6, 0, 0, 359.995);
+	CreateObject(3934, 1564.40002, -1658.30005, 27.4, 0, 0, 0);
+	CreateObject(3934, 1564.5, -1646, 27.4, 0, 0, 0);
+	CreateObject(970, 1506.69995, -1722.5, 12.9, 0, 0, 0);
+	CreateObject(970, 1510.90002, -1722.5, 12.9, 0, 0, 0);
+	CreateObject(970, 1515.09998, -1722.5, 12.9, 0, 0, 0);
+	CreateObject(970, 1519.30005, -1722.5, 12.9, 0, 0, 0);
+	CreateObject(970, 1506.5, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1510.69995, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1514.90002, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1522.30005, -1722.5, 12.9, 0, 0, 0);
+	CreateObject(970, 1522.90002, -1724, 12.9, 0, 0, 44.75);
+	CreateObject(671, 1507.5, -1724.90002, 12.3, 0, 0, 0);
+	CreateObject(671, 1519.69995, -1724.69995, 12.4, 0, 0, 0);
+	CreateObject(671, 1513.09998, -1724.69995, 12.3, 0, 0, 0);
+	CreateObject(803, 1522.09998, -1723.5, 12, 0, 0, 112);
+	CreateObject(803, 1516.90002, -1724.59998, 12.5, 0, 0, 86);
+	CreateObject(803, 1509.80005, -1724.80005, 12.7, 0, 0, 0);
+	CreateObject(805, 1505.80005, -1725.80005, 13.4, 0, 0, 0);
+	CreateObject(5428, 1520.59998, -1720.5, 11.3, 0, 0, 17.25);
+	CreateObject(970, 1521, -1725.90002, 12.9, 0, 0, 44.747);
+	CreateObject(970, 1517.5, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1504.5, -1724.59998, 12.9, 0, 0, 267.5);
+	CreateObject(970, 1504.5, -1725.40002, 12.9, 0, 0, 267.495);
+	CreateObject(647, 1505.40002, -1726.69995, 12, 0, 0, 114);
+	CreateObject(970, 1496.80005, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1492.59998, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1490.5, -1725.30005, 12.9, 0, 0, 270);
+	CreateObject(970, 1490.5, -1721.09998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1716.90002, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1712.69995, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1708.5, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1704.30005, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1700.09998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1695.90002, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1691.69995, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1687.5, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1683.30005, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1679.09998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1674.90002, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1670.69995, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1666.5, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1662.30005, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1658.09998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1492.59998, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1496.80005, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1501, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1505.19995, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1509.40002, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1513.59998, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1517.80005, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1522, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1524.40002, -1720.40002, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1716.19995, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1712, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1707.80005, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1703.59998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1699.40002, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1695.19995, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1691, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1686.80005, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1524.40002, -1682.59998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1519.90002, -1658.09998, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1519.90002, -1662.30005, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1519.90002, -1666.5, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1522, -1668.59998, 12.9, 0, 0, 179.995);
+	CreateObject(1257, 1521.09998, -1665.59998, 13.7, 0, 0, 180);
+	CreateObject(1229, 1524, -1655.90002, 15, 0, 0, 154);
+	CreateObject(2942, 1520.40002, -1656.40002, 13, 0, 0, 90.25);
+	CreateObject(1346, 1520.80005, -1662.19995, 13.7, 0, 0, 90.75);
+	CreateObject(8569, 1474.59998, -1718.40002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.59998, -1718.40002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59998, -1642, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59998, -1624.09998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59998, -1606.30005, 9.6, 0, 0, 359.995);
+	CreateObject(8168, 1546.69995, -1633.30005, 14.2, 0, 0, 197);
+	CreateObject(968, 1544.69995, -1630.69995, 13.2, 0, 269.5, 270);
+	CreateObject(970, 1543.30005, -1637.90002, 13.6, 0, 0, 269.995);
+	CreateObject(970, 1544.69995, -1620.5, 13.1, 0, 0, 269.995);
+	CreateObject(969, 1584.30005, -1637.90002, 12.5, 0.25, 358.5, 0.007);
+	CreateObject(8569, 1494.59998, -1606.30005, 9.6, 0, 0, 359.995);
+	CreateObject(8068, 1407.90002, -1682.40002, 19.3, 0, 0, 0);
+	CreateObject(2984, 1404.40002, -1705.09998, 13.9, 0, 0, 270);
+	CreateObject(2984, 1405.80005, -1705.09998, 13.9, 0, 0, 269.5);
+	CreateObject(2984, 1407.19995, -1705.09998, 13.9, 0, 0, 269.495);
+	CreateObject(2984, 1404.40002, -1704.19995, 13.9, 0, 0, 270);
+	CreateObject(8569, 1474.69995, -1606.30005, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.69995, -1606.19995, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1606.19995, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1624.09998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1642, 9.6, 0, 0, 359.995);
+	CreateObject(17950, 1544.30005, -1613.90002, 14.6, 0, 0, 270);
+	CreateObject(17950, 1544.30005, -1606.19995, 14.6, 0, 0, 270);
+	CreateObject(14826, 1544.19995, -1606.09998, 13.1, 0, 0, 0);
+	CreateObject(1025, 1547.40002, -1616.90002, 12.9, 0, 348, 88);
+	CreateObject(1165, 1541.40002, -1617.09998, 12.9, 0, 0, 301);
+	CreateObject(14574, 1540.69995, -1614.19995, 13.6, 0, 0, 90.25);
+	CreateObject(3465, 1604.09998, -1625.69995, 13.9, 0, 0, 270);
+	CreateObject(1331, 1606.30005, -1636.69995, 13.6, 0, 0, 0);
+	CreateObject(1332, 1604.30005, -1636.80005, 13.8, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1719.59998, 13.1, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1713.90002, 13.1, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1708, 13.1, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1702.09998, 13.1, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1696.09998, 13.1, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1690.19995, 13.1, 0, 0, 0);
+	CreateObject(640, 1523.69995, -1684.30005, 13.1, 0, 0, 0);
+	CreateObject(3660, 1492, -1717.09998, 15, 0, 0, 270);
+	CreateObject(18284, 1604.19995, -1617.5, 15.3, 0, 0, 359.75);
+	CreateObject(3660, 1492, -1697.5, 15, 0, 0, 269.997);
+	CreateObject(3660, 1492, -1677.90002, 15, 0, 0, 269.995);
+	CreateObject(3660, 1492, -1666.19995, 15, 0, 0, 269.995);
+	CreateObject(18264, 1446.5, -1605.09998, 12.4, 0, 0, 0);
+	CreateObject(17521, 1445, -1629.59998, 15.9, 0, 0, 270);
+	CreateObject(10982, 1441.19995, -1669.40002, 18.4, 0, 0, 270);
+	CreateObject(8569, 1444.5, -1659.90002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1677.80005, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1700.5, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1718.40002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59998, -1700.59998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1464.5, -1700.5, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59998, -1682.69995, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.59998, -1682.69995, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1682.59998, 9.6, 0, 0, 359.995);
+	CreateObject(5409, 1467, -1691.90002, 16.9, 0, 0, 270);
+	CreateObject(4100, 1455.90002, -1681.19995, 14.1, 0, 0, 320);
+	CreateObject(4100, 1442.19995, -1681.09998, 14.1, 0, 0, 319.999);
+	CreateObject(970, 1488.40002, -1681.40002, 12.9, 0, 0, 359.995);
+	CreateObject(970, 1484.19995, -1681.40002, 12.9, 0, 0, 359.989);
+	CreateObject(970, 1480, -1681.40002, 12.9, 0, 0, 359.989);
+	CreateObject(970, 1475.80005, -1681.40002, 12.9, 0, 0, 359.989);
+	CreateObject(970, 1471.59998, -1681.40002, 12.9, 0, 0, 359.989);
+	CreateObject(3465, 1466.80005, -1714.69995, 13.9, 0, 0, 89.995);
+	CreateObject(3465, 1474, -1714.69995, 13.9, 0, 0, 89.994);
+	CreateObject(970, 1480.30005, -1727.30005, 12.9, 0, 0, 0);
+	CreateObject(970, 1476.09998, -1727.30005, 12.9, 0, 0, 0);
+	CreateObject(970, 1471.90002, -1727.30005, 12.9, 0, 0, 0);
+	CreateObject(970, 1467.69995, -1727.30005, 12.9, 0, 0, 0);
+	CreateObject(970, 1463.5, -1727.30005, 12.9, 0, 0, 0);
+	CreateObject(970, 1459.30005, -1727.30005, 12.9, 0, 0, 0);
+	CreateObject(970, 1482.40002, -1725.19995, 12.9, 0, 0, 270);
+	CreateObject(970, 1478.19995, -1725.19995, 12.9, 0, 0, 270);
+	CreateObject(970, 1480.30005, -1723.09998, 12.9, 0, 0, 0);
+	CreateObject(1267, 1480.09998, -1726.09998, 28.5, 0, 0, 174);
+	CreateObject(7309, 1480.30005, -1726.80005, 33.5, 0, 0, 86.75);
+	CreateObject(1413, 1479.90002, -1695.90002, 13.7, 0, 0, 0);
+	CreateObject(1412, 1479.80005, -1690.19995, 13.7, 0, 0, 0);
+	CreateObject(1331, 1478.59998, -1694.80005, 13.3, 0, 0, 0);
+	CreateObject(1333, 1480.80005, -1694.80005, 13.3, 0, 0, 0);
+	CreateObject(1334, 1478.5, -1691.09998, 13.5, 0, 0, 0);
+	CreateObject(1335, 1481.09998, -1691.09998, 13.5, 0, 0, 0);
+	CreateObject(1221, 1477.5, -1692.30005, 12.9, 0, 0, 0);
+	CreateObject(3465, 1604.19995, -1620.30005, 13.9, 0, 0, 270);
+	CreateObject(3465, 1604.19995, -1614.80005, 13.9, 0, 0, 270);
+	CreateObject(3465, 1604, -1609.5, 13.9, 0, 0, 270);
+	CreateObject(8230, 1455.40002, -1632.80005, 14.4, 0, 0, 180);
+	CreateObject(3873, 1468.40002, -1660.5, 29.7, 0, 0, 0);
+	CreateObject(4021, 1520.69995, -1594.59998, 43.9, 0, 0, 180);
+	CreateObject(8569, 1454.69995, -1624.09998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59998, -1664.80005, 9.6, 0, 0, 359.995);
+	CreateObject(5729, 1494.30005, -1608.09998, 14.7, 0, 0, 90);
+	CreateObject(8569, 1494.59998, -1646.80005, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1494.59998, -1628.90002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1494.69995, -1624.19995, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.69995, -1611.09998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59998, -1646.90002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59998, -1629, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.59998, -1664.80005, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.69995, -1647, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.90002, -1637.40002, 9.6, 0, 0, 359.995);
+	CreateObject(1447, 1467.30005, -1623.80005, 13.7, 0, 0, 0);
+	CreateObject(1447, 1469.80005, -1621.09998, 13.7, 0, 0, 272);
+	CreateObject(4638, 1518.09998, -1667.59998, 14.1, 0, 0, 180);
+	CreateObject(640, 1521.59998, -1674.90002, 13.1, 0, 0, 91);
+	CreateObject(640, 1515.90002, -1675, 13.1, 0, 0, 91);
+	CreateObject(640, 1510.19995, -1675.09998, 13.1, 0, 0, 91);
+	CreateObject(640, 1507.80005, -1677.5, 13.1, 0, 0, 0);
+	CreateObject(640, 1507.80005, -1683.30005, 13.1, 0, 0, 0);
+	CreateObject(640, 1507.80005, -1689, 13.1, 0, 0, 0);
+	CreateObject(640, 1507.80005, -1694.80005, 13.1, 0, 0, 0);
+	CreateObject(640, 1507.80005, -1700.5, 13.1, 0, 0, 0);
+	CreateObject(640, 1507.80005, -1706.30005, 13.1, 0, 0, 0);
+	CreateObject(640, 1507.80005, -1712.09998, 13.1, 0, 0, 0);
+	CreateObject(970, 1501, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(970, 1505.19995, -1727.40002, 12.9, 0, 0, 0);
+	CreateObject(616, 1490.59998, -1637.59998, 12.4, 0, 0, 0);
+	CreateObject(617, 1503.19995, -1637.90002, 12.4, 0, 0, 0);
+	CreateObject(616, 1515, -1637.5, 12.4, 0, 0, 0);
+	CreateObject(1280, 1517, -1637.19995, 12.8, 0, 0, 181);
+	CreateObject(997, 1512.90002, -1638.80005, 12.4, 0, 0, 90.75);
+	CreateObject(997, 1513, -1639.09998, 12.4, 0, 0, 0);
+	CreateObject(997, 1513.09998, -1635.40002, 12.4, 0, 0, 0);
+	CreateObject(997, 1516.5, -1638.80005, 12.4, 0, 0, 90.747);
+	CreateObject(647, 1514.80005, -1636.40002, 14.2, 0, 0, 0);
+	CreateObject(647, 1515.30005, -1638.09998, 14.2, 0, 0, 0);
+	CreateObject(997, 1501.80005, -1639.40002, 12.4, 0, 0, 0);
+	CreateObject(997, 1505.19995, -1639.30005, 12.4, 0, 0, 90.747);
+	CreateObject(997, 1501.59998, -1639.40002, 12.4, 0, 0, 90.747);
+	CreateObject(997, 1501.80005, -1636, 12.4, 0, 0, 0);
+	CreateObject(647, 1503.30005, -1638.19995, 14.6, 0, 0, 0);
+	CreateObject(647, 1504.09998, -1638.09998, 13.8, 0, 0, 0);
+	CreateObject(997, 1488.80005, -1639.19995, 12.4, 0, 0, 0);
+	CreateObject(997, 1492.30005, -1639, 12.4, 0, 0, 90.747);
+	CreateObject(997, 1488.90002, -1635.69995, 12.4, 0, 0, 0);
+	CreateObject(997, 1488.59998, -1639, 12.4, 0, 0, 90.747);
+	CreateObject(647, 1489.69995, -1638.09998, 14.2, 0, 0, 0);
+	CreateObject(647, 1491.5, -1638.30005, 14.2, 0, 0, 0);
+	CreateObject(1280, 1505.5, -1637.69995, 12.8, 0, 0, 181);
+	CreateObject(1280, 1493, -1637.40002, 12.8, 0, 0, 181);
+}
+
+public _setObjectsForPlayer(playerid)
+{
+	RemoveBuildingForPlayer(playerid, 4031, 1460.0547, -1725.9922, 9.2031, 0.25);
+	RemoveBuildingForPlayer(playerid, 4054, 1402.5000, -1682.0234, 25.5469, 0.25);
+	RemoveBuildingForPlayer(playerid, 4057, 1479.5547, -1693.1406, 19.5781, 0.25);
+	RemoveBuildingForPlayer(playerid, 4138, 1536.1406, -1743.6875, 6.7109, 0.25);
+	RemoveBuildingForPlayer(playerid, 4210, 1479.5625, -1631.4531, 12.0781, 0.25);
+	RemoveBuildingForPlayer(playerid, 713, 1457.9375, -1620.6953, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1266, 1538.5234, -1609.8047, 19.8438, 0.25);
+	RemoveBuildingForPlayer(playerid, 1266, 1565.4141, -1722.3125, 25.0391, 0.25);
+	RemoveBuildingForPlayer(playerid, 4229, 1597.9063, -1699.7500, 30.2109, 0.25);
+	RemoveBuildingForPlayer(playerid, 4230, 1597.9063, -1699.7500, 30.2109, 0.25);
+	RemoveBuildingForPlayer(playerid, 4236, 1387.0313, -1715.0234, 30.4141, 0.25);
+	RemoveBuildingForPlayer(playerid, 1261, 1413.6328, -1721.8203, 28.2813, 0.25);
+	RemoveBuildingForPlayer(playerid, 713, 1496.8672, -1707.8203, 13.4063, 0.25);
+	RemoveBuildingForPlayer(playerid, 4235, 1387.0313, -1715.0234, 30.4141, 0.25);
+	RemoveBuildingForPlayer(playerid, 1267, 1413.6328, -1721.8203, 28.2813, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1451.6250, -1727.6719, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1467.9844, -1727.6719, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1485.1719, -1727.6719, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 3981, 1460.0547, -1725.9922, 9.2031, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1468.9844, -1713.5078, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1231, 1479.6953, -1716.7031, 15.6250, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1505.1797, -1727.6719, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1488.7656, -1713.7031, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1289, 1504.7500, -1711.8828, 13.5938, 0.25);
+	RemoveBuildingForPlayer(playerid, 1258, 1445.0078, -1704.7656, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1433.7109, -1702.3594, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 4005, 1402.5000, -1682.0234, 25.5469, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1433.7109, -1676.6875, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1258, 1445.0078, -1692.2344, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1433.7109, -1656.2500, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1433.7109, -1636.2344, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 712, 1445.8125, -1650.0234, 22.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1433.7109, -1619.0547, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 673, 1457.7266, -1710.0625, 12.3984, 0.25);
+	RemoveBuildingForPlayer(playerid, 620, 1461.6563, -1707.6875, 11.8359, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1468.9844, -1704.6406, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 700, 1463.0625, -1701.5703, 13.7266, 0.25);
+	RemoveBuildingForPlayer(playerid, 1231, 1479.6953, -1702.5313, 15.6250, 0.25);
+	RemoveBuildingForPlayer(playerid, 673, 1457.5547, -1697.2891, 12.3984, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1468.9844, -1694.0469, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1231, 1479.3828, -1692.3906, 15.6328, 0.25);
+	RemoveBuildingForPlayer(playerid, 4186, 1479.5547, -1693.1406, 19.5781, 0.25);
+	RemoveBuildingForPlayer(playerid, 620, 1461.1250, -1687.5625, 11.8359, 0.25);
+	RemoveBuildingForPlayer(playerid, 700, 1463.0625, -1690.6484, 13.7266, 0.25);
+	RemoveBuildingForPlayer(playerid, 641, 1458.6172, -1684.1328, 11.1016, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1457.2734, -1666.2969, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1468.9844, -1682.7188, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 712, 1471.4063, -1666.1797, 22.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 1231, 1479.3828, -1682.3125, 15.6328, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1458.2578, -1659.2578, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 712, 1449.8516, -1655.9375, 22.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 1231, 1477.9375, -1652.7266, 15.6328, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1479.6094, -1653.2500, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1457.3516, -1650.5703, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1454.4219, -1642.4922, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1467.8516, -1646.5938, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1472.8984, -1651.5078, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1465.9375, -1639.8203, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1231, 1466.4688, -1637.9609, 15.6328, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1449.5938, -1635.0469, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1467.7109, -1632.8906, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1232, 1465.8906, -1629.9766, 15.5313, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1472.6641, -1627.8828, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1479.4688, -1626.0234, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 3985, 1479.5625, -1631.4531, 12.0781, 0.25);
+	RemoveBuildingForPlayer(playerid, 4206, 1479.5547, -1639.6094, 13.6484, 0.25);
+	RemoveBuildingForPlayer(playerid, 1232, 1465.8359, -1608.3750, 15.3750, 0.25);
+	RemoveBuildingForPlayer(playerid, 1229, 1466.4844, -1598.0938, 14.1094, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1451.3359, -1596.7031, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1471.3516, -1596.7031, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1488.7656, -1704.5938, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 700, 1494.2109, -1694.4375, 13.7266, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1488.7656, -1693.7344, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 620, 1496.9766, -1686.8516, 11.8359, 0.25);
+	RemoveBuildingForPlayer(playerid, 641, 1494.1406, -1689.2344, 11.1016, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1488.7656, -1682.6719, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 712, 1480.6094, -1666.1797, 22.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 712, 1488.2266, -1666.1797, 22.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1486.4063, -1651.3906, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1491.3672, -1646.3828, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1493.1328, -1639.4531, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1486.1797, -1627.7656, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1280, 1491.2188, -1632.6797, 13.4531, 0.25);
+	RemoveBuildingForPlayer(playerid, 1232, 1494.4141, -1629.9766, 15.5313, 0.25);
+	RemoveBuildingForPlayer(playerid, 1232, 1494.3594, -1608.3750, 15.3750, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1488.5313, -1596.7031, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1229, 1498.0547, -1598.0938, 14.1094, 0.25);
+	RemoveBuildingForPlayer(playerid, 1288, 1504.7500, -1705.4063, 13.5938, 0.25);
+	RemoveBuildingForPlayer(playerid, 1287, 1504.7500, -1704.4688, 13.5938, 0.25);
+	RemoveBuildingForPlayer(playerid, 1286, 1504.7500, -1695.0547, 13.5938, 0.25);
+	RemoveBuildingForPlayer(playerid, 1285, 1504.7500, -1694.0391, 13.5938, 0.25);
+	RemoveBuildingForPlayer(playerid, 673, 1498.9609, -1684.6094, 12.3984, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1504.1641, -1662.0156, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1504.7188, -1670.9219, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 620, 1503.1875, -1621.1250, 11.8359, 0.25);
+	RemoveBuildingForPlayer(playerid, 673, 1501.2813, -1624.5781, 12.3984, 0.25);
+	RemoveBuildingForPlayer(playerid, 673, 1498.3594, -1616.9688, 12.3984, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1504.8906, -1596.7031, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 712, 1508.4453, -1668.7422, 22.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1505.6953, -1654.8359, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1508.5156, -1647.8594, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 625, 1513.2734, -1642.4922, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 1258, 1510.8906, -1607.3125, 13.6953, 0.25);
+	RemoveBuildingForPlayer(playerid, 4030, 1536.1406, -1743.6875, 6.7109, 0.25);
+	RemoveBuildingForPlayer(playerid, 1260, 1565.4141, -1722.3125, 25.0391, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1524.8281, -1721.6328, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1524.8281, -1705.2734, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1229, 1524.2188, -1693.9688, 14.1094, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1524.8281, -1688.0859, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1229, 1524.2188, -1673.7109, 14.1094, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1524.8281, -1668.0781, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1524.8281, -1647.6406, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1524.8281, -1621.9609, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1226, 1525.3828, -1611.1563, 16.4219, 0.25);
+	RemoveBuildingForPlayer(playerid, 1260, 1538.5234, -1609.8047, 19.8438, 0.25);
+}
 
 enum ConfigurationData
 {
@@ -146,6 +490,11 @@ enum VehicleData
     vVehicleID,
     vOwner[MAX_PLAYER_NAME + 1],
     vModelID,
+    Float: vHealth,
+    vPanelDamage,
+    vDoorDamage,
+    vLightDamage,
+    vTireDamage,
     Float: vPosX,
     Float: vPosY,
     Float: vPosZ,
@@ -196,6 +545,8 @@ public OnGameModeInit()
 	ShowPlayerMarkers(0);
     UsePlayerPedAnims();
 
+	_processObjects();
+
     Command_AddAltNamed("adminduty", "aduty"); // short forms for cmds
     Command_AddAltNamed("ooc", "o");
     Command_AddAltNamed("announce", "ann");
@@ -229,6 +580,7 @@ public OnGameModeExit()
 		_OnMySQLPlayerDataSave(i);
 		OnPlayerDisconnect(i, 2);
 	}
+	for(new i = 0; i < MAX_VEHICLES; i++) _OnMySQLVehicleDataSave(i);
     mysql_close();
     return true;
 }
@@ -253,6 +605,8 @@ public OnPlayerConnect(playerid)
 
 	format(string, sizeof(string), "* %s [ID: %d] hat den Server betreten.", GetName(playerid), playerid);
 	SendClientMessageToAll(COLOR_OOC, string);
+	
+	_setObjectsForPlayer(playerid);
     return true;
 }
 
@@ -379,6 +733,7 @@ public OnPlayerSpawn(playerid)
 public OnPlayerDeath(playerid, killerid, reason)
 {
     SetPVarInt(playerid, "JustDied", 1);
+	pStats[playerid][pDuty] = 0;
 	TogglePlayerSpectating(playerid, false);
     return true;
 }
@@ -466,9 +821,11 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		
 		// faction cars query
 
-		if(IsACar(vehicle) && pStats[playerid][pLicenseCar] != 1) 																		SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Führerschein. Hüte dich vor der Polizei!");
-		else if(IsAMotorBike(vehicle) && pStats[playerid][pLicenseBike] != 1)															SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Motorradführerschein. Hüte dich vor der Polizei!");
-		else if(IsAPlane(vehicle) && pStats[playerid][pLicenseAir] != 1 || IsAHeli(vehicle) && pStats[playerid][pLicenseAir] == -1)	SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Flugschein. Hüte dich vor der Polizei!");
+		if(_getVehicleType(vehicle) == 0 && pStats[playerid][pLicenseCar] != 1) 														SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Führerschein. Hüte dich vor der Polizei!");
+		//else if(_getVehicleType(vehicle) == 1 && pStats[playerid][pLicenseTruck] != 1) 												SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen LKW-Führerschein. Hüte dich vor der Polizei!");
+		else if(_getVehicleType(vehicle) == 3 && pStats[playerid][pLicenseBike] != 1)													SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Motorradführerschein. Hüte dich vor der Polizei!");
+		else if(_getVehicleType(vehicle) == 5 && pStats[playerid][pLicenseAir] != 1 || _getVehicleType(vehicle) == 9 && pStats[playerid][pLicenseAir] == -1)
+																																		SendClientMessage(playerid, COLOR_WHITE, "* Du besitzt keinen gültigen Flugschein. Hüte dich vor der Polizei!");
 	}
     return true;
 }
@@ -536,15 +893,12 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	    (((newkeys & (%0)) == (%0)) && ((oldkeys & (%0)) != (%0)))
 
 				// N
-	if(PRESSED(KEY_NO) && pStats[playerid][pFaction] == 1 && GetPlayerWeapon(playerid) == 0) {
-		//if(pStats[playerid][pFaction] != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_WRONG_FACTION);
-
+	if(PRESSED(KEY_NO) && pStats[playerid][pFaction] == 1 && pStats[playerid][pDuty] == 1 && GetPlayerWeapon(playerid) == 0) {
 		new giveplayerid = GetPlayerTargetPlayer(playerid), string[128], Float:posX, Float:posY, Float:posZ;
-		if(giveplayerid == INVALID_PLAYER_ID) return true;
 
+		if(giveplayerid == INVALID_PLAYER_ID) return true;
 		if(GetPVarInt(playerid, "TazerAvailable") == 0) return SendClientMessage(playerid, COLOR_RED, "* Der Tazer ist noch nicht wieder aufgeladen."); // change
 
-		//if(GetPlayerWeapon(playerid) != 0) return SendClientMessage(playerid, COLOR_RED, "* Du darfst zum Tazern keine Waffe in der Hand halten.");
 		//if((pStats[giveplayerid][pFaction] == 1) return SendClientMessage(playerid, COLOR_RED, "* Du kannst keine anderen Polizisten tazern.");
 		if(IsPlayerInAnyVehicle(giveplayerid)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst niemanden Tazern, der in einem Vehikel sitzt.");
 		if(IsPlayerInAnyVehicle(playerid)) return SendClientMessage(playerid, COLOR_RED, "* Du kannst aus einem Vehikel heraus niemanden Tazern.");
@@ -552,37 +906,33 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 		GetPlayerPos(giveplayerid, posX, posY, posZ);
 		if(!IsPlayerInRangeOfPoint(playerid, 3.0, posX, posY, posZ)) {
 			SetPVarInt(playerid, "TazerAvailable", 0);
-			SetTimerEx("ResetTazerStatus", 30000, false, "i", giveplayerid); // 30sek
+			SetTimerEx("_resetTazerAvailability", 30000, false, "i", playerid); // 30sek
 
-	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht. [30 Sekunden]", GetName(giveplayerid));
+	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht.", GetName(giveplayerid));
 			SendClientMessage(playerid, COLOR_RED, string);
-
-			// nearbymessage
+			
+			format(string, sizeof(string), "* %s hat einen Tazerschuss auf %s aufgrund von der Entfernung verfehlt.", GetName(playerid), GetName(giveplayerid));
+			_sendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 			return true;
 		}
-		if(newkeys & KEY_SPRINT) {
-			if(random(1) == 0) {
-				SendClientMessage(playerid, COLOR_RED, "* Du hast den Tazerschuss verfehlt. [45 Sekunden]");
-				SetPVarInt(playerid, "TazerAvailable", 0);
-				SetTimerEx("ResetTazerStatus", 45000, false, "i", giveplayerid); // 45sec
-				return true;
-			}
-
-			ApplyAnimation(giveplayerid, "CRACK", "crckdeth2", 4.0, 1, 0, 0, 10000, 1); // 10sec
-			TogglePlayerControllable(giveplayerid, false);
-			SetTimerEx("UnfreezePlayer", 10000, false, "i", giveplayerid);
-
+		
+		if(newkeys & KEY_SPRINT && random(1) == 0) {
 			SetPVarInt(playerid, "TazerAvailable", 0);
-			SetTimerEx("ResetTazerStatus", 120000, false, "i", giveplayerid); // 2min
+			SetTimerEx("_resetTazerAvailability", 45000, false, "i", playerid); // 45sec
 
-			format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
-			SendClientMessage(playerid, COLOR_WHITE, string);
+			format(string, sizeof(string), "* %s hat einen Tazerschuss auf %s verfehlt.", GetName(playerid), GetName(giveplayerid));
+			_sendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
+			return true;
 		}
-		SetPVarInt(playerid, "TazerAvailable", 0);
-		SetTimerEx("ResetTazerStatus", 60000, false, "i", giveplayerid); // 1min
 
-		format(string, sizeof(string), "* Du hast %s mit dem Tazerschuss getroffen. [2 Minuten]");
-		SendClientMessage(playerid, COLOR_WHITE, string);
+		ApplyAnimation(giveplayerid, "CRACK", "crckdeth2", 3.5, 1, 0, 0, 10000, 0); // 10sec
+		SetTimerEx("_unfreezePlayer", 10000, false, "i", giveplayerid);
+
+		SetPVarInt(playerid, "TazerAvailable", 0);
+		SetTimerEx("_resetTazerAvailability", 120000, false, "i", playerid); // 2min
+
+		format(string, sizeof(string), "* %s hat %s mit einem Tazerschuss getroffen.", GetName(playerid), GetName(giveplayerid));
+		_sendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 	}
     return true;
 }
@@ -1097,8 +1447,58 @@ public _OnMySQLPlayerDataLoad(playerid)
 }
 
 
-public _OnMySQLVehicleDataSave(vehicle[])
+YCMD:savecar(playerid, params[], help)
 {
+    _OnMySQLVehicleDataSave(GetPlayerVehicleID(playerid));
+	return true;
+}
+
+
+YCMD:loadcar(playerid, params[], help)
+{
+    _OnMySQLVehicleDataLoad();
+	return true;
+}
+
+
+public _OnMySQLVehicleDataSave(vehicleid)
+{
+	GetVehiclePos(vehicleid, 			vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ]);
+	GetVehicleZAngle(vehicleid, 		vVehicles[vehicleid][vPosA]);
+	GetVehicleHealth(vehicleid, 		vVehicles[vehicleid][vHealth]);
+	GetVehicleDamageStatus(vehicleid, 	vVehicles[vehicleid][vPanelDamage], vVehicles[vehicleid][vDoorDamage], vVehicles[vehicleid][vLightDamage], vVehicles[vehicleid][vTireDamage]);
+
+	new bigstring[2048];
+    format(bigstring, sizeof(bigstring), "UPDATE `vehicles` SET `vehicleid` = '%d', `owner` = '%s', `model` = '%d', `health` = '%f', `panelDamage` = '%d', `doorDamage` = '%d', \
+											`lightDamage` = '%d', `tireDamage` = '%d', `posX` = '%f', `posY` = '%f', `posZ` = '%f', `posA` = '%f', `color1` = '%d', `color2` = '%d', \
+											`navigation` = '%d', `locked` = '%d', `fuel` = '%d', `filled` = '%d' WHERE `plate` = '%s'",
+		vVehicles[vehicleid][vVehicleID],
+		vVehicles[vehicleid][vOwner],
+		vVehicles[vehicleid][vModelID],
+		vVehicles[vehicleid][vHealth],
+ 		vVehicles[vehicleid][vPanelDamage],
+	    vVehicles[vehicleid][vDoorDamage],
+		vVehicles[vehicleid][vLightDamage],
+	 	vVehicles[vehicleid][vTireDamage],
+		vVehicles[vehicleid][vPosX],
+		vVehicles[vehicleid][vPosY],
+		vVehicles[vehicleid][vPosZ],
+		vVehicles[vehicleid][vPosA],
+		vVehicles[vehicleid][vColor1],
+		vVehicles[vehicleid][vColor2],
+	 	vVehicles[vehicleid][vNavigation],
+	 	vVehicles[vehicleid][vLocked],
+		vVehicles[vehicleid][vFuel],
+		vVehicles[vehicleid][vFilled],
+		
+		vVehicles[vehicleid][vPlate]
+	);
+	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
+	
+	printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %d, doorDamage: %d, lightDamage: %d, tireDamage: %d,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+	vVehicles[vehicleid][vPlate], vVehicles[vehicleid][vVehicleID], vVehicles[vehicleid][vOwner], vVehicles[vehicleid][vModelID], vVehicles[vehicleid][vHealth], vVehicles[vehicleid][vPanelDamage], vVehicles[vehicleid][vDoorDamage], vVehicles[vehicleid][vLightDamage], vVehicles[vehicleid][vTireDamage],
+	vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ], vVehicles[vehicleid][vPosA],
+	vVehicles[vehicleid][vColor1], vVehicles[vehicleid][vColor2], vVehicles[vehicleid][vNavigation], vVehicles[vehicleid][vLocked], vVehicles[vehicleid][vFuel], vVehicles[vehicleid][vFilled]);
 	return true;
 }
 
@@ -1107,44 +1507,47 @@ public _OnMySQLVehicleDataLoad()
 {
     new rows, fields;
     cache_get_data(rows, fields);
+	printf("%d", rows);
+    new temp[128], k = 1;
+    for(new i = 0; i < rows + -1; i++) {
+	    cache_get_field_content(k, "plate", 			temp), strcat(vVehicles[k][vPlate], temp, 9);
+    	cache_get_field_content(k, "vehicleid", 		temp), vVehicles[k][vVehicleID] 	= strval(temp);
+	    cache_get_field_content(k, "owner", 			temp), strcat(vVehicles[k][vOwner], temp, 25);
+    	cache_get_field_content(k, "model", 			temp), vVehicles[k][vModelID] 		= strval(temp);
+    	cache_get_field_content(k, "health", 			temp), vVehicles[k][vHealth] 		= floatstr(temp);
+    	cache_get_field_content(k, "panelDamage", 		temp), vVehicles[k][vDoorDamage] 	= strval(temp);
+    	cache_get_field_content(k, "doorDamage", 		temp), vVehicles[k][vPanelDamage] 	= strval(temp);
+    	cache_get_field_content(k, "lightDamage", 		temp), vVehicles[k][vLightDamage] 	= strval(temp);
+    	cache_get_field_content(k, "tireDamage", 		temp), vVehicles[k][vTireDamage] 	= strval(temp);
+    	cache_get_field_content(k, "posX", 				temp), vVehicles[k][vPosX] 			= floatstr(temp);
+    	cache_get_field_content(k, "posY", 				temp), vVehicles[k][vPosY] 			= floatstr(temp);
+    	cache_get_field_content(k, "posZ", 				temp), vVehicles[k][vPosZ] 			= floatstr(temp);
+    	cache_get_field_content(k, "posA", 				temp), vVehicles[k][vPosA] 			= floatstr(temp);
+    	cache_get_field_content(k, "color1", 			temp), vVehicles[k][vColor1] 		= strval(temp);
+    	cache_get_field_content(k, "color2", 			temp), vVehicles[k][vColor2] 		= strval(temp);
+    	cache_get_field_content(k, "navigation", 		temp), vVehicles[k][vNavigation] 	= strval(temp);
+    	cache_get_field_content(k, "locked", 			temp), vVehicles[k][vLocked] 		= strval(temp);
+    	cache_get_field_content(k, "fuel", 				temp), vVehicles[k][vFuel] 			= strval(temp);
+    	cache_get_field_content(k, "filled", 			temp), vVehicles[k][vFilled] 		= strval(temp);
 
-    new temp[128];
-    for(new i = 0; i < rows; i++) {
-	    cache_get_field_content(i, "plate", 			temp), strcat(vVehicles[i][vPlate], temp, 9);
-    	cache_get_field_content(i, "vehicleid", 		temp), vVehicles[i][vVehicleID] 	= strval(temp);
-	    cache_get_field_content(i, "owner", 			temp), strcat(vVehicles[i][vOwner], temp, 25);
-    	cache_get_field_content(i, "model", 			temp), vVehicles[i][vModelID] 		= strval(temp);
-    	cache_get_field_content(i, "posX", 				temp), vVehicles[i][vPosX] 			= floatstr(temp);
-    	cache_get_field_content(i, "posY", 				temp), vVehicles[i][vPosY] 			= floatstr(temp);
-    	cache_get_field_content(i, "posZ", 				temp), vVehicles[i][vPosZ] 			= floatstr(temp);
-    	cache_get_field_content(i, "posA", 				temp), vVehicles[i][vPosA] 			= floatstr(temp);
-    	cache_get_field_content(i, "color1", 			temp), vVehicles[i][vColor1] 		= strval(temp);
-    	cache_get_field_content(i, "color2", 			temp), vVehicles[i][vColor2] 		= strval(temp);
-    	cache_get_field_content(i, "navigation", 		temp), vVehicles[i][vNavigation] 	= strval(temp);
-    	cache_get_field_content(i, "locked", 			temp), vVehicles[i][vLocked] 		= strval(temp);
-    	cache_get_field_content(i, "fuel", 				temp), vVehicles[i][vFuel] 			= strval(temp);
-    	cache_get_field_content(i, "filled", 			temp), vVehicles[i][vFilled] 		= strval(temp);
-    	
-		vVehicles[i][vVehicleID] = CreateVehicle(vVehicles[i][vModelID], vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ], vVehicles[i][vPosA], vVehicles[i][vColor1], vVehicles[i][vColor2], -1);
-		printf("\r\nPlate: %s, Owner: %s, vehID: %d, Model: %d, posX: %f,\r\n posY: %f, posZ: %f, posA: %f, Color1: %d,\r\n Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
-		vVehicles[i][vPlate], vVehicles[i][vOwner], vVehicles[i][vVehicleID], vVehicles[i][vModelID], vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ], vVehicles[i][vPosA],
-		vVehicles[i][vColor1], vVehicles[i][vColor2], vVehicles[i][vNavigation], vVehicles[i][vLocked], vVehicles[i][vFuel], vVehicles[i][vFilled]);
-        SetVehicleNumberPlate(vVehicles[i][vVehicleID], vVehicles[i][vPlate]);
+		vVehicles[k][vVehicleID] = CreateVehicle(vVehicles[k][vModelID], vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA], vVehicles[k][vColor1], vVehicles[k][vColor2], 0),
+		SetVehicleHealth(i, vVehicles[k][vHealth]);
+
+		printf("\r\ni: %d, k: %d, Plate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %d, doorDamage: %d, lightDamage: %d, tireDamage: %d,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+		i, k, vVehicles[k][vPlate], vVehicles[k][vVehicleID], vVehicles[k][vOwner], vVehicles[k][vModelID], vVehicles[k][vHealth], vVehicles[k][vPanelDamage], vVehicles[k][vDoorDamage], vVehicles[k][vLightDamage], vVehicles[k][vTireDamage],
+		vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA],
+		vVehicles[k][vColor1], vVehicles[k][vColor2], vVehicles[k][vNavigation], vVehicles[k][vLocked], vVehicles[k][vFuel], vVehicles[k][vFilled]);
+
+		SetVehicleNumberPlate(vVehicles[k][vVehicleID], vVehicles[k][vPlate]);
+		//UpdateVehicleDamageStatus(vVehicles[k][vVehicleID], panels, doors, vVehicles[k][vLightDamage], vVehicles[k][vTireDamage]);
         //ChangeVehicleBlowjob(veh[i], xx);
+
+		k++;
 	}
 	return true;
 }
 
-stock _getVehicleIDByPlate(vehicleid)
-{
 
-}
-
-YCMD:rveh(playerid, params[], help)
-{
-
-	return true;
-}
 
 /*
 //    mysql_query("SELECT COUNT(*) FROM `vehicles`"); mysql_store_result();
@@ -1332,11 +1735,11 @@ public _sendNearByMessage(playerid, Float:extraRadius, string[])
         if(GetPVarInt(i, "Authentication") == 1) {
             GetPlayerPos(playerid, PlayerX, PlayerY, PlayerZ);
             if(GetPlayerVirtualWorld(playerid) == GetPlayerVirtualWorld(i) && GetPlayerInterior(playerid) == GetPlayerInterior(i)) {
-				if(playerid == i)												return SendClientMessage(i, 0xE6E6E6E6, string);
-				if(IsPlayerInRangeOfPoint(i, (3  * extraRadius), PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0xE6E6E6E6, string);
-	            if(IsPlayerInRangeOfPoint(i, (6  * extraRadius), PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0xAAAAAAAA, string);
-	            if(IsPlayerInRangeOfPoint(i, (9  * extraRadius), PlayerX, PlayerY, PlayerZ)) 	return SendClientMessage(i, 0x8C8C8C8C, string);
-	            if(IsPlayerInRangeOfPoint(i, (12 * extraRadius), PlayerX, PlayerY, PlayerZ))	return SendClientMessage(i, 0x6E6E6E6E, string);
+				//if(playerid == i)												return SendClientMessage(i, 0xE6E6E6E6, string);
+				if(IsPlayerInRangeOfPoint(i, (3  * extraRadius), PlayerX, PlayerY, PlayerZ)) SendClientMessage(i, 0xE6E6E6E6, string);
+	            else if(IsPlayerInRangeOfPoint(i, (6  * extraRadius), PlayerX, PlayerY, PlayerZ)) SendClientMessage(i, 0xAAAAAAAA, string);
+	            else if(IsPlayerInRangeOfPoint(i, (9  * extraRadius), PlayerX, PlayerY, PlayerZ)) SendClientMessage(i, 0x8C8C8C8C, string);
+	            else if(IsPlayerInRangeOfPoint(i, (12 * extraRadius), PlayerX, PlayerY, PlayerZ)) SendClientMessage(i, 0x6E6E6E6E, string);
 			}
         }
     }
@@ -1348,11 +1751,13 @@ public _setPlayerDuty(playerid, bool:status) {
 	if(status == true) {
 		_OnMySQLPlayerDataSave(playerid);
 		pStats[playerid][pDuty] = 1;
+		SetPVarInt(playerid, "TazerAvailable", 1);
 		SendClientMessage(playerid, COLOR_WHITE, "* Du hast dir die Arbeitskleidung angezogen.");
 	}
 	else {
 		_OnMySQLPlayerDataSave(playerid);
 		pStats[playerid][pDuty] = 0;
+		SetPVarInt(playerid, "TazerAvailable", 0);
 		SendClientMessage(playerid, COLOR_WHITE, "* Du hast dir die Arbeitskleidung ausgezogen.");
 	}
 	SpawnPlayer(playerid);
@@ -2233,6 +2638,95 @@ YCMD:radio(playerid, params[], help)
 */
 
 
+//------------------------------------------------------------------------------STOCKS
+
+
+stock GetVehiclePanelsDamageStatus(vehicleid, &FrontLeft, &FrontRight, &RearLeft, &RearRight, &WindShield, &FrontBumper, &RearBumper)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	FrontLeft 	= Panels & 15;
+	FrontRight 	= Panels >> 4 & 15;
+	RearLeft	= Panels >> 8 & 15;
+	RearRight 	= Panels >> 12 & 15;
+	WindShield 	= Panels >> 16 & 15;
+	FrontBumper = Panels >> 20 & 15;
+	RearBumper 	= Panels >> 24 & 15;
+	return true;
+}
+
+
+stock GetVehicleDoorsDamageStatus(vehicleid, &Bonnet, &Boot, &FrontLeft, &FrontRight, &RearLeft, &RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	Bonnet 		= Doors & 7;
+	Boot 		= Doors >> 8 & 7;
+	FrontLeft 	= Doors >> 16 & 7;
+	FrontRight 	= Doors >> 24 & 7;
+	RearLeft 	= Doors >> 32 & 7;
+	RearRight 	= Doors >> 40 & 7;
+	return true;
+}
+
+
+stock GetVehicleLightsDamageStatus(vehicleid, &First, &Second, &Third, &Fourth)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	First 		= Lights & 1;
+	Second 		= Lights >> 1 & 1;
+	Third 		= Lights >> 2 & 1;
+	Fourth 		= Lights >> 3 & 1;
+	return true;
+}
+
+
+stock GetVehicleTiresDamageStatus(vehicleid, &FrontLeft, &FrontRight, &RearLeft, &RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	if(GetVehicleType(vehicleid) == 2 || GetVehicleType(vehicleid) == 3) return FrontLeft = Tires >> 1 & 1, FrontRight = Tires & 1; // BIKE & MOTORBIKE
+
+	RearRight 	= Tires & 1;
+	FrontRight 	= Tires >> 1 & 1;
+	RearLeft 	= Tires >> 2 & 1;
+	FrontLeft 	= Tires >> 3 & 1;
+	return true;
+}
+
+
+stock UpdateVehiclePanelsDamageStatus(vehicleid, FrontLeft, FrontRight, RearLeft, RearRight, WindShield, FrontBumper, RearBumper)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	return UpdateVehicleDamageStatus(vehicleid, FrontLeft | (FrontRight << 4) | (RearLeft << 8) | (RearRight << 12) | (WindShield << 16) | (FrontBumper << 20) | (RearBumper << 24), Doors, Lights, Tires);
+}
+
+
+stock UpdateVehicleDoorsDamageStatus(vehicleid, Bonnet, Boot, FrontLeft, FrontRight, RearLeft, RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	return UpdateVehicleDamageStatus(vehicleid, Panels, Bonnet | (Boot << 8) | (FrontLeft << 16) | (FrontRight << 24) | (RearLeft << 32) | (RearRight << 40), Lights, Tires);
+}
+
+
+stock UpdateVehicleLightsDamageStatus(vehicleid, First, Second, Third, Fourth)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, First | (Second << 1) | (Third << 2) | (Fourth << 3), Tires);
+}
+
+
+stock UpdateVehicleTiresDamageStatus(vehicleid, FrontLeft, FrontRight, RearLeft, RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	if(GetVehicleType(vehicleid) == MOTORBIKE || GetVehicleType(vehicleid) == BIKE) return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, Lights, FrontRight | (FrontLeft << 1));
+	else return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, Lights, RearRight | (FrontRight << 1) | (RearLeft << 2) | (FrontLeft << 3));
+}
 
 
 

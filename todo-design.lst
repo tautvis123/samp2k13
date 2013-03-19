@@ -1,0 +1,25 @@
+samp2k13 mapping ToDo
+
++ = hinzufügen
+- = enfernen
+~ = verändern
+
+---------------------------------
+
+
+
+
+Mapping;
+	+	Parkplatz vor LSPD, Tor vor internem Parkplatz
+	+	LV "entfernen"
+
+
+Design:
+	+ Tazersymbole
+	~ 	Fraktionskasse: In Dialog packen
+	~ 	"/set" ins Scoreboard integrieren
+	~ 	Fraktions-Spawns nach LS verschieben
+	~	/showme, /showmembers in Dialog packen
+	~	SendClientMessage bei fehlendem Führerschein in TextDraw/Label/whatever ändern
+	~	Pickups fixen
+	~ 	MOTD fixen: \r\n wird ausgegeben anstatt eine neue Zeile angefangen 
