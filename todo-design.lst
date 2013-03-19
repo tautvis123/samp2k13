@@ -12,9 +12,11 @@ samp2k13 mapping ToDo
 Mapping;
 	+	Parkplatz vor LSPD, Tor vor internem Parkplatz
 	+	LV "entfernen"
+	+	Verkehrsschilder hinstellen
 
 
 Design:
+	+ Uhr (!!)
 	+ Tazersymbole
 	~ 	Fraktionskasse: In Dialog packen
 	~ 	"/set" ins Scoreboard integrieren

@@ -1,7 +1,7 @@
 /*
 
 -- samp2k13 include
--- Function: outsource small functions
+-- outsourced small functions
 -- by Harti (17-03-2013)
 
 */
@@ -25,58 +25,32 @@ stock Log2File(filename[], string[])
 }
 
 
-stock IsACar(carid)
+stock _getVehicleType(vehicleid)
 {
-	if(!IsABike(carid) && !IsAMotorBike(carid) && !IsAPlane(carid) && !IsAHeli(carid) && !IsABoat(carid) /*&& !IsATruck(carid)*/) return true;
-	return false;
-}
-
-
-stock IsABike(carid)
-{
-	new modelid = GetVehicleModel(carid);
-	if(modelid == 509 || modelid == 481 || modelid == 510) return true;
-	return false;
-}
-
-
-stock IsAMotorBike(carid)
-{
-	new modelid = GetVehicleModel(carid);
-	if(modelid == 522 || modelid == 462 || modelid == 521 || modelid == 461 || modelid == 463 || modelid == 581 || modelid == 448 || modelid == 586 || modelid == 523 || modelid == 468 || modelid == 471) return true;
-	return false;
-}
-
-
-stock IsAPlane(carid)
-{
- 	new modelid = GetVehicleModel(carid);
-	if(modelid == 592 || modelid == 577 || modelid == 511 || modelid == 512  || modelid == 593 || modelid == 520 || modelid == 553 || modelid == 476 || modelid == 519 || modelid == 460 || modelid == 513 || modelid == 548 || modelid == 425  || modelid == 417  || modelid == 487  || modelid == 488  || modelid == 497 || modelid == 563 || modelid == 447  || modelid == 469) return true;
-	return false;
-}
-
-
-stock IsAHeli(carid)
-{
- 	new modelid = GetVehicleModel(carid);
- 	if(modelid == 548 || modelid == 425 || modelid == 417 || modelid == 487 || modelid == 488 || modelid == 497 || modelid == 563 || modelid == 447 || modelid == 469) return true;
-	return false;
-}
-
-
-stock IsABoat(carid)
-{
-	new modelid = GetVehicleModel(carid);
-	if(modelid == 430 || modelid == 446 || modelid == 452 || modelid == 453 || modelid == 454 || modelid == 472 || modelid == 473 || modelid == 484 || modelid == 493 || modelid == 539 || modelid == 595) return true;
-	return false;
-}
-
-
-stock IsATruck(carid)
-{
-	new modelid = GetVehicleModel(carid);
-	if(modelid == 440 || modelid == 456 || modelid == 403) return true;
-	return false;
+	switch(GetVehicleModel(vehicleid))
+	{
+		case 400 .. 402, 404 .. 416, 418 .. 424, 426 .. 429, 431 .. 434, 436 .. 439, 442 .. 445, 451, 455, 457 .. 459, 466, 467, 470, 471, 474, 475, 477 .. 480, 482, 483, 485, 486, 489 .. 492, 494 .. 496, 498 .. 500, 502 .. 508, 514 .. 518, 524 .. 536, 539 .. 547, 549 .. 552, 554 .. 562, 565 .. 568, 571 .. 576, 578 .. 580, 582, 583, 585, 587 .. 589, 596 .. 605, 609:
+			return 0; // CAR
+		case 403, 440, 456:
+			return 1; // TRUCK
+		case 481, 509, 510: 
+			return 2; // BIKE
+		case 448, 461 .. 463, 468, 521 .. 523, 581, 586:
+			return 3; // MOT					ORBIKE
+		case 430, 446, 452 .. 454, 472, 473, 484, 493, 595:
+			return 4; // BOAT
+		case 460, 476, 511 .. 513, 519, 520, 553, 577, 592, 593: 
+			return 5; // PLANE
+		case 441, 464, 465, 501, 564, 594: 
+			return 6; // RC
+		case 449, 537, 538, 569, 570, 590: 
+			return 7; // TRAIN
+		case 435, 450, 584, 591, 606 .. 608, 610, 611: 
+			return 8; // TRAILER
+		case 417, 425, 447, 469, 487, 488, 497, 548, 563: 
+			return 9; // HELI
+	}
+	return -1;
 }
 
 
@@ -118,6 +92,7 @@ stock timec(timestamp, compare = -1) // http://forum.sa-mp.com/showthread.php?t=
 stock ClearChat(playerid)
 {
 	for(new i = 0; i < 10; i++) SendClientMessage(playerid, 0xFFFFFF, " ");
+	return true;
 }
 
 
