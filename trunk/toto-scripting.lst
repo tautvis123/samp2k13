@@ -11,10 +11,11 @@ samp2k13 ToDo
 
 
 BugFixes / simple things
+	+	Veh DMG speichern
 	~ 	Bei OnPlayerConnect richtig auf Ban prüfen
 	+	Autoradio
-	~	/tazer & Chat testen
 	+	Gemeinsamer Funkchat für Polizei und Arzt (Frequenzen) (schon angefangen)
+	~	Taxi keine Fraktion sondern Job
 	
 Größere Sachen
 	+ 	Uhr (nur anzeigen, wenn man eine gekauft hat + attachment armbanduhr ?)
@@ -31,7 +32,6 @@ Komplexe Systeme
 	+ 	Fraktionskasse
 	~ 	Anti Cheat
 	+ 	Smartphone App für ingame Anrufe/SMS
-	+	Verkehrsschilder hinstellen
 
 Fraktionen
 

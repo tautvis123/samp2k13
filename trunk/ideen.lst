@@ -17,6 +17,7 @@ ab Rang 5: Waffenscheinvergabe
 Soll nichts werden, as jeder hat.
 Also hohe Machdauer (3 Tage - 1 Woche).
 Neue Spieler bekommen ein Visum, damit nur eingeschränkte Rechte (Kein Auto/Häuserkauf, ...)
+von NPCs
 
 
 --- Drogen: Alkohol und Gras:
@@ -38,3 +39,19 @@ Niedrige Level müssen einfach erreichbar sein, hohe schwieriger (siehe Diablo 3
 Jedes Vehikel ist unique und wird in der DB gespeichert.
 Es ist durch das Nummernschild identifizierbar (Primärkey in der DB). Syntax Nummernschild: Kaufort-CC-ii (BSP: LS-AB-13)
 Wenn das Auto kaputt ist wird es aus der DB gelöscht.
+
+
+--- Bank
+- verschiedene Banken mit unterschiedlichen Kontenkosten und Zinssätze 
+- ATM: kleine Beträge abheben mit Gebühren
+- versicherungen (von NPC)
+
+
+--- Bus und Bahn
+- Buslinien innerhalb der Städte, damit Bahn attraktiv wird
+- Busse von NPCs
+- Gemeinsames Ticket
+
+
+- Flughafen
+- Für player planes
