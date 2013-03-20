@@ -47,7 +47,7 @@
 
 
 [15.03.13 - 17.03.13] [Harti]
-*** MAJOR Update (REV2):
+*** MAJOR Update:
 	~ MySQL Plugin auf R7r8 udpated (höhere Versionen geben Fehler)
 	~ Script umstrukturiert (siehe scripting.lst) und formatiert
 	~ Kleine Funktionen outsourced (samp2k13.inc)
@@ -66,4 +66,5 @@
 + Objekte (LSPD)
 
 [20.03.13] [Harti]
-+ Vehikel visual damage save
++ Vehikel visual damage save + load
+~ Funktionen einheitlich umbenannt
