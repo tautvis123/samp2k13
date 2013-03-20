@@ -1,13 +1,13 @@
 /*
 
 -- samp2k13 include
--- outsourced small functions
+-- .. created to outsource small functions
 -- by Harti (17-03-2013)
 
 */
 
 
-stock Log2File(filename[], string[])
+stock _logToFile(filename[], string[])
 {
 	new str[256], str2[256];
 	new year, month, day, hour, minute, second;
@@ -89,14 +89,102 @@ stock timec(timestamp, compare = -1) // http://forum.sa-mp.com/showthread.php?t=
 }
 
 
-stock ClearChat(playerid)
+stock _getVehiclePanelDamageStatus(vehicleid, &FrontLeft, &FrontRight, &RearLeft, &RearRight, &WindShield, &FrontBumper, &RearBumper)  // http://forum.sa-mp.com/showpost.php?p=689837&postcount=10
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	FrontLeft 	= Panels & 15;
+	FrontRight 	= Panels >> 4 & 15;
+	RearLeft	= Panels >> 8 & 15;
+	RearRight 	= Panels >> 12 & 15;
+	WindShield 	= Panels >> 16 & 15;
+	FrontBumper = Panels >> 20 & 15;
+	RearBumper 	= Panels >> 24 & 15;
+	return true;
+}
+
+
+stock _getVehicleDoorDamageStatus(vehicleid, &Bonnet, &Boot, &FrontLeft, &FrontRight, &RearLeft, &RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	Bonnet 		= Doors & 7;
+	Boot 		= Doors >> 8 & 7;
+	FrontLeft 	= Doors >> 16 & 7;
+	FrontRight 	= Doors >> 24 & 7;
+	RearLeft 	= Doors >> 32 & 7;
+	RearRight 	= Doors >> 40 & 7;
+	return true;
+}
+
+
+stock _getVehicleLightDamageStatus(vehicleid, &First, &Second, &Third, &Fourth)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	First 		= Lights & 1;
+	Second 		= Lights >> 1 & 1;
+	Third 		= Lights >> 2 & 1;
+	Fourth 		= Lights >> 3 & 1;
+	return true;
+}
+
+
+stock _getVehicleTireDamageStatus(vehicleid, &FrontLeft, &FrontRight, &RearLeft, &RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	if(_getVehicleType(vehicleid) == 2 || _getVehicleType(vehicleid) == 3) return FrontLeft = Tires >> 1 & 1, FrontRight = Tires & 1; // BIKE & MOTORBIKE
+
+	RearRight 	= Tires & 1;
+	FrontRight 	= Tires >> 1 & 1;
+	RearLeft 	= Tires >> 2 & 1;
+	FrontLeft 	= Tires >> 3 & 1;
+	return true;
+}
+
+
+stock _updateVehiclePanelDamageStatus(vehicleid, FrontLeft, FrontRight, RearLeft, RearRight, WindShield, FrontBumper, RearBumper)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	return UpdateVehicleDamageStatus(vehicleid, FrontLeft | (FrontRight << 4) | (RearLeft << 8) | (RearRight << 12) | (WindShield << 16) | (FrontBumper << 20) | (RearBumper << 24), Doors, Lights, Tires);
+}
+
+
+stock _updateVehicleDoorDamageStatus(vehicleid, Bonnet, Boot, FrontLeft, FrontRight, RearLeft, RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	return UpdateVehicleDamageStatus(vehicleid, Panels, Bonnet | (Boot << 8) | (FrontLeft << 16) | (FrontRight << 24) | (RearLeft << 32) | (RearRight << 40), Lights, Tires);
+}
+
+
+stock _updateVehicleLightDamageStatus(vehicleid, First, Second, Third, Fourth)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, First | (Second << 1) | (Third << 2) | (Fourth << 3), Tires);
+}
+
+
+stock _updateVehicleTireDamageStatus(vehicleid, FrontLeft, FrontRight, RearLeft, RearRight)
+{
+	new Panels, Doors, Lights, Tires;
+	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
+	if(_getVehicleType(vehicleid) == 2 || _getVehicleType(vehicleid) == 3) return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, Lights, FrontRight | (FrontLeft << 1));
+	else return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, Lights, RearRight | (FrontRight << 1) | (RearLeft << 2) | (FrontLeft << 3));
+}
+
+
+stock _clearChat(playerid)
 {
 	for(new i = 0; i < 10; i++) SendClientMessage(playerid, 0xFFFFFF, " ");
 	return true;
 }
 
 
-stock GetName(playerid)
+stock _getName(playerid)
 {
     new name[MAX_PLAYER_NAME];
     if(IsPlayerConnected(playerid)) GetPlayerName(playerid, name, sizeof(name));
@@ -105,7 +193,7 @@ stock GetName(playerid)
 }
 
 
-stock GetEscName(playerid)
+stock _getEscName(playerid)
 {
     new EscapedName[MAX_PLAYER_NAME], name[MAX_PLAYER_NAME];
     if(IsPlayerConnected(playerid)) {
@@ -117,7 +205,7 @@ stock GetEscName(playerid)
 }
 
 
-stock GetNameEx(playerid)
+stock _getNameEx(playerid)
 {
     new str[24], String[128];
     GetPlayerName(playerid, String, 24);
@@ -125,3 +213,4 @@ stock GetNameEx(playerid)
     for(new i = 0; i < MAX_PLAYER_NAME; i++) if (str[i] == '_') str[i] = ' ';
     return str;
 }
+
