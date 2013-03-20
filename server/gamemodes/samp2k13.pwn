@@ -150,10 +150,10 @@ enum VehicleData
     vOwner[MAX_PLAYER_NAME + 1],
     vModelID,
     Float: vHealth,
-    vPanelDamage,
-    vDoorDamage,
-    vLightDamage,
-    vTireDamage,
+    vPanelDamage[13 + 1],
+    vDoorDamage[11 + 1],
+    vLightDamage[7 + 1],
+    vTireDamage[7 + 1],
     Float: vPosX,
     Float: vPosY,
     Float: vPosZ,
@@ -167,7 +167,7 @@ enum VehicleData
     //vehicle mods
 };
 new vVehicles[MAX_VEHICLES][VehicleData]; // MAX_VEHICLES currently 2000 (0.3x)
-
+new vTotal; // total vehicles in db, filled @_OnMySQLVehicleDataLoad()
 
 new querystring[715];
 new CurrentSpawnedVehicle[MAX_PLAYERS];
@@ -239,7 +239,8 @@ public OnGameModeExit()
 		_OnMySQLPlayerDataSave(i);
 		OnPlayerDisconnect(i, 2);
 	}
-	for(new i = 0; i < MAX_VEHICLES; i++) _OnMySQLVehicleDataSave(i);
+
+	for(new i = 0; i < 10; i++) _OnMySQLVehicleDataSave(i);
     mysql_close();
     return true;
 }
@@ -1123,14 +1124,19 @@ YCMD:loadcar(playerid, params[], help)
 
 public _OnMySQLVehicleDataSave(vehicleid)
 {
+	new dmg[9];
 	GetVehiclePos(vehicleid, 			vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ]);
 	GetVehicleZAngle(vehicleid, 		vVehicles[vehicleid][vPosA]);
 	GetVehicleHealth(vehicleid, 		vVehicles[vehicleid][vHealth]);
-	GetVehicleDamageStatus(vehicleid, 	vVehicles[vehicleid][vPanelDamage], vVehicles[vehicleid][vDoorDamage], vVehicles[vehicleid][vLightDamage], vVehicles[vehicleid][vTireDamage]);
+
+	_getVehiclePanelDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	format(vVehicles[vehicleid][vPanelDamage], 	14, "%d|%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
+	_getVehicleDoorDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 			format(vVehicles[vehicleid][vDoorDamage], 	12, "%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
+	_getVehicleLightDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vLightDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
+	_getVehicleTireDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vTireDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
 
 	new bigstring[2048];
-    format(bigstring, sizeof(bigstring), "UPDATE `vehicles` SET `vehicleid` = '%d', `owner` = '%s', `model` = '%d', `health` = '%f', `panelDamage` = '%d', `doorDamage` = '%d', \
-											`lightDamage` = '%d', `tireDamage` = '%d', `posX` = '%f', `posY` = '%f', `posZ` = '%f', `posA` = '%f', `color1` = '%d', `color2` = '%d', \
+    format(bigstring, sizeof(bigstring), "UPDATE `vehicles` SET `vehicleid` = '%d', `owner` = '%s', `model` = '%d', `health` = '%f', `panelDamage` = '%s', `doorDamage` = '%s', \
+											`lightDamage` = '%s', `tireDamage` = '%s', `posX` = '%f', `posY` = '%f', `posZ` = '%f', `posA` = '%f', `color1` = '%d', `color2` = '%d', \
 											`navigation` = '%d', `locked` = '%d', `fuel` = '%d', `filled` = '%d' WHERE `plate` = '%s'",
 		vVehicles[vehicleid][vVehicleID],
 		vVehicles[vehicleid][vOwner],
@@ -1155,7 +1161,7 @@ public _OnMySQLVehicleDataSave(vehicleid)
 	);
 	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
 	
-	printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %d, doorDamage: %d, lightDamage: %d, tireDamage: %d,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+	printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %s, doorDamage: %s, lightDamage: %s, tireDamage: %s,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
 	vVehicles[vehicleid][vPlate], vVehicles[vehicleid][vVehicleID], vVehicles[vehicleid][vOwner], vVehicles[vehicleid][vModelID], vVehicles[vehicleid][vHealth], vVehicles[vehicleid][vPanelDamage], vVehicles[vehicleid][vDoorDamage], vVehicles[vehicleid][vLightDamage], vVehicles[vehicleid][vTireDamage],
 	vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ], vVehicles[vehicleid][vPosA],
 	vVehicles[vehicleid][vColor1], vVehicles[vehicleid][vColor2], vVehicles[vehicleid][vNavigation], vVehicles[vehicleid][vLocked], vVehicles[vehicleid][vFuel], vVehicles[vehicleid][vFilled]);
@@ -1165,20 +1171,19 @@ public _OnMySQLVehicleDataSave(vehicleid)
 
 public _OnMySQLVehicleDataLoad()
 {
-    new rows, fields;
+    new rows, fields, temp[128], k = 1, dmg[9];
     cache_get_data(rows, fields);
-	printf("%d", rows);
-    new temp[128], k = 1;
-    for(new i = 0; i < rows + -1; i++) {
+
+    for(new i = 0; i < rows -1; i++) {
 	    cache_get_field_content(k, "plate", 			temp), strcat(vVehicles[k][vPlate], temp, 9);
     	cache_get_field_content(k, "vehicleid", 		temp), vVehicles[k][vVehicleID] 	= strval(temp);
 	    cache_get_field_content(k, "owner", 			temp), strcat(vVehicles[k][vOwner], temp, 25);
     	cache_get_field_content(k, "model", 			temp), vVehicles[k][vModelID] 		= strval(temp);
     	cache_get_field_content(k, "health", 			temp), vVehicles[k][vHealth] 		= floatstr(temp);
-    	cache_get_field_content(k, "panelDamage", 		temp), vVehicles[k][vDoorDamage] 	= strval(temp);
-    	cache_get_field_content(k, "doorDamage", 		temp), vVehicles[k][vPanelDamage] 	= strval(temp);
-    	cache_get_field_content(k, "lightDamage", 		temp), vVehicles[k][vLightDamage] 	= strval(temp);
-    	cache_get_field_content(k, "tireDamage", 		temp), vVehicles[k][vTireDamage] 	= strval(temp);
+    	cache_get_field_content(k, "panelDamage", 		temp), strcat(vVehicles[k][vPanelDamage], 	temp, 14);
+    	cache_get_field_content(k, "doorDamage", 		temp), strcat(vVehicles[k][vDoorDamage], 	temp, 12);
+    	cache_get_field_content(k, "lightDamage", 		temp), strcat(vVehicles[k][vLightDamage], 	temp, 8);
+    	cache_get_field_content(k, "tireDamage", 		temp), strcat(vVehicles[k][vTireDamage], 	temp, 8);
     	cache_get_field_content(k, "posX", 				temp), vVehicles[k][vPosX] 			= floatstr(temp);
     	cache_get_field_content(k, "posY", 				temp), vVehicles[k][vPosY] 			= floatstr(temp);
     	cache_get_field_content(k, "posZ", 				temp), vVehicles[k][vPosZ] 			= floatstr(temp);
@@ -1191,23 +1196,33 @@ public _OnMySQLVehicleDataLoad()
     	cache_get_field_content(k, "filled", 			temp), vVehicles[k][vFilled] 		= strval(temp);
 
 		vVehicles[k][vVehicleID] = CreateVehicle(vVehicles[k][vModelID], vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA], vVehicles[k][vColor1], vVehicles[k][vColor2], 0),
-		SetVehicleHealth(i, vVehicles[k][vHealth]);
+		SetVehicleHealth(vVehicles[k][vVehicleID], vVehicles[k][vHealth]);
+		SetVehicleNumberPlate(vVehicles[k][vVehicleID], vVehicles[k][vPlate]);
 
-		printf("\r\ni: %d, k: %d, Plate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %d, doorDamage: %d, lightDamage: %d, tireDamage: %d,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
-		i, k, vVehicles[k][vPlate], vVehicles[k][vVehicleID], vVehicles[k][vOwner], vVehicles[k][vModelID], vVehicles[k][vHealth], vVehicles[k][vPanelDamage], vVehicles[k][vDoorDamage], vVehicles[k][vLightDamage], vVehicles[k][vTireDamage],
+		sscanf(vVehicles[k][vPanelDamage], 	"p<|>iiiiiii", 	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	_updateVehiclePanelDamageStatus(vVehicles[k][vVehicleID],	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
+		sscanf(vVehicles[k][vDoorDamage], 	"p<|>iiiiii", 	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 			_updateVehicleDoorDamageStatus(vVehicles[k][vVehicleID], 	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
+		sscanf(vVehicles[k][vLightDamage], 	"p<|>iiii", 	dmg[0], dmg[1], dmg[2], dmg[3]), 							_updateVehicleLightDamageStatus(vVehicles[k][vVehicleID], 	dmg[0], dmg[1], dmg[2], dmg[3]);
+		sscanf(vVehicles[k][vTireDamage], 	"p<|>iiii", 	dmg[0], dmg[1], dmg[2], dmg[3]), 							_updateVehicleTireDamageStatus(vVehicles[k][vVehicleID], 	dmg[0], dmg[1], dmg[2], dmg[3]);
+
+		printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %s, doorDamage: %s, lightDamage: %s, tireDamage: %s,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+		vVehicles[k][vPlate], vVehicles[k][vVehicleID], vVehicles[k][vOwner], vVehicles[k][vModelID], vVehicles[k][vHealth], vVehicles[k][vPanelDamage], vVehicles[k][vDoorDamage], vVehicles[k][vLightDamage], vVehicles[k][vTireDamage],
 		vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA],
 		vVehicles[k][vColor1], vVehicles[k][vColor2], vVehicles[k][vNavigation], vVehicles[k][vLocked], vVehicles[k][vFuel], vVehicles[k][vFilled]);
 
-		SetVehicleNumberPlate(vVehicles[k][vVehicleID], vVehicles[k][vPlate]);
-		//UpdateVehicleDamageStatus(vVehicles[k][vVehicleID], panels, doors, vVehicles[k][vLightDamage], vVehicles[k][vTireDamage]);
-        //ChangeVehicleBlowjob(veh[i], xx);
-
+       //ChangeVehicleBlowjob(veh[k] xx);
 		k++;
 	}
+	vTotal = (k - 1);
+	//_MySQLVehicleCount(vTotal);
 	return true;
 }
 
-
+stock _MySQLGetVehicleCount() {
+	new rows, fields, i;
+	cache_get_data(rows, fields);
+	printf("rows: %d", i);
+	return i;
+}
 
 /*
 //    mysql_query("SELECT COUNT(*) FROM `vehicles`"); mysql_store_result();
@@ -2627,97 +2642,5 @@ YCMD:radio(playerid, params[], help)
 }
 
 */
-
-
-//------------------------------------------------------------------------------STOCKS
-
-
-stock GetVehiclePanelsDamageStatus(vehicleid, &FrontLeft, &FrontRight, &RearLeft, &RearRight, &WindShield, &FrontBumper, &RearBumper)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	FrontLeft 	= Panels & 15;
-	FrontRight 	= Panels >> 4 & 15;
-	RearLeft	= Panels >> 8 & 15;
-	RearRight 	= Panels >> 12 & 15;
-	WindShield 	= Panels >> 16 & 15;
-	FrontBumper = Panels >> 20 & 15;
-	RearBumper 	= Panels >> 24 & 15;
-	return true;
-}
-
-
-stock GetVehicleDoorsDamageStatus(vehicleid, &Bonnet, &Boot, &FrontLeft, &FrontRight, &RearLeft, &RearRight)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	Bonnet 		= Doors & 7;
-	Boot 		= Doors >> 8 & 7;
-	FrontLeft 	= Doors >> 16 & 7;
-	FrontRight 	= Doors >> 24 & 7;
-	RearLeft 	= Doors >> 32 & 7;
-	RearRight 	= Doors >> 40 & 7;
-	return true;
-}
-
-
-stock GetVehicleLightsDamageStatus(vehicleid, &First, &Second, &Third, &Fourth)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	First 		= Lights & 1;
-	Second 		= Lights >> 1 & 1;
-	Third 		= Lights >> 2 & 1;
-	Fourth 		= Lights >> 3 & 1;
-	return true;
-}
-
-
-stock GetVehicleTiresDamageStatus(vehicleid, &FrontLeft, &FrontRight, &RearLeft, &RearRight)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	if(GetVehicleType(vehicleid) == 2 || GetVehicleType(vehicleid) == 3) return FrontLeft = Tires >> 1 & 1, FrontRight = Tires & 1; // BIKE & MOTORBIKE
-
-	RearRight 	= Tires & 1;
-	FrontRight 	= Tires >> 1 & 1;
-	RearLeft 	= Tires >> 2 & 1;
-	FrontLeft 	= Tires >> 3 & 1;
-	return true;
-}
-
-
-stock UpdateVehiclePanelsDamageStatus(vehicleid, FrontLeft, FrontRight, RearLeft, RearRight, WindShield, FrontBumper, RearBumper)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	return UpdateVehicleDamageStatus(vehicleid, FrontLeft | (FrontRight << 4) | (RearLeft << 8) | (RearRight << 12) | (WindShield << 16) | (FrontBumper << 20) | (RearBumper << 24), Doors, Lights, Tires);
-}
-
-
-stock UpdateVehicleDoorsDamageStatus(vehicleid, Bonnet, Boot, FrontLeft, FrontRight, RearLeft, RearRight)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	return UpdateVehicleDamageStatus(vehicleid, Panels, Bonnet | (Boot << 8) | (FrontLeft << 16) | (FrontRight << 24) | (RearLeft << 32) | (RearRight << 40), Lights, Tires);
-}
-
-
-stock UpdateVehicleLightsDamageStatus(vehicleid, First, Second, Third, Fourth)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, First | (Second << 1) | (Third << 2) | (Fourth << 3), Tires);
-}
-
-
-stock UpdateVehicleTiresDamageStatus(vehicleid, FrontLeft, FrontRight, RearLeft, RearRight)
-{
-	new Panels, Doors, Lights, Tires;
-	GetVehicleDamageStatus(vehicleid, Panels, Doors, Lights, Tires);
-	if(GetVehicleType(vehicleid) == MOTORBIKE || GetVehicleType(vehicleid) == BIKE) return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, Lights, FrontRight | (FrontLeft << 1));
-	else return UpdateVehicleDamageStatus(vehicleid, Panels, Doors, Lights, RearRight | (FrontRight << 1) | (RearLeft << 2) | (FrontLeft << 3));
-}
-
 
 
