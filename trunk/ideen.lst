@@ -1,10 +1,11 @@
-samp2k13 Ideen
+﻿samp2k13 Ideen
 ---------------------------------
 
 
 
 --- Polizei:
 ab Rang 4: Wanteds entfernen
+Tazer birgt die Gefahr für folgeschäden bis hin zum Tod -> nur für schwere Verbrecher, da ansonsten Straftat (mord, Möglichkeit zur Entlassung) und medics werden mehr involviert
 
 
 --- Fahrschule:
@@ -55,3 +56,9 @@ Wenn das Auto kaputt ist wird es aus der DB gelöscht.
 
 - Flughafen
 - Für player planes
+
+
+---Tod
+-muss was besonderes sein-> Medics mehr involviert
+-von Freunden zum Krankenhaus gefahren werden -> dort an nem Checkpoint revived "notaufnahme" -> gibt Geld für medics/Staat -> dafür hat man x Minuten, Timer für playerid
+-krankenstationen in ls und sf werden dafür enabled
