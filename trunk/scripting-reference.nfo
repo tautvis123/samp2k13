@@ -86,8 +86,9 @@ Script structure:
 	_OnPlayerDataAssign(playerid)							(assigns pStats array to playerid)
 	_OnAntiCheatTick()										(called by script yevery 5sec, executed anti-cheat routines)
 	_OnWeatherChange(weatherid)								(called by script every 45min, changes weather randomly)
-
-
+	_OnObjectsCreate()										(called at OnGameModeInit(), created objects)
+	_OnPlayerObjectsCreate(playerid)						(called at OnPlayerConnect(...), creates/removes objects for playerid)
+	
 - custom functions
 	_resetPlayerDataArray(playerid)							(resets pStats array to prevent bugs)
 	_sendAdminMessage(color, string[], requireduty)			(sends message to admins online)

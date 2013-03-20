@@ -17,7 +17,7 @@
 #include <samp2k13>
 
 
-#define SERVER_VERSION          "0.1.2" // version 1, revision 2
+#define SERVER_VERSION          "1.0.0" // maj 1, ver 0, rev 0
 
 #define MYSQL_HOST              "db4free.net"
 #define MYSQL_USER              "samp2k13"
@@ -76,6 +76,8 @@ forward _OnMySQLVehicleDataLoad();
 forward _OnPlayerDataAssign(playerid);
 forward _OnAntiCheatTick();
 forward _OnWeatherChange(weatherid);
+forward _OnObjectsCreate();
+forward _OnPlayerObjectsCreate(playerid);
 
 // custom functions
 forward _sendAdminMessage(color, string[], requireduty);
@@ -87,9 +89,6 @@ forward _resetTazerAvailability(playerid);
 forward _unfreezePlayer(playerid);
 forward _clearTextSpam(playerid);
 forward _clearCommandSpam(playerid);
-
-forward _processObjects();
-forward _setObjectsForPlayer(playerid);
 
 
 enum ConfigurationData
@@ -204,7 +203,7 @@ public OnGameModeInit()
 	ShowPlayerMarkers(0);
     UsePlayerPedAnims();
 
-	_processObjects();
+	_OnObjectsCreate();
 
     Command_AddAltNamed("adminduty", "aduty"); // short forms for cmds
     Command_AddAltNamed("ooc", "o");
@@ -258,15 +257,15 @@ public OnPlayerConnect(playerid)
     new string[128];
     
     _resetPlayerDataArray(playerid);
-    ClearChat(playerid);
+    _clearChat(playerid);
 	
-	format(querystring, sizeof(querystring), "SELECT * FROM `accounts` WHERE `username` = '%s'", GetEscName(playerid));
+	format(querystring, sizeof(querystring), "SELECT * FROM `accounts` WHERE `username` = '%s'", _getEscName(playerid));
 	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "_OnMySQLPlayerDataLoad", "i", playerid); // login procedure
 
-	format(string, sizeof(string), "* %s [ID: %d] hat den Server betreten.", GetName(playerid), playerid);
+	format(string, sizeof(string), "* %s [ID: %d] hat den Server betreten.", _getName(playerid), playerid);
 	SendClientMessageToAll(COLOR_OOC, string);
 	
-	_setObjectsForPlayer(playerid);
+	_OnPlayerObjectsCreate(playerid);
     return true;
 }
 
@@ -276,9 +275,9 @@ public OnPlayerDisconnect(playerid, reason)
     new string[128];
     
     switch(reason) {
-        case 0: format(string, sizeof(string), "* %s [ID: %d] hat den Server verlassen. [Timeout]", GetName(playerid), playerid);
-        case 1,2: format(string, sizeof(string), "* %s [ID: %d] hat den Server verlassen.", GetName(playerid), playerid);
-        //case 2: format(string, sizeof(string), "* %s [ID: %d] hat den Server verlassen. [Kicked/Banned]",   GetName(playerid), playerid);
+        case 0: format(string, sizeof(string), "* %s [ID: %d] hat den Server verlassen. [Timeout]", _getName(playerid), playerid);
+        case 1,2: format(string, sizeof(string), "* %s [ID: %d] hat den Server verlassen.", _getName(playerid), playerid);
+        //case 2: format(string, sizeof(string), "* %s [ID: %d] hat den Server verlassen. [Kicked/Banned]",   _getName(playerid), playerid);
     }
     SendClientMessageToAll(COLOR_OOC, string);
 
@@ -301,7 +300,7 @@ public OnPlayerSpawn(playerid)
         SetPlayerSkin(playerid, random(299));
         SetPlayerPos(playerid, -2706.5261, 397.7129, 4.3672);
 
-		format(querystring, sizeof(querystring), "UPDATE `accounts` SET `justRegistered` = '0' WHERE `username` = '%s'", GetEscName(playerid));
+		format(querystring, sizeof(querystring), "UPDATE `accounts` SET `justRegistered` = '0' WHERE `username` = '%s'", _getEscName(playerid));
 		mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 
         _OnMySQLPlayerDataSave(playerid);
@@ -414,7 +413,7 @@ public OnPlayerText(playerid, text[])
     SetTimerEx("ClearTextSpam", 2000, false, "d", playerid);
 
     if(GetPVarInt(playerid,"TextSpam") == 15) {
-        format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Spamming.", GetName(playerid), playerid);
+        format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Spamming.", _getName(playerid), playerid);
         SendClientMessageToAll(COLOR_RED, string);
         CallRemoteFunction("KickIncrease", "d", playerid);
         Kick(playerid);
@@ -429,13 +428,13 @@ public OnPlayerText(playerid, text[])
         SendClientMessage(playerid, COLOR_RED, "* Du bist momentan stumm gestellt und kannst nicht reden.");
         return false;
     }
-	format(string, sizeof(string), "%s: %s", GetName(playerid), text);
+	format(string, sizeof(string), "%s: %s", _getName(playerid), text);
 
 	_sendNearByMessage(playerid, 1.0, string);
 	SetPlayerChatBubble(playerid, text, COLOR_WHITE, 8.0, 4000);
 
-	format(string, sizeof(string), "[SAY] %s: %s", GetName(playerid), text);
-    Log2File("chat", string);
+	format(string, sizeof(string), "[SAY] %s: %s", _getName(playerid), text);
+    _logToFile("chat", string);
     return false;
 }
 
@@ -451,7 +450,7 @@ public OnPlayerCommandReceived(playerid, cmdtext[])
         if(GetPVarInt(playerid, "CommandSpam") > 5)     return SendClientMessage(playerid, COLOR_RED, "* SERVER: Du hast die Aufmerksamkeit der Spam-Protection auf dich gezogen, bitte unterlasse das Flooden.");
 
         else if(GetPVarInt(playerid, "CommandSpam") == 8) {
-            format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Spamming.", GetName(playerid), playerid);
+            format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Spamming.", _getName(playerid), playerid);
             SendClientMessageToAll(COLOR_RED, string);
             CallRemoteFunction("KickIncrease", "d", playerid);
             Kick(playerid);
@@ -569,10 +568,10 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			SetPVarInt(playerid, "TazerAvailable", 0);
 			SetTimerEx("_resetTazerAvailability", 30000, false, "i", playerid); // 30sek
 
-	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht.", GetName(giveplayerid));
+	        format(string, sizeof(string), "* Der Tazerschuss erreichte %s nicht.", _getName(giveplayerid));
 			SendClientMessage(playerid, COLOR_RED, string);
 			
-			format(string, sizeof(string), "* %s hat einen Tazerschuss auf %s aufgrund von der Entfernung verfehlt.", GetName(playerid), GetName(giveplayerid));
+			format(string, sizeof(string), "* %s hat einen Tazerschuss auf %s aufgrund von der Entfernung verfehlt.", _getName(playerid), _getName(giveplayerid));
 			_sendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 			return true;
 		}
@@ -581,7 +580,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			SetPVarInt(playerid, "TazerAvailable", 0);
 			SetTimerEx("_resetTazerAvailability", 45000, false, "i", playerid); // 45sec
 
-			format(string, sizeof(string), "* %s hat einen Tazerschuss auf %s verfehlt.", GetName(playerid), GetName(giveplayerid));
+			format(string, sizeof(string), "* %s hat einen Tazerschuss auf %s verfehlt.", _getName(playerid), _getName(giveplayerid));
 			_sendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 			return true;
 		}
@@ -592,7 +591,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 		SetPVarInt(playerid, "TazerAvailable", 0);
 		SetTimerEx("_resetTazerAvailability", 120000, false, "i", playerid); // 2min
 
-		format(string, sizeof(string), "* %s hat %s mit einem Tazerschuss getroffen.", GetName(playerid), GetName(giveplayerid));
+		format(string, sizeof(string), "* %s hat %s mit einem Tazerschuss getroffen.", _getName(playerid), _getName(giveplayerid));
 		_sendNearByMessage(playerid, COLOR_LIGHTBLUE, string);
 	}
     return true;
@@ -639,7 +638,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		/*case 1: { // registration
 		    if(!response) Kick(playerid);
 		    else if(strlen(inputtext) < 4 || strlen(inputtext) > 30) ShowPlayerDialog(playerid, PLAYER_DIALOG_REGISTER, DIALOG_STYLE_INPUT, "Registration", "Bitte tippe dein gewünschtes Passwort ein.\n[4-30 Zeichen]", "Registration", "Abbrechen");
-		    format(querystring, sizeof(querystring), "INSERT INTO `accounts` (username, password) VALUES('%s', '%s')", GetEscName(playerid), inputtext); mysql_query(query); // evtl. noch andere Werte wie IP usw. setzen
+		    format(querystring, sizeof(querystring), "INSERT INTO `accounts` (username, password) VALUES('%s', '%s')", _getEscName(playerid), inputtext); mysql_query(query); // evtl. noch andere Werte wie IP usw. setzen
 		    SpawnPlayer(playerid);
 		}*/
 		
@@ -685,7 +684,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	    			if(pStats[playerid][pAdminLevel] < 3)                       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
 				    new coordstring[6][256];
 				    
-					format(coordstring[0], sizeof(coordstring[]), "----------*** %s (%s) ***----------", GetName(giveplayerid), pStats[giveplayerid][pEmail]);
+					format(coordstring[0], sizeof(coordstring[]), "----------*** %s (%s) ***----------", _getName(giveplayerid), pStats[giveplayerid][pEmail]);
 					format(coordstring[1], sizeof(coordstring[]), "* IP: %s | Logins: %d | AdminLevel: %d | Fraktion: %d (Rang: %d) | Duty: %d | Job: %d", pStats[giveplayerid][pIPAddress], pStats[giveplayerid][pLogins], pStats[giveplayerid][pAdminLevel], pStats[giveplayerid][pFaction], pStats[giveplayerid][pFactionRank], pStats[giveplayerid][pDuty], pStats[giveplayerid][pJob]);
 					format(coordstring[2], sizeof(coordstring[]), "* Cash: %d | bank: %d | Level: %d | Skin: %d | Health: %f | Armor: %d", pStats[giveplayerid][pCash], pStats[giveplayerid][pBank], pStats[giveplayerid][pLevel], pStats[giveplayerid][pSkin],pStats[giveplayerid][pHealth], pStats[giveplayerid][pArmor]);
 					format(coordstring[3], sizeof(coordstring[]), "* Warns: %d | Warning1: %s | Warning2: %s | Warning3: %s | BannedUntil: %d", pStats[giveplayerid][pWarns], pStats[giveplayerid][pWarning1], pStats[giveplayerid][pWarning2], pStats[giveplayerid][pWarning3], pStats[giveplayerid][pBanstamp]);
@@ -722,13 +721,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(giveplayerid, X, Y, Z);
                         SetPlayerPos(playerid, X+4, Y, Z);
                     }
-                    format(string, sizeof(string), "** Du hast dich zu %s teleportiert.", GetName(giveplayerid));
+                    format(string, sizeof(string), "** Du hast dich zu %s teleportiert.", _getName(giveplayerid));
                     SendClientMessage(playerid, COLOR_PURPLE, string);
-                    format(string, sizeof(string), "** Administrator %s hat sich zu dir teleportiert.", GetName(playerid));
+                    format(string, sizeof(string), "** Administrator %s hat sich zu dir teleportiert.", _getName(playerid));
                     SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-					format(string, sizeof(string), "** Administrator %s hat sich zu %s teleportiert.", GetName(playerid), GetName(giveplayerid));
-    				Log2File("admin", string);
+					format(string, sizeof(string), "** Administrator %s hat sich zu %s teleportiert.", _getName(playerid), _getName(giveplayerid));
+    				_logToFile("admin", string);
 					return true;
 				}
 
@@ -747,14 +746,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(playerid, X, Y, Z);
                         SetPlayerPos(giveplayerid, X+2, Y, Z);
                     }
-                    format(string, sizeof(string), "** Du wurdest zu Administrator %s teleportiert.", GetName(playerid));
+                    format(string, sizeof(string), "** Du wurdest zu Administrator %s teleportiert.", _getName(playerid));
                     SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-                    format(string, sizeof(string), "** Du hast %s zu dir teleportiert.", GetName(giveplayerid));
+                    format(string, sizeof(string), "** Du hast %s zu dir teleportiert.", _getName(giveplayerid));
                     SendClientMessage(playerid, COLOR_PURPLE, string);
                     
-					format(string, sizeof(string), "** Administrator %s hat %s zu sich teleportiert.", GetName(playerid), GetName(giveplayerid));
-    				Log2File("admin", string);
+					format(string, sizeof(string), "** Administrator %s hat %s zu sich teleportiert.", _getName(playerid), _getName(giveplayerid));
+    				_logToFile("admin", string);
 					return true;
 				}
 
@@ -767,29 +766,29 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	                        TogglePlayerControllable(giveplayerid, false);
 	                        SetPVarInt(giveplayerid, "PlayerFrozen", 1);
 
-	                        format(string, sizeof(string), "** Administrator %s hat dich eingefroren.", GetName(playerid));
+	                        format(string, sizeof(string), "** Administrator %s hat dich eingefroren.", _getName(playerid));
 	                        SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-	                        format(string, sizeof(string), "** Du hast %s eingefroren", GetName(giveplayerid));
+	                        format(string, sizeof(string), "** Du hast %s eingefroren", _getName(giveplayerid));
 	                        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-	                        format(string, sizeof(string), "** Administrator %s hat %s eingefroren.", GetName(playerid), GetName(giveplayerid));
+	                        format(string, sizeof(string), "** Administrator %s hat %s eingefroren.", _getName(playerid), _getName(giveplayerid));
 	                        SendClientMessageToAll(COLOR_PURPLE, string);
-	    					Log2File("admin", string);
+	    					_logToFile("admin", string);
 	                    }
                         case 1: {
 	                        TogglePlayerControllable(giveplayerid, true);
 	                        SetPVarInt(giveplayerid, "PlayerFrozen", 0);
 
-	                        format(string, sizeof(string), "** Administrator %s hat dich aufgetaut.", GetName(playerid));
+	                        format(string, sizeof(string), "** Administrator %s hat dich aufgetaut.", _getName(playerid));
 	                        SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-	                        format(string, sizeof(string), "** Du hast %s aufgetaut", GetName(giveplayerid));
+	                        format(string, sizeof(string), "** Du hast %s aufgetaut", _getName(giveplayerid));
 	                        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-	                        format(string, sizeof(string), "** Administrator %s hat %s aufgetaut.", GetName(playerid), GetName(giveplayerid));
+	                        format(string, sizeof(string), "** Administrator %s hat %s aufgetaut.", _getName(playerid), _getName(giveplayerid));
 	                        SendClientMessageToAll(COLOR_PURPLE, string);
-	                        Log2File("admin", string);
+	                        _logToFile("admin", string);
 						}
                     }
 					return true;
@@ -807,29 +806,29 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						case 0: {
 	                        SetPVarInt(giveplayerid, "PlayerMuted", 1);
 
-	                        format(string, sizeof(string), "** Administrator %s hat dich stumm gestellt.", GetName(playerid));
+	                        format(string, sizeof(string), "** Administrator %s hat dich stumm gestellt.", _getName(playerid));
 	                        SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-	                        format(string, sizeof(string), "** Du hast %s stumm gestellt.", GetName(giveplayerid));
+	                        format(string, sizeof(string), "** Du hast %s stumm gestellt.", _getName(giveplayerid));
 	                        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-	                        format(string, sizeof(string), "** Administrator %s hat %s stumm gestellt.", GetName(playerid), GetName(giveplayerid));
+	                        format(string, sizeof(string), "** Administrator %s hat %s stumm gestellt.", _getName(playerid), _getName(giveplayerid));
 	                        SendClientMessageToAll(COLOR_PURPLE, string);
-	                        Log2File("admin", string);
+	                        _logToFile("admin", string);
 						}
 
 						case 1: {
 		                    SetPVarInt(playerid, "PlayerMuted", 0);
 
-		                    format(string, sizeof(string), "** Administrator %s hat dich entstummt.", GetName(playerid));
+		                    format(string, sizeof(string), "** Administrator %s hat dich entstummt.", _getName(playerid));
 		                    SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-		                    format(string, sizeof(string), "** Du hast %s entstummt.", GetName(giveplayerid));
+		                    format(string, sizeof(string), "** Du hast %s entstummt.", _getName(giveplayerid));
 		                    SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		                    format(string, sizeof(string), "** Administrator %s hat %s entstummt.", GetName(playerid), GetName(giveplayerid));
+		                    format(string, sizeof(string), "** Administrator %s hat %s entstummt.", _getName(playerid), _getName(giveplayerid));
 		                    SendClientMessageToAll(COLOR_PURPLE, string);
-		                    Log2File("admin", string);
+		                    _logToFile("admin", string);
 						}
 					}
 					return true;
@@ -841,19 +840,19 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         {
             if(!response) return false;
             if(strlen(inputtext) == 0) {
-                format(string, sizeof(string), "** Du wurdest von Administrator %s gekickt.", GetName(playerid));
+                format(string, sizeof(string), "** Du wurdest von Administrator %s gekickt.", _getName(playerid));
                 SendClientMessage(giveplayerid, COLOR_RED, string);
 
-                format(string, sizeof(string), "** Administrator %s hat %s gekickt.", GetName(playerid), GetName(giveplayerid));
+                format(string, sizeof(string), "** Administrator %s hat %s gekickt.", _getName(playerid), _getName(giveplayerid));
                 SendClientMessageToAll(COLOR_PURPLE, string);
             }
             else {
-                format(string, sizeof(string), "** Du wurdest von Administrator %s gekickt. Grund: %s", GetName(playerid), inputtext);
+                format(string, sizeof(string), "** Du wurdest von Administrator %s gekickt. Grund: %s", _getName(playerid), inputtext);
                 SendClientMessage(giveplayerid, COLOR_RED, string);
 
-                format(string, sizeof(string), "** Administrator %s hat %s gekickt. Grund: %s", GetName(playerid), GetName(giveplayerid), inputtext);
+                format(string, sizeof(string), "** Administrator %s hat %s gekickt. Grund: %s", _getName(playerid), _getName(giveplayerid), inputtext);
                 SendClientMessageToAll(COLOR_PURPLE, string);
-                Log2File("admin", string);
+                _logToFile("admin", string);
             }
             Kick(giveplayerid);
             return true;
@@ -863,19 +862,19 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         {
             if(!response) return false;
             if(strlen(inputtext) == 0) {
-                format(string, sizeof(string), "** Du wurdest von Administrator %s gebannt.", GetName(playerid));
+                format(string, sizeof(string), "** Du wurdest von Administrator %s gebannt.", _getName(playerid));
                 SendClientMessage(giveplayerid, COLOR_RED, string);
 
-                format(string, sizeof(string), "** Administrator %s hat %s gebannt.", GetName(playerid), GetName(giveplayerid));
+                format(string, sizeof(string), "** Administrator %s hat %s gebannt.", _getName(playerid), _getName(giveplayerid));
                 SendClientMessageToAll(COLOR_PURPLE, string);
             }
             else {
-                format(string, sizeof(string), "** Du wurdest von Administrator %s gebannt. Grund: %s", GetName(playerid), inputtext);
+                format(string, sizeof(string), "** Du wurdest von Administrator %s gebannt. Grund: %s", _getName(playerid), inputtext);
                 SendClientMessage(giveplayerid, COLOR_RED, string);
 
-                format(string, sizeof(string), "** Administrator %s hat %s gebannt. Grund: %s", GetName(playerid), GetName(giveplayerid), inputtext);
+                format(string, sizeof(string), "** Administrator %s hat %s gebannt. Grund: %s", _getName(playerid), _getName(giveplayerid), inputtext);
                 SendClientMessageToAll(COLOR_PURPLE, string);
-                Log2File("admin", string);
+                _logToFile("admin", string);
             }
             Ban(giveplayerid);
             return true;
@@ -887,40 +886,40 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(GetPVarInt(giveplayerid, "Authentication") != 1)         return SendClientMessage(playerid, COLOR_RED,  ERRORMESSAGE_USER_ID_NOTONLINE);
             pStats[giveplayerid][pWarns] ++;
 			if(strlen(inputtext) == 0) {
-                /*format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3].", GetName(playerid), GetName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns]);
+                /*format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3].", _getName(playerid), _getName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns]);
                 SendClientMessageToAll(COLOR_PURPLE, string);
-                Log2File("admin", string);*/
+                _logToFile("admin", string);*/
                 return false;
             }
             else {
-		        format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3]. Grund: %s", GetName(playerid), GetName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns], inputtext);
+		        format(string, sizeof(string), "** Administrator %s hat %s [ID: %d] verwarnt [%d/3]. Grund: %s", _getName(playerid), _getName(giveplayerid), giveplayerid, pStats[giveplayerid][pWarns], inputtext);
 		        SendClientMessageToAll(COLOR_PURPLE, string);
-		        Log2File("admin", string);
+		        _logToFile("admin", string);
             }
 
 			switch(pStats[giveplayerid][pWarns]) {
 			    case 1: {
 	                SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 1/3 gestiegen.");
-	                format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
+	                format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning1` = '%s' WHERE `username` = '%s'", inputtext, _getName(giveplayerid));
 					mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 				    strdel(pStats[playerid][pWarning1], 0, 256), strcat(pStats[playerid][pWarning1], inputtext, 256);
 				}
 
 				case 2: {
 	                SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 2/3 gestiegen.");
-	                format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, GetName(giveplayerid));
+	                format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning2` = '%s' WHERE `username` = '%s'", inputtext, _getName(giveplayerid));
 					mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 				    strdel(pStats[playerid][pWarning2], 0, 256), strcat(pStats[playerid][pWarning2], inputtext, 256);
 				}
 
 				case 3: {
 	                SendClientMessage(giveplayerid, COLOR_RED, "** Deine Verwarnungen sind auf 3/3 gestiegen.");
-	                format(string, sizeof(string), "** %s [ID: %d] wurde aufgrund von zuvielen Verwarnungen vom Server gebannt.", GetName(giveplayerid), giveplayerid);
+	                format(string, sizeof(string), "** %s [ID: %d] wurde aufgrund von zuvielen Verwarnungen vom Server gebannt.", _getName(giveplayerid), giveplayerid);
 	                SendClientMessageToAll(COLOR_PURPLE, string);
 
 	                new banduration = (gettime() + 604800); // 1 week
 
-	                format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning3` = '%s', `banstamp` = %d WHERE `username` = '%s'", inputtext, banduration, GetName(giveplayerid));
+	                format(querystring, sizeof(querystring), "UPDATE `accounts` SET `warning3` = '%s', `banstamp` = %d WHERE `username` = '%s'", inputtext, banduration, _getName(giveplayerid));
 					mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
 				    strdel(pStats[playerid][pWarning3], 0, 256), strcat(pStats[playerid][pWarning3], inputtext, 256);
 
@@ -948,7 +947,7 @@ public OnQueryError(errorid, error[], callback[], query[], connectionHandle) {
 	new string[256];
 	format(string, sizeof(string), "\r\nMYSQL Error (ID: %d): %s\r\n- on callback: %s\r\n- On query: %s", errorid, error, callback, query);
 	printf(string);
-	//Log2File(string, "mysql_error");
+	//_logToFile(string, "mysql_error");
 	return true;
 }
 
@@ -1017,7 +1016,7 @@ public _OnMySQLPlayerDataSave(playerid)
 		pStats[playerid][pPosY],
 		pStats[playerid][pPosZ],
 		pStats[playerid][pPosA],
-		GetEscName(playerid));
+		_getEscName(playerid));
 	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
 
     format(bigstring, sizeof(bigstring), "UPDATE `accounts` SET `logins` = '%d', `warns` = '%d', `banstamp` = '%d', `vehicleID1` = '%d', `vehicleID2` = '%d', \
@@ -1032,7 +1031,7 @@ public _OnMySQLPlayerDataSave(playerid)
  		pStats[playerid][pLicenseCar],
 		pStats[playerid][pLicenseBike],
 		pStats[playerid][pLicenseAir],
-		GetEscName(playerid)
+		_getEscName(playerid)
 	);
 	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
     return true;
@@ -1097,7 +1096,7 @@ public _OnMySQLPlayerDataLoad(playerid)
 			SendClientMessage(playerid, COLOR_RED, string);
 		}*/
 
-	    if(strcmp(pStats[playerid][pUsername], GetEscName(playerid)) == 0) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
+	    if(strcmp(pStats[playerid][pUsername], _getEscName(playerid)) == 0) ShowPlayerDialog(playerid, PLAYER_DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Login", "Bitte tippe dein gewähltes Passwort ein.", "Login", "Abbrechen");
 	    else {
 	        ShowPlayerDialog(playerid, 1000, DIALOG_STYLE_MSGBOX, "Account", "Dieser Account ist noch nicht registriert.\r\nBitte hole dies auf www.suchtstation.de nach.", "OK", " ");
 	        //Kick(playerid);
@@ -1340,25 +1339,25 @@ public _OnAntiCheatTick() // approx every 5 secs
 
     foreach(Player, i) {
 		if(GetPlayerSpecialAction(i) == SPECIAL_ACTION_USEJETPACK) {
-			format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte ein Jetpack benutzen.", GetName(i), i);
+			format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte ein Jetpack benutzen.", _getName(i), i);
 	        _sendAdminMessage(COLOR_RED, string, 0);
 
-			format(string, sizeof(string), "[Jetpack-Warnung]: %s", GetName(i));
-		    Log2File("anti-cheat", string);
+			format(string, sizeof(string), "[Jetpack-Warnung]: %s", _getName(i));
+		    _logToFile("anti-cheat", string);
 		}
 	    else if(GetPlayerCash(i) < GetPlayerMoney(i)) { // buggy
-                format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte einen Geldcheat benutzen. (Geld 'erschaffen': $%d)", GetName(i), i, GetPlayerMoney(i));
+                format(string, sizeof(string), "** [ANTI-CHEAT] Warnung: %s [ID: %d] könnte einen Geldcheat benutzen. (Geld 'erschaffen': $%d)", _getName(i), i, GetPlayerMoney(i));
                 _sendAdminMessage(COLOR_RED, string, 0);
 
-				format(string, sizeof(string), "[Geld-Warnung]: %s, 'erschaffenes' Geld: $%d", GetName(i), GetPlayerMoney(i));
-			    Log2File("anti-cheat", string);
+				format(string, sizeof(string), "[Geld-Warnung]: %s, 'erschaffenes' Geld: $%d", _getName(i), GetPlayerMoney(i));
+			    _logToFile("anti-cheat", string);
 
                 new const old_money = GetPlayerCash(i);
                 ResetPlayerCash(i), GivePlayerCash(i, old_money);
 		}
 	    /*else if(pStats[playerid][pAdminLevel] < 1) {
 	        if(GetPlayerPing(i) > MAX_PING) {
-	            format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Maximaler Ping überschritten. (%d, Maximum: %d)", GetName(playerid), playerid, GetPlayerPing(playerid), MAX_PING);
+	            format(string, sizeof(string), "** %s wurde vom Server gekickt. Grund: Maximaler Ping überschritten. (%d, Maximum: %d)", _getName(playerid), playerid, GetPlayerPing(playerid), MAX_PING);
 	            SendClientMessageToAll(COLOR_RED, string);
 	            Kick(playerid);
 	        }
@@ -1493,13 +1492,13 @@ public _resetPlayerDataArray(playerid)
 }
 
 
-public _resetTazerAvailability(playerid) return SetPVarInt(playerid, "TazerAvailable", 1);
-public _unfreezePlayer(playerid) return TogglePlayerControllable(playerid, true);
-public _clearTextSpam(playerid) 		SetPVarInt(playerid, "TextSpam", 0);
-public _clearCommandSpam(playerid) 	SetPVarInt(playerid, "CommandSpam", 0);
+public _resetTazerAvailability(playerid)	return SetPVarInt(playerid, "TazerAvailable", 1);
+public _unfreezePlayer(playerid) 			return TogglePlayerControllable(playerid, true);
+public _clearTextSpam(playerid) 			return SetPVarInt(playerid, "TextSpam", 0);
+public _clearCommandSpam(playerid) 			return SetPVarInt(playerid, "CommandSpam", 0);
 
 
-public _processObjects()
+public _OnObjectsCreate()
 {
 	// LSPD
 	CreateObject(8569, 1514.59961, -1659.89941, 9.6, 0, 0, 359.995);
@@ -1724,7 +1723,7 @@ public _processObjects()
 }
 
 
-public _setObjectsForPlayer(playerid)
+public _OnPlayerObjectsCreate(playerid)
 {
 	// LSPD
 	RemoveBuildingForPlayer(playerid, 4031, 1460.0547, -1725.9922, 9.2031, 0.25);
@@ -1872,19 +1871,19 @@ YCMD:adminduty(playerid, params[], help)
 
     if(GetPVarInt(playerid, "AdminDuty") == 0) {
         SetPVarInt(playerid, "AdminDuty", 1);
-        format(string, sizeof(string), "** Administrator %s [ID: %d] ist nun On-Duty.", GetName(playerid), playerid);
+        format(string, sizeof(string), "** Administrator %s [ID: %d] ist nun On-Duty.", _getName(playerid), playerid);
         GetPlayerHealth(playerid, pStats[playerid][pHealth]);
         SetPlayerHealth(playerid, 999999999.99);
         SetPlayerColor(playerid, COLOR_PURPLE);
     }
     else if(GetPVarInt(playerid, "AdminDuty") == 1) {
         SetPVarInt(playerid, "AdminDuty", 0);
-        format(string, sizeof(string), "** Administrator %s [ID: %d] ist nun Off-Duty.", GetName(playerid), playerid);
+        format(string, sizeof(string), "** Administrator %s [ID: %d] ist nun Off-Duty.", _getName(playerid), playerid);
         SetPlayerHealth(playerid, 100.0);
         SetPlayerColor(playerid, COLOR_WHITE);
     }
     SendClientMessageToAll(COLOR_PURPLE, string);
-    Log2File("admin", string);
+    _logToFile("admin", string);
     return true;
 }
 
@@ -1895,11 +1894,11 @@ YCMD:say(playerid, params[], help)
     if(pStats[playerid][pAdminLevel] < 1)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /say [Nachricht]");
 
-    format(string, sizeof(string), "** Admin %s: %s", GetName(playerid), params);
+    format(string, sizeof(string), "** Admin %s: %s", _getName(playerid), params);
     SendClientMessageToAll(COLOR_PURPLE, string);
 
-	format(string, sizeof(string), "** Admin %s [/say]: %s", GetName(playerid), params);
-    Log2File("admin", string);
+	format(string, sizeof(string), "** Admin %s [/say]: %s", _getName(playerid), params);
+    _logToFile("admin", string);
     return true;
 }
 
@@ -1919,7 +1918,7 @@ YCMD:showmembers(playerid, params[], help)
     cache_get_data(rows, fields);
 	printf("rows: %d", rows); // buggy
 
-	ClearChat(playerid);
+	_clearChat(playerid);
 	new name[29], factionrank; // array
 	for(new i = 0; i < rows; i++) {
 	    cache_get_field_content(i, "username", 			temp), strcat(name, temp, 25);
@@ -1975,8 +1974,8 @@ YCMD:spawnveh(playerid, params[], help)
     LinkVehicleToInterior(CurrentSpawnedVehicle[playerid], GetPlayerInterior(playerid));
     PutPlayerInVehicle(playerid, CurrentSpawnedVehicle[playerid], 0);
 
-	format(string, sizeof(string), "** Administrator %s hat sich ein Vehikel mit der ID %d gespawned.", GetName(playerid), val);
-    Log2File("admin", string);
+	format(string, sizeof(string), "** Administrator %s hat sich ein Vehikel mit der ID %d gespawned.", _getName(playerid), val);
+    _logToFile("admin", string);
 	return true;
 }
 
@@ -2003,9 +2002,9 @@ YCMD:respawnaveh(playerid, params[], help)
     foreach(Player, i) if(IsPlayerInAnyVehicle(i)) VehicleUsed[GetPlayerVehicleID(i)] = true;
     for(new v = 1; v != MAX_VEHICLES; v++) if(VehicleUsed[v] == false) SetVehicleToRespawn(v);
 
-    format(string, sizeof(string), "** Administrator %s hat alle unbenutzten Vehikel zurückgesetzt.", GetName(playerid), playerid);
+    format(string, sizeof(string), "** Administrator %s hat alle unbenutzten Vehikel zurückgesetzt.", _getName(playerid), playerid);
     SendClientMessageToAll(COLOR_PURPLE, string);
-    Log2File("admin", string);
+    _logToFile("admin", string);
 	return true;
 }
 
@@ -2029,14 +2028,14 @@ YCMD:repairveh(playerid, params[], help)
     RepairVehicle(GetPlayerVehicleID(giveplayerid));
     PlayerPlaySound(giveplayerid, 1133, -1, -1, -1);
 
-    format(string, sizeof(string), "** Administrator %s hat dein Vehikel repariert.", GetName(playerid));
+    format(string, sizeof(string), "** Administrator %s hat dein Vehikel repariert.", _getName(playerid));
     SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-    format(string, sizeof(string), "** Du hast das Vehikel von %s repariert.", GetName(giveplayerid));
+    format(string, sizeof(string), "** Du hast das Vehikel von %s repariert.", _getName(giveplayerid));
     SendClientMessage(playerid, COLOR_PURPLE, string);
 
-    format(string, sizeof(string), "** Administrator %s hat das Vehikel von %s repariert.", GetName(playerid), GetName(giveplayerid));
-    Log2File("admin", string);
+    format(string, sizeof(string), "** Administrator %s hat das Vehikel von %s repariert.", _getName(playerid), _getName(giveplayerid));
+    _logToFile("admin", string);
 	return true;
 }
 
@@ -2090,14 +2089,14 @@ YCMD:makeadmin(playerid, params[], help)
     pStats[giveplayerid][pAdminLevel] = val;
     _OnMySQLPlayerDataSave(giveplayerid);
 
-    format(string, sizeof(string), "** %s hat dein AdminLevel auf %d gesetzt.", GetName(playerid), val);
+    format(string, sizeof(string), "** %s hat dein AdminLevel auf %d gesetzt.", _getName(playerid), val);
     SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-    format(string, sizeof(string), "** Du hast das AdminLevel von %s [ID: %d] auf %d gesetzt.", GetName(giveplayerid), giveplayerid, val);
+    format(string, sizeof(string), "** Du hast das AdminLevel von %s [ID: %d] auf %d gesetzt.", _getName(giveplayerid), giveplayerid, val);
     SendClientMessage(playerid, COLOR_PURPLE, string);
 
-    format(string, sizeof(string), "** Administrator %s hat das AdminLevel von %s auf %d gesetzt.", GetName(playerid), GetName(giveplayerid), giveplayerid, val);
-	Log2File("admin", string);
+    format(string, sizeof(string), "** Administrator %s hat das AdminLevel von %s auf %d gesetzt.", _getName(playerid), _getName(giveplayerid), giveplayerid, val);
+	_logToFile("admin", string);
     return true;
 }
 
@@ -2134,68 +2133,68 @@ YCMD:set(playerid, params[], help)
         SetPlayerHealth(giveplayerid, val);
         pStats[giveplayerid][pHealth] = val;
 
-        format(string, sizeof(string), "** Du hast die HP von %s auf %d gesetzt.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast die HP von %s auf %d gesetzt.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat deine HP auf %d gesetzt.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat deine HP auf %d gesetzt.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat die HP von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+		format(string, sizeof(string), "** %s hat die HP von %s auf %d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
 
     else if(strcmp(param, "armor", true) == 0) {
         SetPlayerArmour(giveplayerid, val);
         pStats[giveplayerid][pArmor] = val;
 
-        format(string, sizeof(string), "** Du hast die Rüstung von %s auf %d gesetzt.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast die Rüstung von %s auf %d gesetzt.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat deine Rüstung auf %d gesetzt.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat deine Rüstung auf %d gesetzt.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat die Rüstung von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+		format(string, sizeof(string), "** %s hat die Rüstung von %s auf %d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
 
     else if(strcmp(param, "interior", true) == 0) {
         SetPlayerInterior(giveplayerid, val);
 
-        format(string, sizeof(string), "** Du hast den Interior von %s auf %d gesetzt.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast den Interior von %s auf %d gesetzt.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat dein Interior auf %d gesetzt.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat dein Interior auf %d gesetzt.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-        format(string, sizeof(string), "** %s hat den Interior von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+        format(string, sizeof(string), "** %s hat den Interior von %s auf %d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
 
     else if(strcmp(param, "vw", true) == 0 || strcmp(param, "virtualworld", true) == 0) {
         SetPlayerVirtualWorld(giveplayerid, val);
 
-        format(string, sizeof(string), "** Du hast die virtuelle Welt von %s auf %d gesetzt.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast die virtuelle Welt von %s auf %d gesetzt.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat deine virtuelle Welt auf %d gesetzt.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat deine virtuelle Welt auf %d gesetzt.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-        format(string, sizeof(string), "** %s hat die virtuelle Welt von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+        format(string, sizeof(string), "** %s hat die virtuelle Welt von %s auf %d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
 
     else if(strcmp(param, "skin", true) == 0) {
         SetPlayerSkin(giveplayerid, val);
         pStats[giveplayerid][pSkin] = val;
 
-        format(string, sizeof(string), "** Du hast %s den Skin mit der ID %d gegeben.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast %s den Skin mit der ID %d gegeben.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat dir den Skin mit der ID %d gegeben.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat dir den Skin mit der ID %d gegeben.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-        format(string, sizeof(string), "** %s hat den Skin von %s auf ID %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+        format(string, sizeof(string), "** %s hat den Skin von %s auf ID %d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
 
     else if(strcmp(param, "cash", true) == 0) {
@@ -2204,31 +2203,31 @@ YCMD:set(playerid, params[], help)
         GivePlayerCash(giveplayerid, val);
         pStats[giveplayerid][pCash] = val;
 
-        format(string, sizeof(string), "** Du hast das Geld von %s auf $%d gesetzt.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast das Geld von %s auf $%d gesetzt.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat dein Geld auf $%d gesetzt.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat dein Geld auf $%d gesetzt.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-        format(string, sizeof(string), "[SET] %s - $%d - %s.", GetName(playerid), val, GetName(giveplayerid));
-    	Log2File("money", string);
+        format(string, sizeof(string), "[SET] %s - $%d - %s.", _getName(playerid), val, _getName(giveplayerid));
+    	_logToFile("money", string);
 
-		format(string, sizeof(string), "** %s hat das Geld von %s auf $%d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+		format(string, sizeof(string), "** %s hat das Geld von %s auf $%d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
     
     else if(strcmp(param, "level",  true) == 0) {
         SetPlayerScore(giveplayerid, val);
         pStats[giveplayerid][pLevel] = val;
 
-        format(string, sizeof(string), "** Du hast das Level von %s auf %d gesetzt.", GetName(giveplayerid), val);
+        format(string, sizeof(string), "** Du hast das Level von %s auf %d gesetzt.", _getName(giveplayerid), val);
         SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat dein Level auf %d gesetzt.", GetName(playerid), val);
+		format(string, sizeof(string), "** %s hat dein Level auf %d gesetzt.", _getName(playerid), val);
 		SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** %s hat das Level von %s auf %d gesetzt", GetName(playerid), GetName(giveplayerid), val);
-    	Log2File("admin", string);
+		format(string, sizeof(string), "** %s hat das Level von %s auf %d gesetzt", _getName(playerid), _getName(giveplayerid), val);
+    	_logToFile("admin", string);
     }
 
 	else if(strcmp(param, "faction",  true) == 0) {
@@ -2236,54 +2235,54 @@ YCMD:set(playerid, params[], help)
 
 		switch(val) {
 			case 1: {
-				format(string, sizeof(string), "** Du hast %s der Fraktion Polizei zugeordnet.", GetName(giveplayerid));
+				format(string, sizeof(string), "** Du hast %s der Fraktion Polizei zugeordnet.", _getName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat dich der Fraktion Polizei zugeordnet.", GetName(playerid));
+				format(string, sizeof(string), "** %s hat dich der Fraktion Polizei zugeordnet.", _getName(playerid));
 				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat %s der Fraktion Polizei zugeordnet.", GetName(playerid), GetName(giveplayerid));
-	    		Log2File("admin", string);
+				format(string, sizeof(string), "** %s hat %s der Fraktion Polizei zugeordnet.", _getName(playerid), _getName(giveplayerid));
+	    		_logToFile("admin", string);
 			}
 			case 2: {
-				format(string, sizeof(string), "** Du hast %s der Fraktion Arzt zugeordnet.", GetName(giveplayerid));
+				format(string, sizeof(string), "** Du hast %s der Fraktion Arzt zugeordnet.", _getName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat dich der Fraktion Arzt zugeordnet.", GetName(playerid));
+				format(string, sizeof(string), "** %s hat dich der Fraktion Arzt zugeordnet.", _getName(playerid));
 				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat %s der Fraktion Arzt zugeordnet.", GetName(playerid), GetName(giveplayerid));
-	    		Log2File("admin", string);
+				format(string, sizeof(string), "** %s hat %s der Fraktion Arzt zugeordnet.", _getName(playerid), _getName(giveplayerid));
+	    		_logToFile("admin", string);
 			}
 			case 3: {
-			    format(string, sizeof(string), "** Du hast %s der Fraktion Fahrschule zugeordnet.", GetName(giveplayerid));
+			    format(string, sizeof(string), "** Du hast %s der Fraktion Fahrschule zugeordnet.", _getName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat dich der Fraktion Fahrschule zugeordnet.", GetName(playerid));
+				format(string, sizeof(string), "** %s hat dich der Fraktion Fahrschule zugeordnet.", _getName(playerid));
 				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat %s der Fraktion Fahrschule zugeordnet.", GetName(playerid), GetName(giveplayerid));
-	    		Log2File("admin", string);
+				format(string, sizeof(string), "** %s hat %s der Fraktion Fahrschule zugeordnet.", _getName(playerid), _getName(giveplayerid));
+	    		_logToFile("admin", string);
 			}
 			case 4: {
-			    format(string, sizeof(string), "** Du hast %s der Fraktion ADAC zugeordnet.", GetName(giveplayerid));
+			    format(string, sizeof(string), "** Du hast %s der Fraktion ADAC zugeordnet.", _getName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat dich der Fraktion ADAC zugeordnet.", GetName(playerid));
+				format(string, sizeof(string), "** %s hat dich der Fraktion ADAC zugeordnet.", _getName(playerid));
 				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat %s der Fraktion ADAC zugeordnet.", GetName(playerid), GetName(giveplayerid));
-	    		Log2File("admin", string);
+				format(string, sizeof(string), "** %s hat %s der Fraktion ADAC zugeordnet.", _getName(playerid), _getName(giveplayerid));
+	    		_logToFile("admin", string);
 			}
 			case 5: {
-				format(string, sizeof(string), "** Du hast %s der Fraktion Taxifahrer zugeordnet.", GetName(giveplayerid));
+				format(string, sizeof(string), "** Du hast %s der Fraktion Taxifahrer zugeordnet.", _getName(giveplayerid));
 		        SendClientMessage(playerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat dich der Fraktion Taxifahrer zugeordnet.", GetName(playerid));
+				format(string, sizeof(string), "** %s hat dich der Fraktion Taxifahrer zugeordnet.", _getName(playerid));
 				SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-				format(string, sizeof(string), "** %s hat %s der Fraktion Taxifahrer zugeordnet.", GetName(playerid), GetName(giveplayerid));
-	    		Log2File("admin", string);
+				format(string, sizeof(string), "** %s hat %s der Fraktion Taxifahrer zugeordnet.", _getName(playerid), _getName(giveplayerid));
+	    		_logToFile("admin", string);
 			}
 			default: return SendClientMessage(playerid, COLOR_PURPLE, "** Ungültige Fraktions-ID.");
 		}
@@ -2293,14 +2292,14 @@ YCMD:set(playerid, params[], help)
     else if(strcmp(param, "rank",  true) == 0) {
         pStats[giveplayerid][pFactionRank] = val;
 
-		format(string, sizeof(string), "** Du hast %s den Rang %d seiner Fraktion gegeben.", GetName(giveplayerid), val);
+		format(string, sizeof(string), "** Du hast %s den Rang %d seiner Fraktion gegeben.", _getName(giveplayerid), val);
        	SendClientMessage(playerid, COLOR_PURPLE, string);
 
-		format(string, sizeof(string), "** Administrator %s hat dir den Rang %d deiner Fraktion gegeben.", GetName(playerid), val);
+		format(string, sizeof(string), "** Administrator %s hat dir den Rang %d deiner Fraktion gegeben.", _getName(playerid), val);
         SendClientMessage(giveplayerid, COLOR_PURPLE, string);
 
-        format(string, sizeof(string), "** %s hat %s den Rang %d seiner Fraktion gegeben.", GetName(playerid), val, GetName(giveplayerid));
-   		Log2File("admin", string);
+        format(string, sizeof(string), "** %s hat %s den Rang %d seiner Fraktion gegeben.", _getName(playerid), val, _getName(giveplayerid));
+   		_logToFile("admin", string);
 
 		SpawnPlayer(giveplayerid);
     }
@@ -2319,13 +2318,13 @@ YCMD:set(playerid, params[], help)
 
     GivePlayerWeapon(id, weapon, ammo);
 
-    format(string, sizeof(string), "** Administrator %s hat dir die Waffe mit der ID %d gegeben.", GetName(playerid), weapon);
+    format(string, sizeof(string), "** Administrator %s hat dir die Waffe mit der ID %d gegeben.", _getName(playerid), weapon);
     SendClientMessage(id, COLOR_PURPLE, string);
 
-format(string, sizeof(string), "** Du hast %s die Waffe mit der ID %d gegeben.", GetName(id), weapon);
+format(string, sizeof(string), "** Du hast %s die Waffe mit der ID %d gegeben.", _getName(id), weapon);
 SendClientMessage(playerid, COLOR_PURPLE, string);
 
-format(string, sizeof(string), "** Administrator %s hat %s die Waffe mit der ID %d gegeben.", GetName(playerid), GetName(id), weapon);
+format(string, sizeof(string), "** Administrator %s hat %s die Waffe mit der ID %d gegeben.", _getName(playerid), _getName(id), weapon);
 return true;
 }*/
 
@@ -2337,9 +2336,9 @@ YCMD:announce(playerid, params[], help)
     if(pStats[playerid][pAdminLevel] < 3)       return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_ADMIN_CMD);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /(ann)ounce [Nachricht]");
 
-	foreach(Player, i) ClearChat(i);
+	foreach(Player, i) _clearChat(i);
 
-    format(string, sizeof(string), "*** WICHTIGE Ankündigung von Administrator %s ***", GetName(playerid));
+    format(string, sizeof(string), "*** WICHTIGE Ankündigung von Administrator %s ***", _getName(playerid));
     SendClientMessageToAll(COLOR_PURPLE, string);
     SendClientMessageToAll(COLOR_PURPLE, " ");
     format(string, sizeof(string), "%s", params);
@@ -2347,8 +2346,8 @@ YCMD:announce(playerid, params[], help)
     SendClientMessageToAll(COLOR_PURPLE, " ");
     SendClientMessageToAll(COLOR_PURPLE, "**************************************************************");
 
-	format(string, sizeof(string), "** Admin %s [/announce]: %s", GetName(playerid), params);
-    Log2File("admin", string);
+	format(string, sizeof(string), "** Admin %s [/announce]: %s", _getName(playerid), params);
+    _logToFile("admin", string);
     return true;
 }
 
@@ -2402,19 +2401,19 @@ YCMD:admins(playerid, params[], help)
     foreach(Player, i) {
         if(pStats[i][pAdminLevel] >= 1) {
             if(GetPVarInt(i, "AdminDuty") == 0 && GetPVarInt(i, "AFKStatus") == 1) {
-                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d) [AFK] [Off-Duty]", GetName(i), i, pStats[i][pAdminLevel]);
+                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d) [AFK] [Off-Duty]", _getName(i), i, pStats[i][pAdminLevel]);
                 SendClientMessage(playerid, COLOR_GREY, string);
             }
             else if(GetPVarInt(i, "AdminDuty") == 0 && GetPVarInt(i, "AFKStatus") == 0) {
-                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d) [Off-Duty]", GetName(i), i, pStats[i][pAdminLevel]);
+                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d) [Off-Duty]", _getName(i), i, pStats[i][pAdminLevel]);
                 SendClientMessage(playerid, COLOR_GREY, string);
             }
             else if(GetPVarInt(i, "AdminDuty") == 1 && GetPVarInt(i, "AFKStatus") == 1) {
-                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d) [AFK]", GetName(i), i, pStats[i][pAdminLevel]);
+                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d) [AFK]", _getName(i), i, pStats[i][pAdminLevel]);
                 SendClientMessage(playerid, COLOR_GREY, string);
             }
             else {
-                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d)", GetName(i), i, pStats[i][pAdminLevel]);
+                format(string, sizeof(string), "* Administrator %s [ID: %d] (AdminLevel: %d)", _getName(i), i, pStats[i][pAdminLevel]);
                 SendClientMessage(playerid, COLOR_WHITE, string);
             }
         }
@@ -2470,21 +2469,21 @@ YCMD:adminchat(playerid, params[], help)
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /a(dminchat) [Nachricht]");
 
 	if(pStats[playerid][pAdminLevel] >= 1) {
-        format(string, sizeof(string), "[ ** %s: %s ]", GetName(playerid), params);
+        format(string, sizeof(string), "[ ** %s: %s ]", _getName(playerid), params);
         _sendAdminMessage(COLOR_PURPLE, string, false);
 
-       	format(string, sizeof(string), "[ADMIN] %s: %s", GetName(playerid), params);
-    	Log2File("chat", string);
+       	format(string, sizeof(string), "[ADMIN] %s: %s", _getName(playerid), params);
+    	_logToFile("chat", string);
 	}
 	else {
-        format(string, sizeof(string), "[ ** %s [ID: %d]: %s ]", GetName(playerid), playerid, params);
+        format(string, sizeof(string), "[ ** %s [ID: %d]: %s ]", _getName(playerid), playerid, params);
         _sendAdminMessage(COLOR_RED, string, false);
         SendClientMessage(playerid, COLOR_RED, string);
 
-       	format(string, sizeof(string), "[SUPPORT] %s: %s", GetName(playerid), params);
-    	Log2File("chat", string);
+       	format(string, sizeof(string), "[SUPPORT] %s: %s", _getName(playerid), params);
+    	_logToFile("chat", string);
 	}
-    Log2File("chat", string);
+    _logToFile("chat", string);
     return true;
 }
 
@@ -2496,14 +2495,14 @@ YCMD:s(playerid, params[], help)
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /s [Nachricht]");
 
-    format(string, sizeof(string), "%s schreit: %s!!", GetNameEx(playerid), params);
+    format(string, sizeof(string), "%s schreit: %s!!", _getNameEx(playerid), params);
     _sendNearByMessage(playerid, 2.5, string);
 
     format(string, sizeof(string), "%s!!", params);
 	SetPlayerChatBubble(playerid, string, COLOR_WHITE, 15.0, 4000);
 
-	format(string, sizeof(string), "[S] %s schreit: %s!!", GetName(playerid), params);
-    Log2File("chat", string);
+	format(string, sizeof(string), "[S] %s schreit: %s!!", _getName(playerid), params);
+    _logToFile("chat", string);
     return true;
 }
 
@@ -2515,11 +2514,11 @@ YCMD:b(playerid, params[], help)
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /b [Nachricht]");
 
-    format(string, sizeof(string), "(( %s: %s ))", GetNameEx(playerid), params);
+    format(string, sizeof(string), "(( %s: %s ))", _getNameEx(playerid), params);
     _sendNearByMessage(playerid, 1.0, string);
 
-	format(string, sizeof(string), "[B] (( %s: %s ))", GetName(playerid), params);
-    Log2File("chat", string);
+	format(string, sizeof(string), "[B] (( %s: %s ))", _getName(playerid), params);
+    _logToFile("chat", string);
     return true;
 }
 
@@ -2531,11 +2530,11 @@ YCMD:me(playerid, params[], help)
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /me [Aktion]");
 
-    format(string, sizeof(string), "* %s %s", GetNameEx(playerid), params);
+    format(string, sizeof(string), "* %s %s", _getNameEx(playerid), params);
     _sendNearByMessage(playerid, 1, string);
 
-	format(string, sizeof(string), "[ME] %s %s", GetName(playerid), params);
-    Log2File("chat", string);
+	format(string, sizeof(string), "[ME] %s %s", _getName(playerid), params);
+    _logToFile("chat", string);
     return true;
 }
 
@@ -2547,11 +2546,11 @@ YCMD:ooc(playerid, params[], help)
     if(GetPVarInt(playerid, "Authentication") != 1)                             return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
     if(isnull(params))                          return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /o(oc) [Nachricht]");
 
-    format(string, sizeof(string), "[OOC] %s: %s", GetNameEx(playerid), params);
+    format(string, sizeof(string), "[OOC] %s: %s", _getNameEx(playerid), params);
     SendClientMessageToAll(COLOR_WHITE, string);
 
-	format(string, sizeof(string), "[OOC] %s: %s", GetName(playerid), params);
-    Log2File("chat", string);
+	format(string, sizeof(string), "[OOC] %s: %s", _getName(playerid), params);
+    _logToFile("chat", string);
     return true;
 }
 
@@ -2563,7 +2562,7 @@ YCMD:givecash(playerid, params[], help)
     if(GetPVarInt(giveplayerid, "Authentication") != 1) return SendClientMessage(playerid, COLOR_RED, ERRORMESSAGE_USER_NOTLOGGEDIN);
     if(sscanf(params, "ud", giveplayerid, amount))      return SendClientMessage(playerid, COLOR_GREY,  "* Verwendung: /givecash [SpielerID] [Menge]");
     if(playerid == giveplayerid) {
-		format(string, sizeof(string), "* %s holt eine Münze aus der Tasche und spielt damit.", GetName(playerid), GetName(giveplayerid));
+		format(string, sizeof(string), "* %s holt eine Münze aus der Tasche und spielt damit.", _getName(playerid), _getName(giveplayerid));
 		_sendNearByMessage(playerid, 1.0, string);
 		return true;
 	}
@@ -2574,16 +2573,16 @@ YCMD:givecash(playerid, params[], help)
 	GivePlayerCash(playerid, -amount);
     GivePlayerCash(giveplayerid, amount);
 
-	format(string, sizeof(string), "* %s holt Geld aus der Tasche und gibt es %s.", GetName(playerid), GetName(giveplayerid));
+	format(string, sizeof(string), "* %s holt Geld aus der Tasche und gibt es %s.", _getName(playerid), _getName(giveplayerid));
    	_sendNearByMessage(playerid, 1.0, string);
 
-	format(string, sizeof(string), "[GIVECASH] %s - $%d - %s.", GetName(playerid), amount, GetName(giveplayerid));
-   	Log2File("money", string);
+	format(string, sizeof(string), "[GIVECASH] %s - $%d - %s.", _getName(playerid), amount, _getName(giveplayerid));
+   	_logToFile("money", string);
 
-    format(string, sizeof(string), "* Du hast %s $%d gegeben.", GetName(giveplayerid), amount);
+    format(string, sizeof(string), "* Du hast %s $%d gegeben.", _getName(giveplayerid), amount);
     SendClientMessage(playerid, COLOR_OOC, string);
 
-    format(string, sizeof(string), "* Du hast $%d von %s bekommen.", amount, GetName(playerid), playerid);
+    format(string, sizeof(string), "* Du hast $%d von %s bekommen.", amount, _getName(playerid), playerid);
     SendClientMessage(giveplayerid, COLOR_OOC, string);
     return true;
 }
@@ -2629,6 +2628,7 @@ YCMD:duty(playerid, params[], help)
 	return true;
 }
 
+
 /*
 YCMD:radio(playerid, params[], help)
 {
@@ -2636,7 +2636,7 @@ YCMD:radio(playerid, params[], help)
     if(sscanf(params, "us[128]d", giveplayerid, param, val))                     return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /radio [Frequenz] [Text]"),
                                                                                 	    SendClientMessage(playerid, COLOR_GREY, "* Frequenz ist ein optionaler Parameter.");
 
-	format(string, sizeof(string, "[RADIO] %s: %s", GetName(playerid), params);
+	format(string, sizeof(string, "[RADIO] %s: %s", _getName(playerid), params);
 	_sendFactionMessage(COLOR_WHITE, string, 1),
 	return true;
 }
