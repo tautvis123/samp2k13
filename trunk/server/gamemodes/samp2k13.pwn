@@ -186,7 +186,7 @@ public OnGameModeInit()
     mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_DB, MYSQL_PASS);
 	mysql_set_charset("latin1_german1_ci");
 	mysql_function_query(MYSQL_DBHANDLE, "SELECT * FROM `configuration`", true, "_OnMySQLConfigurationLoad", "");
-	mysql_function_query(MYSQL_DBHANDLE, "SELECT * FROM `vehicles`", true, "_OnMySQLVehicleDataLoad", "");
+	mysql_function_query(MYSQL_DBHANDLE, "SELECT * FROM `vehicles` ORDER BY `vehicleid` ASC", true, "_OnMySQLVehicleDataLoad", "");
 
     foreach(Player, i) OnPlayerConnect(i);
     SetTimer("_OnWeatherChange", 2700007, true); // 45min
@@ -399,8 +399,18 @@ public OnPlayerDeath(playerid, killerid, reason)
 }
 
 
-public OnVehicleSpawn(vehicleid) return true;
-public OnVehicleDeath(vehicleid, killerid) return true;
+public OnVehicleSpawn(vehicleid)
+{
+	for(new i = 0; i < 10; i++)	if(vehicleid != vVehicles[i][vVehicleID]) DestroyVehicle(vehicleid);
+	return true;
+}
+
+public OnVehicleDeath(vehicleid, killerid)
+{
+	format(querystring, sizeof(querystring), "DELETE FROM `vehicles` WHERE `plate` = '%s'", vVehicles[vehicleid][vPlate]);
+	mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
+	return true;
+}
 
 
 public OnPlayerText(playerid, text[])
@@ -1124,14 +1134,16 @@ YCMD:loadcar(playerid, params[], help)
 public _OnMySQLVehicleDataSave(vehicleid)
 {
 	new dmg[9];
+	
+	vVehicles[vehicleid][vVehicleID] = vehicleid;
 	GetVehiclePos(vehicleid, 			vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ]);
 	GetVehicleZAngle(vehicleid, 		vVehicles[vehicleid][vPosA]);
 	GetVehicleHealth(vehicleid, 		vVehicles[vehicleid][vHealth]);
 
-	_getVehiclePanelDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	format(vVehicles[vehicleid][vPanelDamage], 	14, "%d|%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
-	_getVehicleDoorDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 			format(vVehicles[vehicleid][vDoorDamage], 	12, "%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
-	_getVehicleLightDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vLightDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
-	_getVehicleTireDamageStatus(vehicleid, dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vTireDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
+	_getVehiclePanelDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	format(vVehicles[vehicleid][vPanelDamage], 	14, "%d|%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
+	_getVehicleDoorDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 			format(vVehicles[vehicleid][vDoorDamage], 	12, "%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
+	_getVehicleLightDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vLightDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
+	_getVehicleTireDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vTireDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
 
 	new bigstring[2048];
     format(bigstring, sizeof(bigstring), "UPDATE `vehicles` SET `vehicleid` = '%d', `owner` = '%s', `model` = '%d', `health` = '%f', `panelDamage` = '%s', `doorDamage` = '%s', \
@@ -1546,8 +1558,7 @@ public _OnObjectsCreate()
 	CreateObject(970, 1490.5, -1704.30005, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1490.5, -1700.09998, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1490.5, -1695.90002, 12.9, 0, 0, 269.995);
-	CreateObject(970, 1490.5, -1691.69995, 12.9, 0, 0, 269.995);
-	CreateObject(970, 1490.5, -1687.5, 12.9, 0, 0, 269.995);
+	CreateObject(970, 1490.5, -1686.5, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1490.5, -1683.30005, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1490.5, -1679.09998, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1490.5, -1674.90002, 12.9, 0, 0, 269.995);
@@ -1556,7 +1567,7 @@ public _OnObjectsCreate()
 	CreateObject(970, 1490.5, -1662.30005, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1490.5, -1658.09998, 12.9, 0, 0, 269.995);
 	CreateObject(970, 1492.59998, -1656, 12.9, 0, 0, 179.995);
-	CreateObject(970, 1496.80005, -1656, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1496.7998, -1656, 12.9, 0, 0, 179.995);
 	CreateObject(970, 1501, -1656, 12.9, 0, 0, 179.995);
 	CreateObject(970, 1505.19995, -1656, 12.9, 0, 0, 179.995);
 	CreateObject(970, 1509.40002, -1656, 12.9, 0, 0, 179.995);
@@ -1581,9 +1592,9 @@ public _OnObjectsCreate()
 	CreateObject(1229, 1524, -1655.90002, 15, 0, 0, 154);
 	CreateObject(2942, 1520.40002, -1656.40002, 13, 0, 0, 90.25);
 	CreateObject(1346, 1520.80005, -1662.19995, 13.7, 0, 0, 90.75);
-	CreateObject(8569, 1474.59998, -1718.40002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59961, -1718.39941, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1454.59998, -1718.40002, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1514.59998, -1642, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1514.59961, -1642, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1514.59998, -1624.09998, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1514.59998, -1606.30005, 9.6, 0, 0, 359.995);
 	CreateObject(8168, 1546.69995, -1633.30005, 14.2, 0, 0, 197);
@@ -1594,14 +1605,13 @@ public _OnObjectsCreate()
 	CreateObject(8569, 1494.59998, -1606.30005, 9.6, 0, 0, 359.995);
 	CreateObject(8068, 1407.90002, -1682.40002, 19.3, 0, 0, 0);
 	CreateObject(2984, 1404.40002, -1705.09998, 13.9, 0, 0, 270);
-	CreateObject(2984, 1405.80005, -1705.09998, 13.9, 0, 0, 269.5);
+	CreateObject(2984, 1405.80005, -1705.09998, 13.9, 0, 0, 269.495);
 	CreateObject(2984, 1407.19995, -1705.09998, 13.9, 0, 0, 269.495);
 	CreateObject(2984, 1404.40002, -1704.19995, 13.9, 0, 0, 270);
 	CreateObject(8569, 1474.69995, -1606.30005, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1454.69995, -1606.19995, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.69995, -1606.30005, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1444.5, -1606.19995, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1444.5, -1624.09998, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1444.5, -1642, 9.6, 0, 0, 359.995);
 	CreateObject(17950, 1544.30005, -1613.90002, 14.6, 0, 0, 270);
 	CreateObject(17950, 1544.30005, -1606.19995, 14.6, 0, 0, 270);
 	CreateObject(14826, 1544.19995, -1606.09998, 13.1, 0, 0, 0);
@@ -1620,9 +1630,9 @@ public _OnObjectsCreate()
 	CreateObject(640, 1523.69995, -1684.30005, 13.1, 0, 0, 0);
 	CreateObject(3660, 1492, -1717.09998, 15, 0, 0, 270);
 	CreateObject(18284, 1604.19995, -1617.5, 15.3, 0, 0, 359.75);
-	CreateObject(3660, 1492, -1697.5, 15, 0, 0, 269.997);
-	CreateObject(3660, 1492, -1677.90002, 15, 0, 0, 269.995);
-	CreateObject(3660, 1492, -1666.19995, 15, 0, 0, 269.995);
+	CreateObject(3660, 1492, -1703.80005, 15, 0, 0, 269.995);
+	CreateObject(3660, 1492, -1678.59998, 15, 0, 0, 269.995);
+	CreateObject(3660, 1492, -1666.19922, 15, 0, 0, 269.995);
 	CreateObject(18264, 1446.5, -1605.09998, 12.4, 0, 0, 0);
 	CreateObject(17521, 1445, -1629.59998, 15.9, 0, 0, 270);
 	CreateObject(10982, 1441.19995, -1669.40002, 18.4, 0, 0, 270);
@@ -1635,54 +1645,22 @@ public _OnObjectsCreate()
 	CreateObject(8569, 1474.59998, -1682.69995, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1454.59998, -1682.69995, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1444.5, -1682.59998, 9.6, 0, 0, 359.995);
-	CreateObject(5409, 1467, -1691.90002, 16.9, 0, 0, 270);
-	CreateObject(4100, 1455.90002, -1681.19995, 14.1, 0, 0, 320);
-	CreateObject(4100, 1442.19995, -1681.09998, 14.1, 0, 0, 319.999);
-	CreateObject(970, 1488.40002, -1681.40002, 12.9, 0, 0, 359.995);
-	CreateObject(970, 1484.19995, -1681.40002, 12.9, 0, 0, 359.989);
-	CreateObject(970, 1480, -1681.40002, 12.9, 0, 0, 359.989);
-	CreateObject(970, 1475.80005, -1681.40002, 12.9, 0, 0, 359.989);
-	CreateObject(970, 1471.59998, -1681.40002, 12.9, 0, 0, 359.989);
-	CreateObject(3465, 1466.80005, -1714.69995, 13.9, 0, 0, 89.995);
-	CreateObject(3465, 1474, -1714.69995, 13.9, 0, 0, 89.994);
-	CreateObject(970, 1480.30005, -1727.30005, 12.9, 0, 0, 0);
-	CreateObject(970, 1476.09998, -1727.30005, 12.9, 0, 0, 0);
-	CreateObject(970, 1471.90002, -1727.30005, 12.9, 0, 0, 0);
-	CreateObject(970, 1467.69995, -1727.30005, 12.9, 0, 0, 0);
-	CreateObject(970, 1463.5, -1727.30005, 12.9, 0, 0, 0);
-	CreateObject(970, 1459.30005, -1727.30005, 12.9, 0, 0, 0);
-	CreateObject(970, 1482.40002, -1725.19995, 12.9, 0, 0, 270);
-	CreateObject(970, 1478.19995, -1725.19995, 12.9, 0, 0, 270);
-	CreateObject(970, 1480.30005, -1723.09998, 12.9, 0, 0, 0);
-	CreateObject(1267, 1480.09998, -1726.09998, 28.5, 0, 0, 174);
-	CreateObject(7309, 1480.30005, -1726.80005, 33.5, 0, 0, 86.75);
-	CreateObject(1413, 1479.90002, -1695.90002, 13.7, 0, 0, 0);
-	CreateObject(1412, 1479.80005, -1690.19995, 13.7, 0, 0, 0);
-	CreateObject(1331, 1478.59998, -1694.80005, 13.3, 0, 0, 0);
-	CreateObject(1333, 1480.80005, -1694.80005, 13.3, 0, 0, 0);
-	CreateObject(1334, 1478.5, -1691.09998, 13.5, 0, 0, 0);
-	CreateObject(1335, 1481.09998, -1691.09998, 13.5, 0, 0, 0);
-	CreateObject(1221, 1477.5, -1692.30005, 12.9, 0, 0, 0);
 	CreateObject(3465, 1604.19995, -1620.30005, 13.9, 0, 0, 270);
 	CreateObject(3465, 1604.19995, -1614.80005, 13.9, 0, 0, 270);
 	CreateObject(3465, 1604, -1609.5, 13.9, 0, 0, 270);
-	CreateObject(8230, 1455.40002, -1632.80005, 14.4, 0, 0, 180);
-	CreateObject(3873, 1468.40002, -1660.5, 29.7, 0, 0, 0);
-	CreateObject(4021, 1520.69995, -1594.59998, 43.9, 0, 0, 180);
-	CreateObject(8569, 1454.69995, -1624.09998, 9.6, 0, 0, 359.995);
+	CreateObject(3873, 1466.59998, -1703.09998, 29.7, 0, 0, 0);
+	CreateObject(4021, 1453.69995, -1624.19995, 18.9, 0, 0, 89.995);
+	CreateObject(8569, 1454.69995, -1611.09998, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1474.59998, -1664.80005, 9.6, 0, 0, 359.995);
-	CreateObject(5729, 1494.30005, -1608.09998, 14.7, 0, 0, 90);
+	CreateObject(5729, 1495.09998, -1607.90002, 14.7, 0, 0, 90);
 	CreateObject(8569, 1494.59998, -1646.80005, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1494.59998, -1628.90002, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1494.69995, -1624.19995, 9.6, 0, 0, 359.995);
 	CreateObject(8569, 1474.69995, -1611.09998, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1474.59998, -1646.90002, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1474.59998, -1629, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1454.59998, -1664.80005, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1454.69995, -1647, 9.6, 0, 0, 359.995);
-	CreateObject(8569, 1454.90002, -1637.40002, 9.6, 0, 0, 359.995);
-	CreateObject(1447, 1467.30005, -1623.80005, 13.7, 0, 0, 0);
-	CreateObject(1447, 1469.80005, -1621.09998, 13.7, 0, 0, 272);
+	CreateObject(8569, 1464, -1646.90002, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1474.59961, -1629, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.59961, -1664.7998, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1444.5, -1642, 9.6, 0, 0, 359.995);
+	CreateObject(8569, 1454.59998, -1629, 9.6, 0, 0, 359.995);
 	CreateObject(4638, 1518.09998, -1667.59998, 14.1, 0, 0, 180);
 	CreateObject(640, 1521.59998, -1674.90002, 13.1, 0, 0, 91);
 	CreateObject(640, 1515.90002, -1675, 13.1, 0, 0, 91);
@@ -1696,30 +1674,93 @@ public _OnObjectsCreate()
 	CreateObject(640, 1507.80005, -1712.09998, 13.1, 0, 0, 0);
 	CreateObject(970, 1501, -1727.40002, 12.9, 0, 0, 0);
 	CreateObject(970, 1505.19995, -1727.40002, 12.9, 0, 0, 0);
-	CreateObject(616, 1490.59998, -1637.59998, 12.4, 0, 0, 0);
-	CreateObject(617, 1503.19995, -1637.90002, 12.4, 0, 0, 0);
-	CreateObject(616, 1515, -1637.5, 12.4, 0, 0, 0);
-	CreateObject(1280, 1517, -1637.19995, 12.8, 0, 0, 181);
-	CreateObject(997, 1512.90002, -1638.80005, 12.4, 0, 0, 90.75);
-	CreateObject(997, 1513, -1639.09998, 12.4, 0, 0, 0);
-	CreateObject(997, 1513.09998, -1635.40002, 12.4, 0, 0, 0);
-	CreateObject(997, 1516.5, -1638.80005, 12.4, 0, 0, 90.747);
-	CreateObject(647, 1514.80005, -1636.40002, 14.2, 0, 0, 0);
-	CreateObject(647, 1515.30005, -1638.09998, 14.2, 0, 0, 0);
-	CreateObject(997, 1501.80005, -1639.40002, 12.4, 0, 0, 0);
-	CreateObject(997, 1505.19995, -1639.30005, 12.4, 0, 0, 90.747);
-	CreateObject(997, 1501.59998, -1639.40002, 12.4, 0, 0, 90.747);
-	CreateObject(997, 1501.80005, -1636, 12.4, 0, 0, 0);
-	CreateObject(647, 1503.30005, -1638.19995, 14.6, 0, 0, 0);
-	CreateObject(647, 1504.09998, -1638.09998, 13.8, 0, 0, 0);
-	CreateObject(997, 1488.80005, -1639.19995, 12.4, 0, 0, 0);
-	CreateObject(997, 1492.30005, -1639, 12.4, 0, 0, 90.747);
-	CreateObject(997, 1488.90002, -1635.69995, 12.4, 0, 0, 0);
-	CreateObject(997, 1488.59998, -1639, 12.4, 0, 0, 90.747);
-	CreateObject(647, 1489.69995, -1638.09998, 14.2, 0, 0, 0);
-	CreateObject(647, 1491.5, -1638.30005, 14.2, 0, 0, 0);
-	CreateObject(1280, 1505.5, -1637.69995, 12.8, 0, 0, 181);
-	CreateObject(1280, 1493, -1637.40002, 12.8, 0, 0, 181);
+	CreateObject(1361, 1490.59998, -1691.19995, 13.1, 0, 0, 0);
+	CreateObject(4018, 1516.40002, -1622.59998, 12.4, 0, 0, 89.75);
+	CreateObject(3660, 1502.30005, -1657.59998, 15, 0, 0, 180.245);
+	CreateObject(970, 1488.40002, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1484.19995, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1480, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1475.80005, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1471.59998, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1467.40002, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1463.19995, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1459, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1454.80005, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(970, 1450.59998, -1674.90002, 12.9, 0, 0, 179.995);
+	CreateObject(17526, 1480.09998, -1644.69995, 14.6, 0, 0, 180);
+	CreateObject(989, 1470.5, -1621.30005, 14.2, 0, 0, 197.75);
+	CreateObject(8569, 1494.69995, -1611, 9.6, 0, 0, 359.995);
+	CreateObject(800, 1502.69995, -1654.69995, 14.5, 0, 0, 0);
+	CreateObject(800, 1499, -1654.30005, 13.8, 0, 0, 0);
+	CreateObject(800, 1496.40002, -1654.69995, 14.6, 0, 0, 0);
+	CreateObject(800, 1493.09998, -1655, 14, 0, 0, 0);
+	CreateObject(993, 1499.69995, -1650.80005, 14, 0, 0, 0);
+	CreateObject(993, 1489.69995, -1650.80005, 14, 0, 0, 0);
+	CreateObject(800, 1488.80005, -1668.80005, 13.8, 0, 0, 0);
+	CreateObject(800, 1488.19995, -1673.19995, 14.3, 0, 0, 0);
+	CreateObject(800, 1483, -1673.30005, 14.3, 0, 0, 0);
+	CreateObject(800, 1478.09998, -1673.19995, 14, 0, 0, 0);
+	CreateObject(800, 1473.40002, -1673.19995, 14.3, 0, 0, 0);
+	CreateObject(800, 1468.59998, -1673.19995, 14, 0, 0, 0);
+	CreateObject(800, 1463.90002, -1673.30005, 14, 0, 0, 0);
+	CreateObject(800, 1459.09998, -1673.19995, 14, 0, 0, 0);
+	CreateObject(800, 1454.30005, -1673.30005, 14, 0, 0, 0);
+	CreateObject(800, 1450.30005, -1673.30005, 14, 0, 0, 0);
+	CreateObject(1332, 1484.59998, -1666.30005, 13.5, 0, 0, 180);
+	CreateObject(1333, 1482.40002, -1666.19995, 13.3, 0, 0, 0);
+	CreateObject(1334, 1479.59998, -1666.40002, 13.5, 0, 0, 182);
+	CreateObject(1344, 1477.30005, -1666.30005, 13.2, 0, 0, 0);
+	CreateObject(992, 1470.69995, -1667.40002, 14, 0, 0, 89.5);
+	CreateObject(1221, 1475.19995, -1666.5, 12.9, 0, 0, 0);
+	CreateObject(1230, 1475.5, -1667.30005, 12.8, 0, 0, 0);
+	CreateObject(1265, 1474.40002, -1666.19995, 12.9, 0, 0, 0);
+	CreateObject(792, 1484.09998, -1724.09998, 12.8, 0, 0, 0);
+	CreateObject(792, 1477.19995, -1724.09998, 12.8, 0, 0, 0);
+	CreateObject(792, 1470.30005, -1724.09998, 12.8, 0, 0, 0);
+	CreateObject(792, 1438.19995, -1695.90002, 12.8, 0, 0, 0);
+	CreateObject(792, 1438.09998, -1702.69995, 12.8, 0, 0, 0);
+	CreateObject(792, 1438.09998, -1710.09998, 12.8, 0, 0, 0);
+	CreateObject(792, 1438, -1717.30005, 12.8, 0, 0, 0);
+	CreateObject(792, 1438, -1724.19995, 12.8, 0, 0, 0);
+	CreateObject(792, 1444.19995, -1724.30005, 12.8, 0, 0, 0);
+	CreateObject(792, 1450.69995, -1724.19995, 12.8, 0, 0, 0);
+	CreateObject(792, 1457.09998, -1724.09998, 12.8, 0, 0, 0);
+	CreateObject(792, 1463.80005, -1724.09998, 12.8, 0, 0, 0);
+	CreateObject(5822, 1577.19995, -1639.69995, 21, 0, 0, 273);
+	CreateObject(910, 1446.80005, -1637.90002, 13.7, 0, 0, 87.75);
+	CreateObject(854, 1447.40002, -1645.30005, 12.5, 0, 0, 0);
+	CreateObject(850, 1459.19995, -1639, 12.5, 0, 0, 0);
+	CreateObject(2971, 1452.40002, -1638.19995, 12.4, 0, 0, 0);
+	CreateObject(2968, 1453.69995, -1637.40002, 12.7, 0, 0, 0);
+	CreateObject(2890, 1451.69995, -1649.09998, 12.4, 0, 0, 89.75);
+	CreateObject(1441, 1456.09998, -1637.5, 13, 0, 0, 0);
+	CreateObject(1440, 1447.80005, -1646.09998, 12.9, 0, 0, 160);
+	CreateObject(1439, 1449.59998, -1637.19995, 12.4, 0, 0, 0);
+	CreateObject(1438, 1452.30005, -1642.40002, 12.4, 0, 0, 0);
+	CreateObject(1415, 1446.59998, -1640.09998, 12.5, 0, 0, 88);
+	CreateObject(1372, 1446.69995, -1642.30005, 12.4, 0, 0, 88.75);
+	CreateObject(1349, 1452.09998, -1640.69995, 12.9, 356.002, 177.995, 355.86);
+	CreateObject(1265, 1456.09998, -1646.69995, 12.9, 0, 0, 0);
+	CreateObject(1264, 1457, -1646.19995, 12.9, 0, 0, 0);
+	CreateObject(2673, 1456.09998, -1643.59998, 12.5, 0, 0, 0);
+	CreateObject(2671, 1451, -1645.19995, 12.4, 0, 0, 0);
+	CreateObject(1413, 1460.19995, -1643.30005, 13.7, 0, 0, 89);
+	CreateObject(1413, 1457.5, -1647.30005, 13.7, 0, 0, 0);
+	CreateObject(1413, 1452.19995, -1647.30005, 13.7, 0, 0, 0);
+	CreateObject(1413, 1446.90002, -1647.30005, 13.7, 0, 0, 0);
+	CreateObject(1364, 1487.59998, -1676.59998, 13.2, 0, 0, 0);
+	CreateObject(1364, 1481, -1676.5, 13.2, 0, 0, 0);
+	CreateObject(1364, 1474.59998, -1676.5, 13.2, 0, 0, 0);
+	CreateObject(1364, 1468.30005, -1676.40002, 13.2, 0, 0, 0);
+	CreateObject(1364, 1462.30005, -1676.40002, 13.2, 0, 0, 0);
+	CreateObject(1364, 1455.90002, -1676.40002, 13.2, 0, 0, 0);
+	CreateObject(1364, 1450.30005, -1676.30005, 13.2, 0, 0, 0);
+	CreateObject(792, 1453, -1676.09998, 12.4, 0, 0, 0);
+	CreateObject(792, 1458.90002, -1676.19995, 12.4, 0, 0, 0);
+	CreateObject(792, 1465.40002, -1676, 12.4, 0, 0, 0);
+	CreateObject(792, 1471.5, -1676.30005, 12.4, 0, 0, 0);
+	CreateObject(792, 1477.80005, -1676.5, 12.4, 0, 0, 0);
+	CreateObject(792, 1484.40002, -1676.40002, 12.4, 0, 0, 0);
 }
 
 
