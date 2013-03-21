@@ -15,6 +15,7 @@
 #include <foreach>
 #include <hash>
 #include <samp2k13>
+#include <GetVehicleColor>
 
 
 #define SERVER_VERSION          "1.0.0" // maj 1, ver 0, rev 0
@@ -71,7 +72,7 @@
 forward _OnMySQLConfigurationLoad();
 forward _OnMySQLPlayerDataSave(playerid);
 forward _OnMySQLPlayerDataLoad(playerid);
-forward _OnMySQLVehicleDataSave(vehicleid);
+forward _OnMySQLVehicleDataSave();
 forward _OnMySQLVehicleDataLoad();
 forward _OnPlayerDataAssign(playerid);
 forward _OnAntiCheatTick();
@@ -153,6 +154,8 @@ enum VehicleData
     vDoorDamage[11 + 1],
     vLightDamage[7 + 1],
     vTireDamage[7 + 1],
+    vPaintjob,
+    vMods[69 + 1],
     Float: vPosX,
     Float: vPosY,
     Float: vPosZ,
@@ -239,7 +242,7 @@ public OnGameModeExit()
 		OnPlayerDisconnect(i, 2);
 	}
 
-	for(new i = 0; i < 10; i++) _OnMySQLVehicleDataSave(i);
+	_OnMySQLVehicleDataSave();
     mysql_close();
     return true;
 }
@@ -407,9 +410,25 @@ public OnVehicleSpawn(vehicleid)
 
 public OnVehicleDeath(vehicleid, killerid)
 {
+/*	new string[512];
+	format(string, sizeof(string), "
+	safetylog
+*/
 	format(querystring, sizeof(querystring), "DELETE FROM `vehicles` WHERE `plate` = '%s'", vVehicles[vehicleid][vPlate]);
-	mysql_function_query(MYSQL_DBHANDLE, querystring, false, "", "");
+	mysql_function_query(MYSQL_DBHANDLE, querystring, true, "", "");
+	
+	_OnMySQLVehicleDataSave();
 	return true;
+}
+
+public OnUnoccupiedVehicleUpdate(vehicleid, playerid, passenger_seat) {
+	new Float: fVehicle[3];
+
+	GetVehiclePos(vehicleid, fVehicle[0], fVehicle[1], fVehicle[2]);
+
+	if(!IsPlayerInRangeOfPoint(playerid, 10, fVehicle[0], fVehicle[1], fVehicle[2])) {
+	    return;
+	}
 }
 
 
@@ -549,8 +568,28 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 }
 
 
-public OnVehicleMod(playerid, vehicleid, componentid) return true;
-public OnVehiclePaintjob(playerid, vehicleid, paintjobid) return true;
+public OnVehicleMod(playerid, vehicleid, componentid)
+{
+	format(vVehicles[vehicleid][vMods], 70, "%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d",
+	GetVehicleComponentInSlot(vehicleid, 0), GetVehicleComponentInSlot(vehicleid, 1), GetVehicleComponentInSlot(vehicleid, 2),
+	GetVehicleComponentInSlot(vehicleid, 3), GetVehicleComponentInSlot(vehicleid, 4), GetVehicleComponentInSlot(vehicleid, 5),
+	GetVehicleComponentInSlot(vehicleid, 6), GetVehicleComponentInSlot(vehicleid, 7), GetVehicleComponentInSlot(vehicleid, 8),
+	GetVehicleComponentInSlot(vehicleid, 9), GetVehicleComponentInSlot(vehicleid, 10), GetVehicleComponentInSlot(vehicleid, 11),
+	GetVehicleComponentInSlot(vehicleid, 12), GetVehicleComponentInSlot(vehicleid, 13));
+	
+	_OnMySQLVehicleDataSave();
+	return true;
+}
+
+
+public OnVehiclePaintjob(playerid, vehicleid, paintjobid)
+{
+	vVehicles[vehicleid][vPaintjob] = paintjobid;
+	_OnMySQLVehicleDataSave();
+	return true;
+}
+
+
 public OnVehicleRespray(playerid, vehicleid, color1, color2) return true;
 public OnPlayerSelectedMenuRow(playerid, row) return true;
 public OnPlayerExitedMenu(playerid) return true;
@@ -1117,72 +1156,93 @@ public _OnMySQLPlayerDataLoad(playerid)
 }
 
 
-YCMD:savecar(playerid, params[], help)
+YCMD:savecars(playerid, params[], help)
 {
-    _OnMySQLVehicleDataSave(GetPlayerVehicleID(playerid));
+    _OnMySQLVehicleDataSave();
 	return true;
 }
 
 
-YCMD:loadcar(playerid, params[], help)
+YCMD:gotoveh(playerid, params[], help)
+{
+	new param[9], string[128];
+	if(sscanf(params, "s[9]", param)) return SendClientMessage(playerid, COLOR_GREY, "* Verwendung: /gotoveh [Plate]");
+	for(new i = 0; i < 10; i++) {
+		if(strcmp(vVehicles[i][vPlate], param) == 0) {
+			GetVehiclePos(i, vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ]);
+			SetPlayerPos(playerid, vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ] + 3);
+			//break;
+		}
+		format(string, sizeof(string), "i: %d", i);
+		SendClientMessage(playerid, COLOR_GREY, string);
+	}
+	return true;
+}
+
+
+YCMD:loadcars(playerid, params[], help)
 {
     _OnMySQLVehicleDataLoad();
 	return true;
 }
 
 
-public _OnMySQLVehicleDataSave(vehicleid)
+public _OnMySQLVehicleDataSave()
 {
-	new dmg[9];
-	
-	vVehicles[vehicleid][vVehicleID] = vehicleid;
-	GetVehiclePos(vehicleid, 			vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ]);
-	GetVehicleZAngle(vehicleid, 		vVehicles[vehicleid][vPosA]);
-	GetVehicleHealth(vehicleid, 		vVehicles[vehicleid][vHealth]);
+	for(new i = 0; i < 10; i++) {
+		new dmg[9];
 
-	_getVehiclePanelDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	format(vVehicles[vehicleid][vPanelDamage], 	14, "%d|%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
-	_getVehicleDoorDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 			format(vVehicles[vehicleid][vDoorDamage], 	12, "%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
-	_getVehicleLightDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vLightDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
-	_getVehicleTireDamageStatus(vVehicles[vehicleid][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[vehicleid][vTireDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
-
-	new bigstring[2048];
-    format(bigstring, sizeof(bigstring), "UPDATE `vehicles` SET `vehicleid` = '%d', `owner` = '%s', `model` = '%d', `health` = '%f', `panelDamage` = '%s', `doorDamage` = '%s', \
-											`lightDamage` = '%s', `tireDamage` = '%s', `posX` = '%f', `posY` = '%f', `posZ` = '%f', `posA` = '%f', `color1` = '%d', `color2` = '%d', \
-											`navigation` = '%d', `locked` = '%d', `fuel` = '%d', `filled` = '%d' WHERE `plate` = '%s'",
-		vVehicles[vehicleid][vVehicleID],
-		vVehicles[vehicleid][vOwner],
-		vVehicles[vehicleid][vModelID],
-		vVehicles[vehicleid][vHealth],
- 		vVehicles[vehicleid][vPanelDamage],
-	    vVehicles[vehicleid][vDoorDamage],
-		vVehicles[vehicleid][vLightDamage],
-	 	vVehicles[vehicleid][vTireDamage],
-		vVehicles[vehicleid][vPosX],
-		vVehicles[vehicleid][vPosY],
-		vVehicles[vehicleid][vPosZ],
-		vVehicles[vehicleid][vPosA],
-		vVehicles[vehicleid][vColor1],
-		vVehicles[vehicleid][vColor2],
-	 	vVehicles[vehicleid][vNavigation],
-	 	vVehicles[vehicleid][vLocked],
-		vVehicles[vehicleid][vFuel],
-		vVehicles[vehicleid][vFilled],
+		GetVehiclePos(i, 			vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ]);
+		GetVehicleZAngle(i, 		vVehicles[i][vPosA]);
+		GetVehicleHealth(i, 		vVehicles[i][vHealth]);
+		GetVehicleColor(i,			vVehicles[i][vColor1], vVehicles[i][vColor2]);
 		
-		vVehicles[vehicleid][vPlate]
-	);
-	mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
-	
-	printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %s, doorDamage: %s, lightDamage: %s, tireDamage: %s,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
-	vVehicles[vehicleid][vPlate], vVehicles[vehicleid][vVehicleID], vVehicles[vehicleid][vOwner], vVehicles[vehicleid][vModelID], vVehicles[vehicleid][vHealth], vVehicles[vehicleid][vPanelDamage], vVehicles[vehicleid][vDoorDamage], vVehicles[vehicleid][vLightDamage], vVehicles[vehicleid][vTireDamage],
-	vVehicles[vehicleid][vPosX], vVehicles[vehicleid][vPosY], vVehicles[vehicleid][vPosZ], vVehicles[vehicleid][vPosA],
-	vVehicles[vehicleid][vColor1], vVehicles[vehicleid][vColor2], vVehicles[vehicleid][vNavigation], vVehicles[vehicleid][vLocked], vVehicles[vehicleid][vFuel], vVehicles[vehicleid][vFilled]);
+		_getVehiclePanelDamageStatus(vVehicles[i][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	format(vVehicles[i][vPanelDamage], 	14, "%d|%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
+		_getVehicleDoorDamageStatus(vVehicles[i][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 				format(vVehicles[i][vDoorDamage], 	12, "%d|%d|%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
+		_getVehicleLightDamageStatus(vVehicles[i][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3]), 							format(vVehicles[i][vLightDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
+		_getVehicleTireDamageStatus(vVehicles[i][vVehicleID], dmg[0], dmg[1], dmg[2], dmg[3]), 								format(vVehicles[i][vTireDamage], 	8, "%d|%d|%d|%d", dmg[0], dmg[1], dmg[2], dmg[3]);
+
+		new bigstring[2048];
+	    format(bigstring, sizeof(bigstring), "UPDATE `vehicles` SET `vehicleid` = '%d', `owner` = '%s', `model` = '%d', `health` = '%f', `panelDamage` = '%s', `doorDamage` = '%s', \
+												`lightDamage` = '%s', `tireDamage` = '%s', `paintjob` = '%d', `mods` = '%s', `posX` = '%f', `posY` = '%f', `posZ` = '%f', `posA` = '%f', `color1` = '%d', `color2` = '%d', \
+												`navigation` = '%d', `locked` = '%d', `fuel` = '%d', `filled` = '%d' WHERE `plate` = '%s'",
+			vVehicles[i][vVehicleID],
+			vVehicles[i][vOwner],
+			vVehicles[i][vModelID],
+			vVehicles[i][vHealth],
+	 		vVehicles[i][vPanelDamage],
+		    vVehicles[i][vDoorDamage],
+			vVehicles[i][vLightDamage],
+		 	vVehicles[i][vTireDamage],
+		 	vVehicles[i][vPaintjob],
+		 	vVehicles[i][vMods],
+			vVehicles[i][vPosX],
+			vVehicles[i][vPosY],
+			vVehicles[i][vPosZ],
+			vVehicles[i][vPosA],
+			vVehicles[i][vColor1],
+			vVehicles[i][vColor2],
+		 	vVehicles[i][vNavigation],
+		 	vVehicles[i][vLocked],
+			vVehicles[i][vFuel],
+			vVehicles[i][vFilled],
+
+			vVehicles[i][vPlate]
+		);
+		mysql_function_query(MYSQL_DBHANDLE, bigstring, false, "", "");
+
+		printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %s, doorDamage: %s, lightDamage: %s, tireDamage: %s,\r\n paintjob: %d, mods: %s, posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+		vVehicles[i][vPlate], vVehicles[i][vVehicleID], vVehicles[i][vOwner], vVehicles[i][vModelID], vVehicles[i][vHealth], vVehicles[i][vPanelDamage], vVehicles[i][vDoorDamage], vVehicles[i][vLightDamage], vVehicles[i][vTireDamage],
+		vVehicles[i][vPaintjob], vVehicles[i][vMods], vVehicles[i][vPosX], vVehicles[i][vPosY], vVehicles[i][vPosZ], vVehicles[i][vPosA],
+		vVehicles[i][vColor1], vVehicles[i][vColor2], vVehicles[i][vNavigation], vVehicles[i][vLocked], vVehicles[i][vFuel], vVehicles[i][vFilled]);
+	}
 	return true;
 }
 
 
 public _OnMySQLVehicleDataLoad()
 {
-    new rows, fields, temp[128], k = 1, dmg[9];
+    new rows, fields, temp[128], k = 1, tmp[14];
     cache_get_data(rows, fields);
 
     for(new i = 0; i < rows -1; i++) {
@@ -1195,6 +1255,8 @@ public _OnMySQLVehicleDataLoad()
     	cache_get_field_content(k, "doorDamage", 		temp), strcat(vVehicles[k][vDoorDamage], 	temp, 12);
     	cache_get_field_content(k, "lightDamage", 		temp), strcat(vVehicles[k][vLightDamage], 	temp, 8);
     	cache_get_field_content(k, "tireDamage", 		temp), strcat(vVehicles[k][vTireDamage], 	temp, 8);
+    	cache_get_field_content(k, "paintjob", 			temp), vVehicles[k][vPaintjob] 		= strval(temp);
+     	cache_get_field_content(k, "mods", 				temp), strcat(vVehicles[k][vMods], 	temp, 70);
     	cache_get_field_content(k, "posX", 				temp), vVehicles[k][vPosX] 			= floatstr(temp);
     	cache_get_field_content(k, "posY", 				temp), vVehicles[k][vPosY] 			= floatstr(temp);
     	cache_get_field_content(k, "posZ", 				temp), vVehicles[k][vPosZ] 			= floatstr(temp);
@@ -1207,23 +1269,25 @@ public _OnMySQLVehicleDataLoad()
     	cache_get_field_content(k, "filled", 			temp), vVehicles[k][vFilled] 		= strval(temp);
 
 		vVehicles[k][vVehicleID] = CreateVehicle(vVehicles[k][vModelID], vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA], vVehicles[k][vColor1], vVehicles[k][vColor2], 0),
+		ChangeVehiclePaintjob(vVehicles[k][vVehicleID], vVehicles[k][vPaintjob]);
 		SetVehicleHealth(vVehicles[k][vVehicleID], vVehicles[k][vHealth]);
 		SetVehicleNumberPlate(vVehicles[k][vVehicleID], vVehicles[k][vPlate]);
 
-		sscanf(vVehicles[k][vPanelDamage], 	"p<|>iiiiiii", 	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]), 	_updateVehiclePanelDamageStatus(vVehicles[k][vVehicleID],	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5], dmg[6]);
-		sscanf(vVehicles[k][vDoorDamage], 	"p<|>iiiiii", 	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]), 			_updateVehicleDoorDamageStatus(vVehicles[k][vVehicleID], 	dmg[0], dmg[1], dmg[2], dmg[3], dmg[4], dmg[5]);
-		sscanf(vVehicles[k][vLightDamage], 	"p<|>iiii", 	dmg[0], dmg[1], dmg[2], dmg[3]), 							_updateVehicleLightDamageStatus(vVehicles[k][vVehicleID], 	dmg[0], dmg[1], dmg[2], dmg[3]);
-		sscanf(vVehicles[k][vTireDamage], 	"p<|>iiii", 	dmg[0], dmg[1], dmg[2], dmg[3]), 							_updateVehicleTireDamageStatus(vVehicles[k][vVehicleID], 	dmg[0], dmg[1], dmg[2], dmg[3]);
+		sscanf(vVehicles[k][vPanelDamage], 	"p<|>iiiiiii", 	tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5], tmp[6]), 	_updateVehiclePanelDamageStatus(vVehicles[k][vVehicleID],	tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5], tmp[6]);
+		sscanf(vVehicles[k][vDoorDamage], 	"p<|>iiiiii", 	tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5]), 			_updateVehicleDoorDamageStatus(vVehicles[k][vVehicleID], 	tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5]);
+		sscanf(vVehicles[k][vLightDamage], 	"p<|>iiii", 	tmp[0], tmp[1], tmp[2], tmp[3]), 							_updateVehicleLightDamageStatus(vVehicles[k][vVehicleID], 	tmp[0], tmp[1], tmp[2], tmp[3]);
+		sscanf(vVehicles[k][vTireDamage], 	"p<|>iiii", 	tmp[0], tmp[1], tmp[2], tmp[3]), 							_updateVehicleTireDamageStatus(vVehicles[k][vVehicleID], 	tmp[0], tmp[1], tmp[2], tmp[3]);
+		sscanf(vVehicles[k][vMods], 		"p<|>iiiiiiiiiiiiii", tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5], tmp[6], tmp[7], tmp[8], tmp[9], tmp[10], tmp[11], tmp[12], tmp[13]);
+		for(new j = 0; j < 13; j++) if(tmp[j] != 0) AddVehicleComponent(vVehicles[k][vVehicleID], tmp[j]);
 
-		printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %s, doorDamage: %s, lightDamage: %s, tireDamage: %s,\r\n posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
+		printf("\r\nPlate: %s, vehID: %d, Owner: %s, Model: %d, Health: %f,\r\n panelDamage: %s, doorDamage: %s, lightDamage: %s, tireDamage: %s,\r\n paintjob: %d, mods: %s, posX: %f, posY: %f, posZ: %f, posA: %f,\r\n Color1: %d, Color2: %d, Navigation: %d, Locked: %d, Fuel: %d, Filled: %d\r\n",
 		vVehicles[k][vPlate], vVehicles[k][vVehicleID], vVehicles[k][vOwner], vVehicles[k][vModelID], vVehicles[k][vHealth], vVehicles[k][vPanelDamage], vVehicles[k][vDoorDamage], vVehicles[k][vLightDamage], vVehicles[k][vTireDamage],
-		vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA],
+		vVehicles[k][vPaintjob], vVehicles[k][vMods], vVehicles[k][vPosX], vVehicles[k][vPosY], vVehicles[k][vPosZ], vVehicles[k][vPosA],
 		vVehicles[k][vColor1], vVehicles[k][vColor2], vVehicles[k][vNavigation], vVehicles[k][vLocked], vVehicles[k][vFuel], vVehicles[k][vFilled]);
-
-       //ChangeVehicleBlowjob(veh[k] xx);
 		k++;
 	}
 	vTotal = (k - 1);
+	_OnMySQLVehicleDataSave(); // updates vehicleid in DB
 	//_MySQLVehicleCount(vTotal);
 	return true;
 }
