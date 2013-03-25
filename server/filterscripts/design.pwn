@@ -7,14 +7,18 @@ by Arne
 
 #include <a_samp>
 
-
+forward _createTextdraws();
 forward _createObjects();
 forward _createPlayerObjects(playerid);
-
+forward settime(playerid);
+//Textdraws
+new Text:clock;
 
 public OnFilterScriptInit()
 {
 	_createObjects();
+	_createTextdraws();
+	SetTimer("settime",1000,true);
 	print("\r\n  * design loaded\r\n");
 	return true;
 }
@@ -29,9 +33,18 @@ public OnFilterScriptExit()
 public OnPlayerConnect(playerid)
 {
 	_createPlayerObjects(playerid);
+
 	return true;
 }
 
+public _createTextdraws()
+{
+	clock = TextDrawCreate(547.000000,28.000000,"--");
+	TextDrawFont(clock,3);
+ 	TextDrawLetterSize(clock,0.399999,1.600000);
+ 	TextDrawColor(clock,0xffffffff);
+	return true;
+}
 
 public _createObjects()
 {
@@ -414,4 +427,10 @@ public _createPlayerObjects(playerid)
 	return true;
 }
 
-
+public settime(playerid)
+{
+        new string[64],hours,minutes,seconds;
+		gettime(hours, minutes, seconds);
+        format(string, sizeof string, "%s%d:%s%d:%s%d", (hours < 10) ? ("0") : (""), hours, (minutes < 10) ? ("0") : (""), minutes, (seconds < 10) ? ("0") : (""), seconds);
+        TextDrawSetString(clock, string);
+}
