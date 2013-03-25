@@ -15,7 +15,7 @@ BugFixes / simple things
 	+	Autoradio
 	+	Gemeinsamer Funkchat für Polizei und Arzt (Frequenzen) (schon angefangen)
 	~	Taxi keine Fraktion sondern Job
-	~	Fix Paintjob
+	~	stop Unoccupied vehicles movement (idee: nur beim aussteigen saven)
 	
 Größere Sachen
 	+	Blitzer
