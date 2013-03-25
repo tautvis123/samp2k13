@@ -1,4 +1,4 @@
-samp2k13 Design ToDo
+﻿samp2k13 Design ToDo
 
 + = hinzufügen
 - = enfernen
@@ -17,7 +17,6 @@ Mapping;
 	+	Blitzer
 
 Design:
-	+ 	Uhr (!!)
 	+ 	Tazersymbole
 	~ 	Fraktionskasse: In Dialog packen
 	~ 	"/set" ins Scoreboard integrieren
