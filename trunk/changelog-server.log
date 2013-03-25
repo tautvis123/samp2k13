@@ -71,3 +71,20 @@
 
 [21.03.13] [Harti]
 + Vehikel Mods save + load
+
+[22.03.13] [Harti]
++ /gotoveh
++ Teleport zu Mapmarkierung, wenn Admin on Duty
+
+
+[23.03.13] [Harti]
++ Lock von eigenem Veh, wenn man keine Waffe in der Hand hält und in der Nähe ist auf N
++ Motorstart in Veh mit LALT
++ /vehinfo
+
+[24.03.13] [Harti]
++ Dynamisches Vehikel-adden/deleten (/spawnveh speichert nun Veh in der DB)
++ Truck Lizenz
+~ Motostart auf NUM+
++ Lichter auf NUM2
++ /gmx

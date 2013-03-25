@@ -68,6 +68,7 @@ Script structure:
 	OnPlayerExitedMenu(playerid)
 	OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 	OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+	OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	OnRconLoginAttempt(ip[], password[], success)
 	OnPlayerUpdate(playerid)
 	OnPlayerStreamIn(playerid, forplayerid)
