@@ -7,16 +7,26 @@ by Arne
 
 #include <a_samp>
 
-
 forward _createTextdraws();
 forward _createObjects();
 forward _createPlayerObjects(playerid);
+//Textdraws
+new Text:armaturenbrett;
+new Text:armaturenbrettbox;
+new Text:treibstoff;
+new Text:speedo;
+new Text:tankanzeige;
+new Text:kmhbalken;
+new Text:tankbalken;
+new Text:kmhzahl;
+new Text:tankzahl;
+new Text:kmstand;
 
 
 public OnFilterScriptInit()
 {
 	_createObjects();
-	
+	_createTextdraws();
 	print("\r\n  * design loaded\r\n");
 	return true;
 }
@@ -31,9 +41,114 @@ public OnFilterScriptExit()
 public OnPlayerConnect(playerid)
 {
 	_createPlayerObjects(playerid);
+
 	return true;
 }
 
+public _createTextdraws()
+{
+ 	armaturenbrett = TextDrawCreate(314.000000, 346.000000, "Armaturenbrett");
+	TextDrawAlignment(armaturenbrett, 2);
+	TextDrawBackgroundColor(armaturenbrett, 255);
+	TextDrawFont(armaturenbrett, 2);
+	TextDrawLetterSize(armaturenbrett, 0.270000, 1.200000);
+	TextDrawColor(armaturenbrett, -1);
+	TextDrawSetOutline(armaturenbrett, 0);
+	TextDrawSetProportional(armaturenbrett, 1);
+	TextDrawSetShadow(armaturenbrett, 1);
+
+	armaturenbrettbox = TextDrawCreate(314.000000, 356.000000, "                                                                                                                                ");
+	TextDrawAlignment(armaturenbrettbox, 2);
+	TextDrawBackgroundColor(armaturenbrettbox, 255);
+	TextDrawFont(armaturenbrettbox, 1);
+	TextDrawLetterSize(armaturenbrettbox, 0.250000, 2.200000);
+	TextDrawColor(armaturenbrettbox, -1);
+	TextDrawSetOutline(armaturenbrettbox, 0);
+	TextDrawSetProportional(armaturenbrettbox, 0);
+	TextDrawSetShadow(armaturenbrettbox, 1);
+	TextDrawUseBox(armaturenbrettbox, 1);
+	TextDrawBoxColor(armaturenbrettbox, 255);
+	TextDrawTextSize(armaturenbrettbox, 176.000000, 156.000000);
+
+	treibstoff = TextDrawCreate(240.000000, 401.000000, "Treibstoff:");
+	TextDrawBackgroundColor(treibstoff, 255);
+	TextDrawFont(treibstoff, 1);
+	TextDrawLetterSize(treibstoff, 0.320000, 1.400000);
+	TextDrawColor(treibstoff, -1);
+	TextDrawSetOutline(treibstoff, 0);
+	TextDrawSetProportional(treibstoff, 1);
+	TextDrawSetShadow(treibstoff, 1);
+
+	speedo = TextDrawCreate(240.000000, 359.000000, "KM/H:");
+	TextDrawBackgroundColor(speedo, 255);
+	TextDrawFont(speedo, 1);
+	TextDrawLetterSize(speedo, 0.280000, 1.400000);
+	TextDrawColor(speedo, -1);
+	TextDrawSetOutline(speedo, 0);
+	TextDrawSetProportional(speedo, 1);
+	TextDrawSetShadow(speedo, 1);
+
+	tankanzeige = TextDrawCreate(240.000000, 374.000000, "Tank:");
+	TextDrawBackgroundColor(tankanzeige, 255);
+	TextDrawFont(tankanzeige, 1);
+	TextDrawLetterSize(tankanzeige, 0.320000, 1.400000);
+	TextDrawColor(tankanzeige, -1);
+	TextDrawSetOutline(tankanzeige, 0);
+	TextDrawSetProportional(tankanzeige, 1);
+	TextDrawSetShadow(tankanzeige, 1);
+
+	kmhbalken = TextDrawCreate(361.000000, 362.000000, "         ");
+	TextDrawBackgroundColor(kmhbalken, 255);
+	TextDrawFont(kmhbalken, 1);
+	TextDrawLetterSize(kmhbalken, 0.589999, 0.099999);
+	TextDrawColor(kmhbalken, -1);
+	TextDrawSetOutline(kmhbalken, 0);
+	TextDrawSetProportional(kmhbalken, 1);
+	TextDrawSetShadow(kmhbalken, 1);
+	TextDrawUseBox(kmhbalken, 1);
+	TextDrawBoxColor(kmhbalken, -1);
+	TextDrawTextSize(kmhbalken, 269.000000, 123.000000);
+
+	tankbalken = TextDrawCreate(361.000000, 377.000000, "         ");
+	TextDrawBackgroundColor(tankbalken, 255);
+	TextDrawFont(tankbalken, 1);
+	TextDrawLetterSize(tankbalken, 0.589999, 0.099999);
+	TextDrawColor(tankbalken, -1);
+	TextDrawSetOutline(tankbalken, 0);
+	TextDrawSetProportional(tankbalken, 1);
+	TextDrawSetShadow(tankbalken, 1);
+	TextDrawUseBox(tankbalken, 1);
+	TextDrawBoxColor(tankbalken, -1);
+	TextDrawTextSize(tankbalken, 269.000000, 123.000000);
+
+	kmhzahl = TextDrawCreate(361.000000, 361.000000, "Zahl");
+	TextDrawBackgroundColor(kmhzahl, 255);
+	TextDrawFont(kmhzahl, 1);
+	TextDrawLetterSize(kmhzahl, 0.370000, 1.000000);
+	TextDrawColor(kmhzahl, -1);
+	TextDrawSetOutline(kmhzahl, 0);
+	TextDrawSetProportional(kmhzahl, 1);
+	TextDrawSetShadow(kmhzahl, 1);
+
+	tankzahl = TextDrawCreate(361.000000, 376.000000, "Zahl");
+	TextDrawBackgroundColor(tankzahl, 255);
+	TextDrawFont(tankzahl, 1);
+	TextDrawLetterSize(tankzahl, 0.370000, 1.000000);
+	TextDrawColor(tankzahl, -1);
+	TextDrawSetOutline(tankzahl, 0);
+	TextDrawSetProportional(tankzahl, 1);
+	TextDrawSetShadow(tankzahl, 1);
+
+	kmstand = TextDrawCreate(240.000000, 388.000000, "KM-Stand:");
+	TextDrawBackgroundColor(kmstand, 255);
+	TextDrawFont(kmstand, 1);
+	TextDrawLetterSize(kmstand, 0.320000, 1.400000);
+	TextDrawColor(kmstand, -1);
+	TextDrawSetOutline(kmstand, 0);
+	TextDrawSetProportional(kmstand, 1);
+	TextDrawSetShadow(kmstand, 1);
+	return true;
+}
 
 public _createObjects()
 {
@@ -415,5 +530,3 @@ public _createPlayerObjects(playerid)
 	RemoveBuildingForPlayer(playerid, 1260, 1538.5234, -1609.8047, 19.8438, 0.25);
 	return true;
 }
-
-
