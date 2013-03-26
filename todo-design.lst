@@ -12,9 +12,10 @@
 Mapping;
 	-	LV
 	+	Verkehrsschilder
-	+ 	Parkplatz vor MC
 	+	Busbahnhof SF+LS
 	+	Blitzer
+	~	LSPD
+	~	LSMC
 
 Design:
 	+ 	Tazersymbole
