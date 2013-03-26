@@ -11,7 +11,6 @@ by Arne
 forward _createObjects();
 forward _createPlayerObjects(playerid);
 
-
 public OnFilterScriptInit()
 {
 	_createObjects();
@@ -19,19 +18,16 @@ public OnFilterScriptInit()
 	return true;
 }
 
-
 public OnFilterScriptExit()
 {
 	return true;
 }
-
 
 public OnPlayerConnect(playerid)
 {
 	_createPlayerObjects(playerid);
 	return true;
 }
-
 
 public _createObjects()
 {
@@ -287,7 +283,7 @@ public _createObjects()
 	//LSMC
 	CreateObject(8417, 1229.5, -1366.5, 12.2, 0, 180, 0);
 	CreateObject(8417, 1227.80005, -1287, 12.2, 0, 179.995, 0);
-	CreateObject(8417, 1229.40002, -1326.90002, 12.2, 0, 179.995, 0);
+	CreateObject(8417, 1229.39941, -1326.89941, 12.2, 0, 179.995, 0);
 	CreateObject(10032, 1231.19995, -1322.90002, 12.3, 0, 0, 90);
 	CreateObject(970, 1243.80005, -1355.19995, 12.8, 0, 0, 0);
 	CreateObject(970, 1239.59998, -1355.19995, 12.8, 0, 0, 0);
@@ -350,13 +346,10 @@ public _createObjects()
 	CreateObject(970, 1216.30005, -1322.5, 12.8, 0, 0, 90);
 	CreateObject(970, 1216.30005, -1326.69995, 12.8, 0, 0, 90);
 	CreateObject(970, 1216.30005, -1330.90002, 12.8, 0, 0, 90);
-	CreateObject(1660, 1222.30005, -1335.90002, 8.4, 358, 0.25, 90.009);
-	CreateObject(1660, 1222.30005, -1341.09998, 8.4, 357.995, 0.247, 90.005);
-	CreateObject(1660, 1222.19995, -1347, 8.4, 357.995, 0.247, 90.005);
-	CreateObject(1660, 1222.19995, -1352.19995, 8.4, 357.995, 0.247, 90.005);
+	CreateObject(1660, 1223.23999, -1335.90002, 10.6, 340, 0, 89.5);
 	CreateObject(3660, 1225.90002, -1291.09998, 14.8, 0, 0, 0);
 	CreateObject(3660, 1235.90002, -1291.09998, 14.8, 0, 0, 0);
-	CreateObject(716, 1244.90002, -1323.19995, 12.1, 0, 0, 0);
+	CreateObject(716, 1244.90002, -1323.40002, 12, 0, 0, 0);
 	CreateObject(716, 1216.19995, -1333.69995, 12, 0, 0, 0);
 	CreateObject(647, 1217.09998, -1382.40002, 13.6, 0, 0, 56);
 	CreateObject(647, 1220, -1384, 13.7, 0, 0, 0);
@@ -383,12 +376,17 @@ public _createObjects()
 	CreateObject(1280, 1220.90002, -1357.09998, 12.6, 0, 0, 180);
 	CreateObject(1280, 1221.09998, -1382.69995, 12.6, 0, 0, 179.995);
 	CreateObject(1257, 1226.59998, -1387.40002, 13.7, 0, 0, 90);
-	CreateObject(1340, 1245.90002, -1371.59998, 13.5, 0, 0, 0);
+	CreateObject(1340, 1244.5, -1371.5, 13.4, 0, 0, 0);
 	CreateObject(1346, 1242.19995, -1385.69995, 13.7, 0, 0, 0);
 	CreateObject(638, 1217.30005, -1344.19995, 12.9, 0, 0, 90);
 	CreateObject(638, 1220, -1344.19995, 12.9, 0, 0, 90);
 	CreateObject(638, 1222.69995, -1344.19995, 12.9, 0, 0, 90);
-	CreateObject(638, 1225.40002, -1344.19995, 12.9, 0, 0, 90);
+	CreateObject(638, 1225.39941, -1344.19922, 12.9, 0, 0, 90);
+	CreateObject(1660, 1223.19995, -1341.09998, 10.6, 339.999, 0, 89.5);
+	CreateObject(1660, 1223.19995, -1347, 10.6, 339.999, 0, 89.495);
+	CreateObject(1660, 1223.16003, -1352.19995, 10.6, 339.999, 0, 89.495);
+	CreateObject(638, 1243, -1323.09998, 12.9, 0, 0, 90);
+	CreateObject(638, 1240.30005, -1323.09998, 12.9, 0, 0, 90);
     // gas stations
 	CreateObject(3465, 1007.5, -936.40002, 42.6, 0, 0, 98.25);      
 	CreateObject(3465, 1000.40002, -937.29999, 42.6, 0, 0, 98.245);
@@ -397,7 +395,6 @@ public _createObjects()
 	CreateObject(3465, -2026.59998, 156.89999, 29.4, 0, 0, 0);
 	return true;
 }
-
 
 public _createPlayerObjects(playerid)
 {
@@ -533,7 +530,5 @@ public _createPlayerObjects(playerid)
 	RemoveBuildingForPlayer(playerid, 620, 1240.9219, -1317.7422, 12.2969, 0.25);
 	RemoveBuildingForPlayer(playerid, 620, 1222.6641, -1300.9219, 12.2969, 0.25);
 	RemoveBuildingForPlayer(playerid, 620, 1240.9219, -1300.9219, 12.2969, 0.25);
-
 	return true;
 }
-
