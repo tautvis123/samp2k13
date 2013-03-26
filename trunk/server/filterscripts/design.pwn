@@ -394,9 +394,35 @@ public _createObjects()
 	CreateObject(7390, -2021.59998, 179.89999, 32.4, 0, 0, 70);
 	CreateObject(3465, -2026.59998, 156.89999, 29.4, 0, 0, 0);
 	//Loginscreen
-	CreateObject(3927, 231.3, -1796.69995, 4.7, 0, 0, 344);
-	new lscreen = CreateObject(2719, 231.3, -1796.5, 5.6, 0, 0, 163.5);
-	SetObjectMaterialText(lscreen, "SS Roleplay", 0, OBJECT_MATERIAL_SIZE_64x64,\"Arial", 12, 0, 0xFFFF8200, 0xFF000000, OBJECT_MATERIAL_TEXT_ALIGN_CENTER);
+	CreateObject(1598, 222.7, -1876.59998, 1.3, 0, 0, 0);
+	CreateObject(1610, 231, -1872.40002, 1.3, 0, 0, 0);
+	CreateObject(1640, 227.60001, -1873.59998, 1.3, 5.75, 0, 0);
+	CreateObject(1641, 226.2, -1873.40002, 1.3, 5.75, 0, 0);
+	CreateObject(1642, 211.60001, -1874.19995, 1.4, 6.5, 0, 0);
+	CreateObject(1643, 217.8, -1880.80005, 0.8, 5.75, 0, 0);
+	CreateObject(2405, 242.7, -1874.59998, 2.3, 0, 0, 276.25);
+	CreateObject(1340, 230.60001, -1853, 3.3, 0, 0, 270);
+	CreateObject(1281, 227.8, -1861.69995, 2.8, 0, 0, 0);
+	CreateObject(1255, 219.60001, -1868.40002, 2.3, 0, 0, 240);
+	CreateObject(2631, 236.8, -1877.90002, 0.8, 6.5, 0, 0);
+	CreateObject(2631, 237, -1881.40002, 0.6, 6.498, 0, 0);
+	CreateObject(1255, 221.3, -1868.5, 2.3, 0, 0, 239.996);
+	CreateObject(1281, 233.10001, -1861.80005, 2.7, 0, 0, 0);
+	CreateObject(2406, 213.3, -1875.40002, 1.3, 279.75, 0, 0);
+	CreateObject(1255, 207.5, -1868.69995, 2.4, 0, 0, 299.996);
+	CreateObject(1255, 209.10001, -1868.30005, 2.4, 0, 0, 269.996);
+	CreateObject(1640, 219.10001, -1880.90002, 0.8, 5, 0, 0.75);
+	CreateObject(1646, 230.51151, -1881.65698, 0.89573, 0, 0, 0);
+	CreateObject(1645, 229.2, -1881.80005, 0.9, 0, 0, 0);
+	CreateObject(1647, 209.3, -1882.30005, 0.8, 5, 0, 0);
+	CreateObject(1281, 233.10001, -1857.40002, 2.9, 0, 0, 0);
+	CreateObject(3264, 220.7, -1851.80005, 2.3, 0, 0, 160);
+	CreateObject(1281, 227.89999, -1857.09998, 2.9, 0, 0, 0);
+	CreateObject(1646, 219.60001, -1858.5, 2.4, 0, 0, 0);
+	CreateObject(1646, 217.7, -1858.59998, 2.4, 0, 0, 0);
+	CreateObject(1646, 215.39999, -1858.90002, 2.5, 0, 0, 20);
+	new lscreen = CreateObject(2580, 220.8, -1851.59998, 4.3, 0, 0, 160.25);
+	SetObjectMaterialText(lscreen, "SS Roleplay", 0, OBJECT_MATERIAL_SIZE_128x64,\"Arial", 20, 0, 0xFFFF8200, 0xFF000000, OBJECT_MATERIAL_TEXT_ALIGN_CENTER);
 	return true;
 }
 
