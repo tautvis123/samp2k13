@@ -393,6 +393,10 @@ public _createObjects()
 	CreateObject(9193, 1012.5, -948.09998, 46.2, 0, 0, 0);
 	CreateObject(7390, -2021.59998, 179.89999, 32.4, 0, 0, 70);
 	CreateObject(3465, -2026.59998, 156.89999, 29.4, 0, 0, 0);
+	//Loginscreen
+	CreateObject(1260, 228.7, -1820.30005, 14.2, 0, 0, 250);
+	new lscreen = CreateObject(4729, 229, -1820.80005, 19.4, 0, 0, 89.5);
+	SetObjectMaterialText(lscreen, "SS Roleplay", 0, OBJECT_MATERIAL_SIZE_256x128,\"Arial", 28, 0, 0xFFFF8200, 0xFF000000, OBJECT_MATERIAL_TEXT_ALIGN_CENTER);
 	return true;
 }
 
