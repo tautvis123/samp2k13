@@ -1,0 +1,118 @@
+// TextDraw developed using Zamaroht's Textdraw Editor 1.0
+
+// On top of script:
+new Text:Textdraw0;
+new Text:Textdraw1;
+new Text:Textdraw2;
+new Text:Textdraw3;
+new Text:Textdraw4;
+new Text:Textdraw5;
+new Text:Textdraw6;
+new Text:Textdraw7;
+new Text:Textdraw8;
+new Text:Textdraw9;
+
+// In OnGameModeInit prefferably, we procced to create our textdraws:
+Textdraw0 = TextDrawCreate(314.000000, 346.000000, "Armaturenbrett");
+TextDrawAlignment(Textdraw0, 2);
+TextDrawBackgroundColor(Textdraw0, 255);
+TextDrawFont(Textdraw0, 2);
+TextDrawLetterSize(Textdraw0, 0.270000, 1.200000);
+TextDrawColor(Textdraw0, -1);
+TextDrawSetOutline(Textdraw0, 0);
+TextDrawSetProportional(Textdraw0, 1);
+TextDrawSetShadow(Textdraw0, 1);
+
+Textdraw1 = TextDrawCreate(314.000000, 356.000000, "                                                                                                                                ");
+TextDrawAlignment(Textdraw1, 2);
+TextDrawBackgroundColor(Textdraw1, 255);
+TextDrawFont(Textdraw1, 1);
+TextDrawLetterSize(Textdraw1, 0.250000, 2.200000);
+TextDrawColor(Textdraw1, -1);
+TextDrawSetOutline(Textdraw1, 0);
+TextDrawSetProportional(Textdraw1, 0);
+TextDrawSetShadow(Textdraw1, 1);
+TextDrawUseBox(Textdraw1, 1);
+TextDrawBoxColor(Textdraw1, 255);
+TextDrawTextSize(Textdraw1, 176.000000, 156.000000);
+
+Textdraw2 = TextDrawCreate(240.000000, 401.000000, "Treibstoff:");
+TextDrawBackgroundColor(Textdraw2, 255);
+TextDrawFont(Textdraw2, 1);
+TextDrawLetterSize(Textdraw2, 0.320000, 1.400000);
+TextDrawColor(Textdraw2, -1);
+TextDrawSetOutline(Textdraw2, 0);
+TextDrawSetProportional(Textdraw2, 1);
+TextDrawSetShadow(Textdraw2, 1);
+
+Textdraw3 = TextDrawCreate(240.000000, 359.000000, "KM/H:");
+TextDrawBackgroundColor(Textdraw3, 255);
+TextDrawFont(Textdraw3, 1);
+TextDrawLetterSize(Textdraw3, 0.280000, 1.400000);
+TextDrawColor(Textdraw3, -1);
+TextDrawSetOutline(Textdraw3, 0);
+TextDrawSetProportional(Textdraw3, 1);
+TextDrawSetShadow(Textdraw3, 1);
+
+Textdraw4 = TextDrawCreate(240.000000, 374.000000, "Tank:");
+TextDrawBackgroundColor(Textdraw4, 255);
+TextDrawFont(Textdraw4, 1);
+TextDrawLetterSize(Textdraw4, 0.320000, 1.400000);
+TextDrawColor(Textdraw4, -1);
+TextDrawSetOutline(Textdraw4, 0);
+TextDrawSetProportional(Textdraw4, 1);
+TextDrawSetShadow(Textdraw4, 1);
+
+Textdraw5 = TextDrawCreate(361.000000, 362.000000, "         ");
+TextDrawBackgroundColor(Textdraw5, 255);
+TextDrawFont(Textdraw5, 1);
+TextDrawLetterSize(Textdraw5, 0.589999, 0.099999);
+TextDrawColor(Textdraw5, -1);
+TextDrawSetOutline(Textdraw5, 0);
+TextDrawSetProportional(Textdraw5, 1);
+TextDrawSetShadow(Textdraw5, 1);
+TextDrawUseBox(Textdraw5, 1);
+TextDrawBoxColor(Textdraw5, -1);
+TextDrawTextSize(Textdraw5, 269.000000, 123.000000);
+
+Textdraw6 = TextDrawCreate(361.000000, 377.000000, "         ");
+TextDrawBackgroundColor(Textdraw6, 255);
+TextDrawFont(Textdraw6, 1);
+TextDrawLetterSize(Textdraw6, 0.589999, 0.099999);
+TextDrawColor(Textdraw6, -1);
+TextDrawSetOutline(Textdraw6, 0);
+TextDrawSetProportional(Textdraw6, 1);
+TextDrawSetShadow(Textdraw6, 1);
+TextDrawUseBox(Textdraw6, 1);
+TextDrawBoxColor(Textdraw6, -1);
+TextDrawTextSize(Textdraw6, 269.000000, 123.000000);
+
+Textdraw7 = TextDrawCreate(361.000000, 361.000000, "Zahl");
+TextDrawBackgroundColor(Textdraw7, 255);
+TextDrawFont(Textdraw7, 1);
+TextDrawLetterSize(Textdraw7, 0.370000, 1.000000);
+TextDrawColor(Textdraw7, -1);
+TextDrawSetOutline(Textdraw7, 0);
+TextDrawSetProportional(Textdraw7, 1);
+TextDrawSetShadow(Textdraw7, 1);
+
+Textdraw8 = TextDrawCreate(361.000000, 376.000000, "Zahl");
+TextDrawBackgroundColor(Textdraw8, 255);
+TextDrawFont(Textdraw8, 1);
+TextDrawLetterSize(Textdraw8, 0.370000, 1.000000);
+TextDrawColor(Textdraw8, -1);
+TextDrawSetOutline(Textdraw8, 0);
+TextDrawSetProportional(Textdraw8, 1);
+TextDrawSetShadow(Textdraw8, 1);
+
+Textdraw9 = TextDrawCreate(240.000000, 388.000000, "KM-Stand:");
+TextDrawBackgroundColor(Textdraw9, 255);
+TextDrawFont(Textdraw9, 1);
+TextDrawLetterSize(Textdraw9, 0.320000, 1.400000);
+TextDrawColor(Textdraw9, -1);
+TextDrawSetOutline(Textdraw9, 0);
+TextDrawSetProportional(Textdraw9, 1);
+TextDrawSetShadow(Textdraw9, 1);
+
+// You can now use TextDrawShowForPlayer(-ForAll), TextDrawHideForPlayer(-ForAll) and
+// TextDrawDestroy functions to show, hide, and destroy the textdraw.
