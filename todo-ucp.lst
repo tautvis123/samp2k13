@@ -9,7 +9,5 @@
 
 + 	Beim Registrieren in der DB die Variable JustRegistered auf 1 setzen, allgemein Standardwerte von MySQL übernehmen (meist -1)
 +	Registrieren nur mit RP Namen und echter Email (also kein hushmail usw)
-~ 	Skinanzeige
-~	Passworthash
 +	Layout
 +	Registration
