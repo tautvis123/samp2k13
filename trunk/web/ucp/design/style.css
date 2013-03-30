@@ -1,0 +1,317 @@
+body
+{
+background-image: url('img/bg.png');
+//background-repeat: no-repeat;
+font-family: arial,sans-serif;
+font-size: 10px;
+//background-color:#efe8e8;
+}
+h1
+{
+
+width: 750px;
+//color: #ccc;
+color:#333333;
+//text-align:center;
+}
+h2
+{
+font-size: 12px;
+color: #5f5f5f;
+margin-bottom: -5px;
+}
+a
+{
+color:black;
+}
+input
+{
+background: #FFF;
+border: #000;
+border-style: solid;
+border-top-width: 1px;
+border-right-width: 1px;
+border-bottom-width: 1px;
+border-left-width: 1px;
+}
+loggin
+{
+background-image:url('img/Unbenannt-5_03.png');
+}
+#page
+{
+margin:0 auto;
+width: 968px;
+}
+#title
+{
+background-image: url('img/header.png');
+background-repeat: no-repeat;
+height: 305px;
+width: 968px;
+}
+#title_login
+{
+text-align: right;
+font-size: 10px;
+color: black;
+padding-top: 73px;
+padding-right: 15px;
+}
+#title_guthaben
+{
+font-size: 13px;
+color: black;
+padding-right: 5px;
+padding-left: 5px;
+padding-bottom: 40px;
+padding-top: 5px;
+}
+#logout
+{
+padding-bottom: 0px;
+text-align: right;
+}
+#login
+{
+font-size: 12px;
+color:black;
+}
+#login input
+{
+width: 100px;
+}
+#content
+{
+background: url(img/main.png) repeat-y center;
+//padding-left: 20px;
+padding-top: 10px;
+padding-bottom:15px;
+min-height: 400px;
+}
+#content-foot {
+	width: 968px;
+	height: 110px;
+	background: url(img/footer.png) no-repeat bottom;
+}
+#login
+{
+font-size: 12px;
+color: 5f5f5f;
+}
+#login input
+{
+width: 200px;
+}
+#login td
+{
+padding: 5px;
+}
+#info
+{
+padding: 5px;
+}
+#prod td
+{
+font-size: 12px;
+color: #5f5f5f;
+}
+#items
+{
+width: 780px;
+}
+#items th
+{
+text-align: middle;
+font-size: 13px;
+color: #5f5f5f;
+}
+#items td
+{
+font-size: 13px;
+color: #5f5f5f;
+text-align: center;
+}
+#submit
+{
+color: #000;
+padding-left: 5px;
+padding-right: 5px;
+background-image: url('img/btn.png');
+height: 19px;
+border: none;
+text-align:middle;
+}
+#submit:hover
+{background-image: url('img/btn_hover.png');}
+
+#pin
+{
+min-width: 145px;
+width: 145px;
+max-width: 145px;
+}
+#news
+{
+width: 50%;
+font-size: 13px;
+}
+
+#warning {
+background-image: url('img/warning.png');
+background-repeat: repeat-x;
+height:35px;
+margin:0 auto;
+width:535px;
+color:#000000;
+}
+#warning b {
+color:#000000;
+float:left;
+font-size:12px;
+height:35px;
+padding-left:35px;
+line-height:35px;
+}
+
+
+#undernav {
+background-image: url('img/navi2bg.png');
+background-repeat: repeat-x;
+height:26px;
+margin:0 auto;
+width:968px;
+color:#000000;
+}
+#undernav a:hover
+{
+color:#000000;
+text-decoration:underline;
+background-repeat:no-repeat;
+background-position:center;
+}
+#undernav a {
+color:#000000;
+float:left;
+font-size:12px;
+height:26px;
+padding-left:15px;
+padding-right:15px;
+text-decoration:none;
+line-height:26px;
+}
+#undernav .active {
+color:#000000;
+text-decoration:underline;
+background-repeat:no-repeat;
+background-position:center;
+}
+#undernav img
+{
+border: 0px;
+}
+
+#navigation {
+background-image: url('img/navibg.png');
+background-repeat: repeat-x;
+height:51px;
+margin:0 auto;
+width:968px;
+color:#000000;
+}
+#navigation a:hover
+{
+color:#000000;
+background-image: url('img/mainMenuActive.png');
+height:45px;
+background-repeat:no-repeat;
+background-position:center;
+}
+#navigation a {
+color:#000000;
+float:left;
+font-size:14px;
+height:41px;
+padding-left:15px;
+padding-right:15px;
+text-decoration:none;
+line-height:51px;
+}
+#navigation .active {
+background-image: url('img/mainMenuActive.png');
+height:45px;
+background-repeat:no-repeat;
+background-position:center;
+}
+#navigation img
+{
+border: 0px;
+}
+#foot
+{
+color: #000;
+}
+#main_head
+{
+text-align: center;
+font-family: Verdana;
+font-size: 12px;
+color: #000000;
+font-weight: bold;
+}
+#main_content
+{
+font-family: Verdana;
+font-size: 11px;
+color: #000000;
+}
+#main_foot
+{
+font-family: Verdana;
+font-size: 9px;
+color: #000000;
+text-align: right;
+padding-right: 25px;
+}
+#main_foot_admin
+{
+font-family: Verdana;
+font-size: 9px;
+color: #000000;
+text-align: right;
+padding-right: 25px;
+}
+#main_foot_prod
+{
+font-family: Verdana;
+font-size: 10px;
+color: #709836;
+text-align: right;
+padding-right: 25px;
+font-weight: bold;
+}
+#main_foot_prod_top
+{
+font-family: Verdana;
+font-size: 10px;
+color: #709836;
+text-align: right;
+font-weight: bold;
+}
+
+
+#buy_preis
+{
+font-family: Verdana;
+font-size: 10px;
+color: #709836;
+text-align: center;
+font-weight: bold;
+}
+#buy_accept
+{
+font-family: Verdana;
+font-size: 10px;
+color: #000000;
+text-align: center;
+}
