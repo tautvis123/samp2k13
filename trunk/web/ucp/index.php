@@ -1,15 +1,45 @@
 <?php
-//This if statement will redirect to home.php if the user is logged in/has the cookie "sessid" set.
-if(isset($_COOKIE['sessid'])) header('Location: home.php');
-?>
+include('./inc/config.php');
+include('./inc/functions.php');
+$page = addslashes($_REQUEST["page"]);
+$user = addslashes($_REQUEST["username"]);
+$pass = addslashes($_REQUEST["password"]);
+if(empty($page)) $page="index";
+$file = $page;
+if(!empty($user) AND !empty($pass))
+{$query = mysql_query('SELECT * FROM accounts WHERE username="'.$user.'" AND password="'.hash("sha256", $pass).'"');
+if(mysql_num_rows($query) == 1)
+{
+$_SESSION["user"] = $user;
+echo'<meta http-equiv="refresh" content="0; url=index.php?page=stats">';
+}
+else $error = '<center>Username oder Passwort ist falsch.</center>';}
 
-<form method="post" action="checkcreds.php">
-	Login
-	<br><br>
-	Username:<br>
-	<input name="user" class="form-login" type="text" title="Username" value="" size="30" maxlength="2048" /><br>
-	Passwort:<br>
-	<input name="pwd" type="password" class="form-login" title="Password" value="" size="30" maxlength="2048" />
-	<br>
-	<input type="submit" value="Login" />
-</form>
+$query2 = mysql_query('SELECT * FROM accounts WHERE username="'.$_SESSION["user"].'"');
+while($userinfos = mysql_fetch_array($query2))
+{
+$passwort = $userinfos["passwort"];
+$adminrang = $userinfos["adminLevel"];
+$bankgeld = $userinfos["bank"];
+$eingeloggt = $userinfos["loggedIn"];
+$level = $userinfos["level"];
+$ffrak = $userinfos["faction"];
+$frank = $userinfos["factionRank"];
+}
+// ---- Online Check ----
+$online3 = "SELECT * from accounts WHERE eingeloggt = '1' AND username='".$_SESSION["user"]."'"; 
+$online2 = mysql_query($online3); 
+$online = mysql_num_rows($online2); 
+// ---- Ende ----
+
+include('./design/head.php');
+include('./design/navi.php');
+include('./design/middle.tpl');
+
+	if(file_exists('./pages/'.$file.'.php'))
+	{
+	include('./pages/'.$file.'.php');}
+	if(!empty($error)) echo '<font color="red">'.$error.'</font>'; 
+	
+include('./design/foot.tpl');	
+?>
