@@ -8,6 +8,6 @@
  <body>
  <div id="page">
 	<div id="title">
-	<?php include('pages/headlogin.php'); ?>
+	<?php include('pages/header.php'); ?>
 	</div>
 	<div id="navi">

@@ -11,7 +11,7 @@ if(!empty($user) AND !empty($pass))
 if(mysql_num_rows($query) == 1)
 {
 $_SESSION["user"] = $user;
-echo'<meta http-equiv="refresh" content="0; url=index.php?page=stats">';
+echo'<meta http-equiv="refresh" content="0; url=index.php?page=home">';
 }
 else $error = '<center>Username oder Passwort ist falsch.</center>';}
 
@@ -27,7 +27,7 @@ $ffrak = $userinfos["faction"];
 $frank = $userinfos["factionRank"];
 }
 // ---- Online Check ----
-$online3 = "SELECT * from accounts WHERE eingeloggt = '1' AND username='".$_SESSION["user"]."'"; 
+$online3 = "SELECT * from accounts WHERE loggedIn = '1' AND username='".$_SESSION["user"]."'"; 
 $online2 = mysql_query($online3); 
 $online = mysql_num_rows($online2); 
 // ---- Ende ----
